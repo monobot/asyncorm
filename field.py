@@ -22,6 +22,16 @@ class Field(object):
 
         self.auto_now = kwargs.get('auto_now', False)
 
+        self.kwargs = {
+            'field_type': self.field_type,
+            'field_name': self.field_name,
+            'default': self.default,
+            'null': self.null,
+            'max_length': self.max_length,
+            'foreign_key': self.foreign_key,
+            'auto_now': self.auto_now,
+        }
+
     def creation_query(self):
         # self.field_name = self.kwargs['field_name'] or field_name
         # self.kwargs['field_name'] = self.field_name
