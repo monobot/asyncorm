@@ -30,8 +30,8 @@ class Field(object):
 
 class PkField(Field):
 
-    def __init__(self):
-        super().__init__(field_name='id')
+    def __init__(self, field_name='id'):
+        super().__init__(field_name=field_name)
 
     @property
     def field_creation_string(self):
@@ -45,7 +45,7 @@ class CharField(Field):
 
     def validate(self, kwargs):
         if not kwargs.get('max_length', None):
-            raise FieldError('CharField requires max_length')
+            raise FieldError('"CharField" field requires max_length')
 
     @property
     def field_creation_string(self):
