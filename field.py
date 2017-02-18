@@ -21,21 +21,9 @@ class Field(object):
         self.foreign_key = kwargs.get('foreign_key', None)
 
         self.auto_now = kwargs.get('auto_now', False)
-
-        self.kwargs = {
-            'field_type': self.field_type,
-            'field_name': self.field_name,
-            'default': self.default,
-            'null': self.null,
-            'max_length': self.max_length,
-            'foreign_key': self.foreign_key,
-            'auto_now': self.auto_now,
-        }
+        self.reverse_field = kwargs.get('reverse_field', None)
 
     def creation_query(self):
-        # self.field_name = self.kwargs['field_name'] or field_name
-        # self.kwargs['field_name'] = self.field_name
-
         creation_string = '{field_name} ' + self.creation_string
         date_field = self.field_type in DATE_FIELDS
 
@@ -50,7 +38,7 @@ class Field(object):
         elif date_field and self.auto_now:
             creation_string += ' DEFAULT now()'
 
-        return creation_string.format(**self.kwargs)
+        return creation_string.format(**self.__dict__)
 
     def validate(self, kwargs):
         pass
@@ -98,7 +86,7 @@ class ForeignKey(Field):
 
     def __init__(self, field_name=None, foreign_key=None, default=None,
             null=False):
-        self.creation_string = 'integer references {foreign_key}(id)'
+        self.creation_string = 'integer references {foreign_key}'
         super().__init__(field_name=field_name, foreign_key=foreign_key,
             default=default, null=null
         )
@@ -106,3 +94,21 @@ class ForeignKey(Field):
     def validate(self, kwargs):
         if not kwargs.get('foreign_key', None):
             raise FieldError('"ForeignKey" field requires foreign_key')
+
+
+class ManyToMany(Field):
+
+    def __init__(self, field_name=None, foreign_key=None, default=None,
+            null=False):
+        self.creation_string = '''
+            CREATE TABLE {field_name}_{reverse_field} (
+            {field_name} INTEGER REFERENCES {field_name} NOT NULL,
+            {foreign_key} INTEGER REFERENCES {foreign_key} NOT NULL
+            );'''
+        super().__init__(field_name=field_name, foreign_key=foreign_key,
+            default=default, null=null
+        )
+
+    def validate(self, kwargs):
+        if not kwargs.get('foreign_key', None):
+            raise FieldError('"ManyToMany" field requires foreign_key')

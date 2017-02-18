@@ -1,4 +1,4 @@
-from .field import Field, PkField
+from .field import Field, PkField, ManyToMany
 
 
 class Model(object):
@@ -28,4 +28,5 @@ class Model(object):
         )
 
     def get_field_queries(self):
-        return ', '.join([field.creation_query() for field in self.fields])
+        return ', '.join([f.creation_query() for f in self.fields
+            if not isinstance(f, ManyToMany)])
