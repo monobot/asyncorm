@@ -44,6 +44,6 @@ async def prepare_db(models):
 
 
 if __name__ == '__main__':
-    from test_models.models import Book, Room
-    task = loop.create_task(prepare_db([Room, Book]))
+    from test_models.models import Publisher, Book, Author
+    task = loop.create_task(prepare_db([Publisher, Author, Book]))
     loop.run_until_complete(asyncio.gather(task))

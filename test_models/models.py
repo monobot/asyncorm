@@ -1,20 +1,24 @@
 from model import Model
-from fields import (CharField, DateField, IntegerField, ForeignKey, ManyToMany,
-    PkField
+from fields import (CharField, DateField, IntegerField, ForeignKey,
+    ManyToMany, PkField
 )
 
 
+class Publisher(Model):
+    name = CharField(max_length=50)
+
+
 class Book(Model):
+    table_name = 'library'
     name = CharField(max_length=50)
     content = CharField(max_length=255, field_name='hhuhuhuh', )
-    silvia = CharField(max_length=25)
     date_created = DateField(auto_now=True)
-    room = ForeignKey(foreign_key='Room', null=True)
+    author = ForeignKey(foreign_key='Author', null=True)
 
 
-class Room(Model):
-    ok = PkField(field_name='ok')
+class Author(Model):
+    uid = PkField(field_name='uid')
     name = CharField(max_length=50)
-    windows = IntegerField()
+    age = IntegerField()
     puertas = IntegerField()
-    book = ManyToMany(foreign_key='room')
+    publisher = ManyToMany(foreign_key='publisher')

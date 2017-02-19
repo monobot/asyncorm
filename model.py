@@ -3,11 +3,17 @@ from exceptions import ModelError
 
 
 class Model(object):
+    table_name = ''
 
     def __init__(self, **kwargs):
-        self.table_name = self.__class__.__name__.lower()
+        # test done
+        if not self.table_name:
+            self.table_name = self.__class__.__name__.lower()
         self.fields, self.field_names = self.get_fields()
+        self.validate(kwargs)
 
+    def validate(self, kwargs):
+        # test done
         attr_errors = [k for k in kwargs.keys() if k not in self.field_names]
 
         if attr_errors:
@@ -18,12 +24,17 @@ class Model(object):
             ]
             raise ModelError(error_list)
 
+        for k, v in kwargs.items():
+            att_class = getattr(self.__class__, k).__class__
+            att_class.validate(v)
+
     @property
     def fk_id(self):
         return [f for f in self.fields if isinstance(f, PkField)][0].field_name
 
     @classmethod
     def get_fields(cls):
+        # test done
         fields = []
         field_names = []
         for f in cls.__dict__.keys():
@@ -32,11 +43,20 @@ class Model(object):
 
                 if not field.field_name:
                     setattr(field, 'field_name', f)
+
+                if isinstance(getattr(cls, f), ManyToMany):
+                    setattr(
+                        field,
+                        'foreign_model',
+                        cls.table_name or cls.__name__.lower()
+                    )
+
                 fields.append(field)
                 field_names.append(f)
 
         if PkField not in [f.__class__ for f in fields]:
             fields = [PkField()] + fields
+            field_names = ['id'] + field_names
 
         return fields, field_names
 
