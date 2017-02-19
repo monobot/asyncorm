@@ -1,11 +1,22 @@
-from field import Field, PkField, ManyToMany
+from fields import Field, PkField, ManyToMany
+from exceptions import ModelError
 
 
 class Model(object):
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.table_name = self.__class__.__name__.lower()
-        self.fields = self.get_fields()
+        self.fields, self.field_names = self.get_fields()
+
+        attr_errors = [k for k in kwargs.keys() if k not in self.field_names]
+
+        if attr_errors:
+            err_string = '"{}" is not an attribute for {}'
+            error_list = [
+                err_string.format(k, self.__class__.__name__)
+                for k in attr_errors
+            ]
+            raise ModelError(error_list)
 
     @property
     def fk_id(self):
@@ -14,18 +25,20 @@ class Model(object):
     @classmethod
     def get_fields(cls):
         fields = []
-        self.field_attribs = []
+        field_names = []
         for f in cls.__dict__.keys():
             if isinstance(getattr(cls, f), Field):
                 field = getattr(cls, f)
-                setattr(field, 'field_name', f)
+
+                if not field.field_name:
+                    setattr(field, 'field_name', f)
                 fields.append(field)
-                self.field_attribs.append(f)
+                field_names.append(f)
 
         if PkField not in [f.__class__ for f in fields]:
             fields = [PkField()] + fields
 
-        return fields
+        return fields, field_names
 
     def creation_query(self):
         return 'CREATE TABLE {table_name} ({field_queries});'.format(
@@ -48,7 +61,6 @@ class Model(object):
     #     # performs the database save
 
     #     changes_stack = {}
-    #     for f in self.field_attribs:
+    #     for f in self.field_names:
     #         field_data = getattr(self, f)
     #         if not isinstance(field_data, Field):
-

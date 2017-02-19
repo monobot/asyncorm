@@ -10,6 +10,7 @@ DATE_FIELDS = ['DateField', ]
 class Field(object):
 
     def __init__(self, **kwargs):
+        print(kwargs)
         self.validate(kwargs)
         self.field_type = self.__class__.__name__
 
@@ -48,7 +49,7 @@ class PkField(Field):
 
     def __init__(self, field_name='id'):
         self.creation_string = 'serial primary key'
-        super().__init__(field_name='id')
+        super().__init__(field_name=field_name)
 
 
 class CharField(Field):
@@ -98,15 +99,14 @@ class ForeignKey(Field):
 
 class ManyToMany(Field):
 
-    def __init__(self, field_name=None, foreign_key=None, default=None,
-            null=False):
+    def __init__(self, field_name=None, foreign_key=None, default=None):
         self.creation_string = '''
             CREATE TABLE {field_name}_{foreign_key} (
             {field_name} INTEGER REFERENCES {field_name} NOT NULL,
             {foreign_key} INTEGER REFERENCES {foreign_key} NOT NULL
             );'''
         super().__init__(field_name=field_name, foreign_key=foreign_key,
-            default=default, null=null
+            default=default
         )
 
     def creation_query(self):

@@ -1,5 +1,7 @@
 from model import Model
-from field import CharField, DateField, IntegerField, ForeignKey, ManyToMany
+from fields import (CharField, DateField, IntegerField, ForeignKey, ManyToMany,
+    PkField
+)
 
 
 class Book(Model):
@@ -11,6 +13,7 @@ class Book(Model):
 
 
 class Room(Model):
+    ok = PkField(field_name='ok')
     name = CharField(max_length=50)
     windows = IntegerField()
     puertas = IntegerField()

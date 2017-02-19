@@ -27,10 +27,16 @@ async def prepare_db(models):
                 for model in models:
                     await cur.execute(
                         'DROP TABLE IF EXISTS {table} cascade'.format(
-                            table=model().table_name)
+                            table=model().table_name
                         )
+                    )
                     await cur.execute(model().creation_query())
 
+                await cur.execute(
+                    'DROP TABLE IF EXISTS book_room cascade'.format(
+                        table=model().table_name
+                    )
+                )
                 for model in models:
                     m2m_queries = model().get_m2m_field_queries()
                     if m2m_queries:
@@ -39,5 +45,5 @@ async def prepare_db(models):
 
 if __name__ == '__main__':
     from test_models.models import Book, Room
-    task = loop.create_task(prepare_db([Book, Room]))
+    task = loop.create_task(prepare_db([Room, Book]))
     loop.run_until_complete(asyncio.gather(task))
