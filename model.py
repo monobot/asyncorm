@@ -1,4 +1,4 @@
-from .field import Field, PkField, ManyToMany
+from field import Field, PkField, ManyToMany
 
 
 class Model(object):
@@ -13,9 +13,15 @@ class Model(object):
 
     @classmethod
     def get_fields(cls):
-        fields = [getattr(cls, f) for f in cls.__dict__.keys()
-            if isinstance(getattr(cls, f), Field)
-        ]
+        fields = []
+        self.field_attribs = []
+        for f in cls.__dict__.keys():
+            if isinstance(getattr(cls, f), Field):
+                field = getattr(cls, f)
+                setattr(field, 'field_name', f)
+                fields.append(field)
+                self.field_attribs.append(f)
+
         if PkField not in [f.__class__ for f in fields]:
             fields = [PkField()] + fields
 
@@ -28,5 +34,21 @@ class Model(object):
         )
 
     def get_field_queries(self):
+        # builds the table with all its fields definition
         return ', '.join([f.creation_query() for f in self.fields
             if not isinstance(f, ManyToMany)])
+
+    def get_m2m_field_queries(self):
+        # builds the relational 1_to_1 table
+        return '; '.join([f.creation_query() for f in self.fields
+            if isinstance(f, ManyToMany)]
+            )
+
+    # async def save(self, fields):
+    #     # performs the database save
+
+    #     changes_stack = {}
+    #     for f in self.field_attribs:
+    #         field_data = getattr(self, f)
+    #         if not isinstance(field_data, Field):
+

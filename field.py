@@ -1,4 +1,4 @@
-from .exceptions import FieldError
+from exceptions import FieldError
 
 __all__ = ('Field', 'PkField', 'CharField', 'IntegerField', 'DateField',
     'ForeignKey',
@@ -48,7 +48,7 @@ class PkField(Field):
 
     def __init__(self, field_name='id'):
         self.creation_string = 'serial primary key'
-        super().__init__(field_name=field_name)
+        super().__init__(field_name='id')
 
 
 class CharField(Field):
@@ -84,11 +84,11 @@ class DateField(Field):
 
 class ForeignKey(Field):
 
-    def __init__(self, field_name=None, foreign_key=None, default=None,
+    def __init__(self, field_name=None, default=None, foreign_key=None,
             null=False):
         self.creation_string = 'integer references {foreign_key}'
-        super().__init__(field_name=field_name, foreign_key=foreign_key,
-            default=default, null=null
+        super().__init__(field_name=field_name, default=default,
+            foreign_key=foreign_key, null=null
         )
 
     def validate(self, kwargs):
@@ -101,13 +101,16 @@ class ManyToMany(Field):
     def __init__(self, field_name=None, foreign_key=None, default=None,
             null=False):
         self.creation_string = '''
-            CREATE TABLE {field_name}_{reverse_field} (
+            CREATE TABLE {field_name}_{foreign_key} (
             {field_name} INTEGER REFERENCES {field_name} NOT NULL,
             {foreign_key} INTEGER REFERENCES {foreign_key} NOT NULL
             );'''
         super().__init__(field_name=field_name, foreign_key=foreign_key,
             default=default, null=null
         )
+
+    def creation_query(self):
+        return self.creation_string.format(**self.__dict__)
 
     def validate(self, kwargs):
         if not kwargs.get('foreign_key', None):
