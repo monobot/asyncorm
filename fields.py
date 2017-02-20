@@ -10,7 +10,7 @@ DATE_FIELDS = ['DateField', ]
 class Field(object):
 
     def __init__(self, **kwargs):
-        self.validate_kwargs(kwargs)
+        self._validate_kwargs(kwargs)
         self.field_type = self.__class__.__name__
 
         self.field_name = kwargs.get('field_name', None)
@@ -23,7 +23,7 @@ class Field(object):
         self.auto_now = kwargs.get('auto_now', False)
         self.reverse_field = kwargs.get('reverse_field', None)
 
-    def creation_query(self):
+    def _creation_query(self):
         creation_string = '{field_name} ' + self.creation_string
         date_field = self.field_type in DATE_FIELDS
 
@@ -40,10 +40,10 @@ class Field(object):
 
         return creation_string.format(**self.__dict__)
 
-    def validate_kwargs(self, kwargs):
+    def _validate_kwargs(self, kwargs):
         pass
 
-    def sanitize_data(self, value):
+    def _sanitize_data(self, value):
         return value
 
 
@@ -55,6 +55,7 @@ class PkField(Field):
 
     @classmethod
     def _validate(cls, value):
+        # pkFields are integers
         if not isinstance(value, int):
             raise FieldError(
                 '{} is a wrong datatype for field {}'.format(
@@ -73,7 +74,7 @@ class CharField(Field):
             max_length=max_length, null=null
         )
 
-    def validate_kwargs(self, kwargs):
+    def _validate_kwargs(self, kwargs):
         if not kwargs.get('max_length', None):
             raise FieldError('"CharField" field requires max_length')
 
@@ -87,7 +88,13 @@ class CharField(Field):
                 )
             )
 
-    def sanitize_data(self, value):
+    def _sanitize_data(self, value):
+        if len(value) > self.max_length:
+            raise FieldError(
+                ('The string entered is bigger than '
+                    'the "max_length" defined ({})'
+                ).format(self.max_length)
+            )
         return "'{}'".format(value)
 
 
@@ -128,7 +135,7 @@ class DateField(Field):
                 )
             )
 
-    def sanitize_data(self, value):
+    def _sanitize_data(self, value):
         return "'{}'".format(value)
 
 
@@ -141,7 +148,7 @@ class ForeignKey(Field):
             foreign_key=foreign_key, null=null
         )
 
-    def validate_kwargs(self, kwargs):
+    def _validate_kwargs(self, kwargs):
         if not kwargs.get('foreign_key', None):
             raise FieldError('"ForeignKey" field requires foreign_key')
 
@@ -168,10 +175,10 @@ class ManyToMany(Field):
             default=default
         )
 
-    def creation_query(self):
+    def _creation_query(self):
         return self.creation_string.format(**self.__dict__)
 
-    def validate_kwargs(self, kwargs):
+    def _validate_kwargs(self, kwargs):
         if not kwargs.get('foreign_key', None):
             raise FieldError('"ManyToMany" field requires foreign_key')
 

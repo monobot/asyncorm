@@ -33,7 +33,7 @@ async def create_db(models):
                             table=model().table_name
                         )
                     )
-                    await cur.execute(model().creation_query())
+                    await cur.execute(model()._creation_query())
 
                 await cur.execute(
                     'DROP TABLE IF EXISTS author_publisher cascade'.format(
@@ -41,7 +41,7 @@ async def create_db(models):
                     )
                 )
                 for model in models:
-                    m2m_queries = model().get_m2m_field_queries()
+                    m2m_queries = model()._get_m2m_field_queries()
                     if m2m_queries:
                         await cur.execute(m2m_queries)
 
@@ -58,7 +58,7 @@ async def create_book():
                     # 'author': 1
                 })
 
-                await cur.execute(book.save())
+                await cur.execute(book._db_save())
 
 
 if __name__ == '__main__':

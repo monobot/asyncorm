@@ -1,6 +1,8 @@
 from fields import Field, PkField, CharField, ManyToMany, DateField
 from exceptions import ModelError
 
+__all__ = ['Model', 'ModelManager']
+
 
 class ModelManager(object):
     model = None
@@ -20,7 +22,7 @@ class Model(object):
         self.objects.model = self.__class__
         if not self.table_name:
             self.table_name = self.__class__.__name__.lower()
-        self.fields, self.field_names, pk_needed = self.get_fields()
+        self.fields, self.field_names, pk_needed = self._get_fields()
 
         if pk_needed:
             self.__class__.id = PkField()
@@ -57,11 +59,11 @@ class Model(object):
             att_class._validate(v)
 
     @property
-    def fk_id(self):
+    def _fk_id(self):
         return [f for f in self.fields if isinstance(f, PkField)][0].field_name
 
     @classmethod
-    def get_fields(cls):
+    def _get_fields(cls):
         # test done
         fields = []
         field_names = []
@@ -88,24 +90,24 @@ class Model(object):
 
         return fields, field_names, pk_needed
 
-    def creation_query(self):
+    def _creation_query(self):
         return 'CREATE TABLE {table_name} ({field_queries});'.format(
             table_name=self.table_name,
-            field_queries=self.get_field_queries(),
+            field_queries=self._get_field_queries(),
         )
 
-    def get_field_queries(self):
+    def _get_field_queries(self):
         # builds the table with all its fields definition
-        return ', '.join([f.creation_query() for f in self.fields
+        return ', '.join([f._creation_query() for f in self.fields
             if not isinstance(f, ManyToMany)])
 
-    def get_m2m_field_queries(self):
+    def _get_m2m_field_queries(self):
         # builds the relational 1_to_1 table
-        return '; '.join([f.creation_query() for f in self.fields
+        return '; '.join([f._creation_query() for f in self.fields
             if isinstance(f, ManyToMany)]
             )
 
-    def save_string(self, fields, field_data):
+    def _save_string(self, fields, field_data):
         interpolate = ','.join(['{}'] * len(fields))
         save_string = '''
             INSERT INTO {table_name} ({interpolate}) VALUES ({interpolate});
@@ -116,7 +118,7 @@ class Model(object):
         save_string = save_string.format(*tuple(fields + field_data))
         return save_string
 
-    def save(self):
+    def _db_save(self):
         # performs the database save
         fields, field_data = [], []
         for k, data in self.kwargs.items():
@@ -124,6 +126,6 @@ class Model(object):
 
             # we add the field_name in db
             fields.append(f_class.field_name or k)
-            field_data.append(f_class.sanitize_data(data))
+            field_data.append(f_class._sanitize_data(data))
 
-        return self.save_string(fields, field_data)
+        return self._save_string(fields, field_data)
