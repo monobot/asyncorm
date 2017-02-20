@@ -19,31 +19,49 @@ connection = 'postgres://{0}:{1}@{2}/{3}'.format(
 loop = asyncio.get_event_loop()
 
 
+class Database_Manager(object):
+    async def transaction(self, queries):
+        async with aiopg.create_pool(connection) as pool:
+            async with pool.acquire() as conn:
+                async with conn.cursor() as cur:
+                    await cur.execute('BEGIN transaction;')
+                    for query in queries:
+                        await cur.execute(query)
+                    await cur.execute('COMMIT transaction;')
+
+    async def non_transaction(self, queries):
+        async with aiopg.create_pool(connection) as pool:
+            async with pool.acquire() as conn:
+                async with conn.cursor() as cur:
+                    async for query in queries:
+                        await cur.execute(query)
+
+
 async def create_db(models):
     """
     We  create all tables for each of the declared models
     """
-    async with aiopg.create_pool(connection) as pool:
-        async with pool.acquire() as conn:
-            async with conn.cursor() as cur:
+    db = Database_Manager()
+    queries = []
 
-                for model in models:
-                    await cur.execute(
-                        'DROP TABLE IF EXISTS {table} cascade'.format(
-                            table=model().table_name
-                        )
-                    )
-                    await cur.execute(model()._creation_query())
+    for model in models:
+        queries.append(
+            'DROP TABLE IF EXISTS {table} cascade'.format(
+                table=model().table_name
+            )
+        )
+        queries.append(model()._creation_query())
 
-                await cur.execute(
-                    'DROP TABLE IF EXISTS author_publisher cascade'.format(
-                        table=model().table_name
-                    )
-                )
-                for model in models:
-                    m2m_queries = model()._get_m2m_field_queries()
-                    if m2m_queries:
-                        await cur.execute(m2m_queries)
+    queries.append(
+        'DROP TABLE IF EXISTS author_publisher cascade'.format(
+            table=model().table_name
+        )
+    )
+    for model in models:
+        m2m_queries = model()._get_m2m_field_queries()
+        if m2m_queries:
+            queries.append(m2m_queries)
+    await db.transaction(queries)
 
 
 async def create_book():
@@ -65,5 +83,5 @@ if __name__ == '__main__':
     task = loop.create_task(create_db([Publisher, Author, Book]))
     loop.run_until_complete(asyncio.gather(task))
 
-    task = loop.create_task(create_book())
-    loop.run_until_complete(asyncio.gather(task))
+    # task = loop.create_task(create_book())
+    # loop.run_until_complete(asyncio.gather(task))

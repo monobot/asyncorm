@@ -4,5 +4,5 @@ from .field import (PkField, CharField, IntegerField, DateField, ForeignKey,
 )
 
 __all__ = ('Model', 'ModelManager', 'PkField', 'CharField', 'IntegerField',
-    'DateField', 'ForeignKey'
+    'DateField', 'ForeignKey', 'ManyToMany'
 )

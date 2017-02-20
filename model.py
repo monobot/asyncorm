@@ -30,6 +30,7 @@ class Model(object):
 
         if pk_needed:
             self.__class__.id = PkField()
+            setattr(self.__class__.id, 'orm_field_name', 'id')
             self.fk_field = self.__class__.id
 
             self.fields = [self.id] + self.fields
