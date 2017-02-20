@@ -1,7 +1,7 @@
 import aiopg
 import asyncio
 from datetime import datetime, timedelta
-from test_models.models import Book  # , Author, Publisher
+from test_models.models import Book, Author, Publisher
 
 
 database_name = 'sanic'
@@ -62,6 +62,6 @@ async def create_book():
 
 
 if __name__ == '__main__':
-    # task = loop.create_task(create_db([Publisher, Book, Author]))
-    task = loop.create_task(create_book())
-    loop.run_until_complete(asyncio.gather(task))
+    task1 = loop.create_task(create_db([Author, Publisher, Book]))
+    task2 = loop.create_task(create_book())
+    loop.run_until_complete(asyncio.gather(task1, task2))

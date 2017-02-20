@@ -1,12 +1,13 @@
 import unittest
 
 from exceptions import ModelError, FieldError
-from test_models.models import Book
+from test_models.models import Book, Author
 
 
 class ModelTests(unittest.TestCase):
 
-    def test_init(self):
+    def test__init__(self):
+        # classmethods tests
         # self.assertEqual(Book().table_name, 'library')
         # self.assertEqual(Author().table_name, 'author')
 
@@ -20,8 +21,21 @@ class ModelTests(unittest.TestCase):
             ['id', 'content', 'name', 'author', 'date_created'].sort()
         )
 
+    def test_instantiated__init__(self):
+        # classmethods tests
+        book = Book()
+
+        self.assertEqual(book._fk_db_fieldname, 'id')
+        self.assertEqual(book._fk_orm_fieldname, 'id')
+
+        author = Author()
+
+        self.assertEqual(author._fk_db_fieldname, 'uid')
+        self.assertEqual(author._fk_orm_fieldname, 'na')
+
     def test__validate_kwargs(self):
         kwargs = {
+            'id': 34,
             'name': 'name',
             'content': 3,
         }
@@ -31,6 +45,12 @@ class ModelTests(unittest.TestCase):
             book = Book()
             book._validate(kwargs)
         kwargs['content'] = 'correct content'
+
+        # also raises fielderror because you can not pre-set the object's id
+        with self.assertRaises(FieldError):
+            book = Book()
+            book._validate(kwargs)
+        kwargs.pop('id')
 
         kwargs['volume'] = 23
         # raises the validate error because volume is not a correct attrib

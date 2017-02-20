@@ -55,14 +55,7 @@ class PkField(Field):
 
     @classmethod
     def _validate(cls, value):
-        # pkFields are integers
-        if not isinstance(value, int):
-            raise FieldError(
-                '{} is a wrong datatype for field {}'.format(
-                    value,
-                    cls.__name__
-                )
-            )
+        raise FieldError('Models can not be generated with forced id')
 
 
 class CharField(Field):

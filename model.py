@@ -26,8 +26,14 @@ class Model(object):
 
         if pk_needed:
             self.__class__.id = PkField()
+            self.fk_field = self.__class__.id
+
             self.fields = [self.id] + self.fields
             self.field_names = ['id'] + self.field_names
+        else:
+            pk_fields = [f for f in self.fields if isinstance(f, PkField)]
+            self.fk_field = pk_fields[0]
+
         self._validate(kwargs)
 
         for field_name in self.field_names:
@@ -42,30 +48,6 @@ class Model(object):
 
         self.kwargs = kwargs
 
-    def _validate(self, kwargs):
-        # test done
-        attr_errors = [k for k in kwargs.keys() if k not in self.field_names]
-
-        if attr_errors:
-            err_string = '"{}" is not an attribute for {}'
-            error_list = [
-                err_string.format(k, self.__class__.__name__)
-                for k in attr_errors
-            ]
-            raise ModelError(error_list)
-
-        for k, v in kwargs.items():
-            att_class = getattr(self.__class__, k).__class__
-            att_class._validate(v)
-
-    @property
-    def _fk_db_fieldname(self):
-        return [f for f in self.fields if isinstance(f, PkField)][0].field_name
-
-    @property
-    def _fk_orm_fieldname(self):
-        return [f for f in self.fields if isinstance(f, PkField)][0].field_name
-
     @classmethod
     def _get_fields(cls):
         # test done
@@ -74,6 +56,7 @@ class Model(object):
         for f in cls.__dict__.keys():
             field = getattr(cls, f)
             if isinstance(field, Field):
+                field.orm_field_name = f
 
                 if not field.field_name:
                     setattr(field, 'field_name', f)
@@ -93,6 +76,33 @@ class Model(object):
             pk_needed = True
 
         return fields, field_names, pk_needed
+
+    def _validate(self, kwargs):
+        '''validate the kwargs on object instantiation only'''
+        # test done
+        attr_errors = [k for k in kwargs.keys() if k not in self.field_names]
+
+        if attr_errors:
+            err_string = '"{}" is not an attribute for {}'
+            error_list = [
+                err_string.format(k, self.__class__.__name__)
+                for k in attr_errors
+            ]
+            raise ModelError(error_list)
+
+        for k, v in kwargs.items():
+            att_class = getattr(self.__class__, k).__class__
+            att_class._validate(v)
+
+    @property
+    def _fk_db_fieldname(self):
+        '''model foreign_key database fieldname'''
+        return self.fk_field.field_name
+
+    @property
+    def _fk_orm_fieldname(self):
+        '''model foreign_key orm fieldname'''
+        return self.fk_field.orm_field_name
 
     def _creation_query(self):
         return 'CREATE TABLE {table_name} ({field_queries});'.format(
@@ -122,19 +132,19 @@ class Model(object):
         save_string = save_string.format(*tuple(fields + field_data))
         return save_string
 
-    # def _update_save_string(self, fields, field_data):
-    #     interpolate = ','.join(['{}'] * len(fields))
-    #     save_string = '''
-    #         UPDATE ONLY {table_name} SET ({interpolate}) VALUES ({interpolate})
-    #         WHERE {_fk_db_fieldname}={model_id};
-    #     '''.format(
-    #         table_name=self.__class__.table_name,
-    #         interpolate=interpolate,
-    #         _fk_db_fieldname=self._fk_db_fieldname,
-    #         model_id=self._fk_orm_fieldname.value,
-    #     )
-    #     save_string = save_string.format(*tuple(fields + field_data))
-    #     return save_string
+    def _update_save_string(self, fields, field_data):
+        interpolate = ','.join(['{}'] * len(fields))
+        save_string = '''
+            UPDATE ONLY {table_name} SET ({interpolate}) VALUES ({interpolate})
+            WHERE {_fk_db_fieldname}={model_id};
+        '''.format(
+            table_name=self.__class__.table_name,
+            interpolate=interpolate,
+            _fk_db_fieldname=self._fk_db_fieldname,
+            model_id=getattr(self, self._fk_orm_fieldname).value
+        )
+        save_string = save_string.format(*tuple(fields + field_data))
+        print(save_string)
 
     def _db_save(self):
         # performs the database save

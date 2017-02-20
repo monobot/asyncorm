@@ -17,8 +17,7 @@ class Book(Model):
 
 
 class Author(Model):
-    uid = PkField(field_name='uid')
+    na = PkField(field_name='uid')
     name = CharField(max_length=50)
     age = IntegerField()
-    puertas = IntegerField()
     publisher = ManyToMany(foreign_key='publisher')
