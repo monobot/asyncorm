@@ -1,8 +1,8 @@
 # AsyncORM
 
-==version prebeta==
+== version prebeta ==
 
-==Work In Progress==
+== Work In Progress ==
 
 **AsyncORM** is a fully async [ORM](https://en.wikipedia.org/wiki/Object-relational_mapping) to be used together with [sanic](https://github.com/channelcat/sanic) or other async webserver.
 
