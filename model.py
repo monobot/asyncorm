@@ -67,6 +67,15 @@ class Model(object):
                         'foreign_model',
                         cls.table_name or cls.__name__.lower()
                     )
+                    setattr(
+                        field,
+                        'table_name',
+                        '{my_model}_{foreign_key}'.format(
+                            my_model=cls.table_name or cls.__name__.lower(),
+                            foreign_key=field.field_name,
+
+                        )
+                    )
 
                 fields.append(field)
                 field_names.append(f)
@@ -141,7 +150,7 @@ class Model(object):
             table_name=self.__class__.table_name,
             interpolate=interpolate,
             _fk_db_fieldname=self._fk_db_fieldname,
-            model_id=getattr(self, self._fk_orm_fieldname).value
+            model_id=getattr(self, self._fk_orm_fieldname)
         )
         save_string = save_string.format(*tuple(fields + field_data))
         print(save_string)
@@ -156,4 +165,7 @@ class Model(object):
             fields.append(f_class.field_name or k)
             field_data.append(f_class._sanitize_data(data))
 
+        self._update_save_string(fields, field_data)
+        if getattr(self, self._fk_db_fieldname):
+            return self._update_save_string(fields, field_data)
         return self._create_save_string(fields, field_data)

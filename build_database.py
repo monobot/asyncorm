@@ -62,6 +62,8 @@ async def create_book():
 
 
 if __name__ == '__main__':
-    task1 = loop.create_task(create_db([Author, Publisher, Book]))
-    task2 = loop.create_task(create_book())
-    loop.run_until_complete(asyncio.gather(task1, task2))
+    task = loop.create_task(create_db([Publisher, Author, Book]))
+    loop.run_until_complete(asyncio.gather(task))
+
+    task = loop.create_task(create_book())
+    loop.run_until_complete(asyncio.gather(task))

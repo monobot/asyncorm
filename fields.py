@@ -160,7 +160,7 @@ class ManyToMany(Field):
 
     def __init__(self, field_name=None, foreign_key=None, default=None):
         self.creation_string = '''
-            CREATE TABLE {foreign_model}_{foreign_key} (
+            CREATE TABLE {table_name} (
             {foreign_model} INTEGER REFERENCES {foreign_model} NOT NULL,
             {foreign_key} INTEGER REFERENCES {foreign_key} NOT NULL
             );'''
