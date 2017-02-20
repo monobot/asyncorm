@@ -10,10 +10,10 @@ class ModelTests(unittest.TestCase):
         # self.assertEqual(Book().table_name, 'library')
         # self.assertEqual(Author().table_name, 'author')
 
-        fields, field_names = Book.get_fields()
+        fields, field_names, pk_needed = Book.get_fields()
 
-        self.assertEqual(len(fields), 5)
-        self.assertEqual(len(field_names), 5)
+        self.assertEqual(len(fields), 4)
+        self.assertEqual(len(field_names), 4)
 
         self.assertEqual(
             field_names.sort(),
@@ -29,18 +29,29 @@ class ModelTests(unittest.TestCase):
         # raises the validate content has an incorrect value
         with self.assertRaises(FieldError):
             book = Book()
-            book.validate(kwargs)
+            book._validate(kwargs)
         kwargs['content'] = 'correct content'
 
         kwargs['volume'] = 23
         # raises the validate error because volume is not a correct attrib
         with self.assertRaises(ModelError):
             book = Book()
-            book.validate(kwargs)
+            book._validate(kwargs)
         kwargs.pop('volume')
 
         # now it correctly validates
-        book.validate(kwargs)
+        book._validate(kwargs)
+
+    def test_save(self):
+        from datetime import datetime
+
+        book = Book(**{
+            'name': 'name asigned',
+            'content': 'content asigned',
+            # 'date_created': datetime.now(),
+            # 'author': 1
+        })
+        book.save()
 
 
 if __name__ == '__main__':

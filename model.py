@@ -1,18 +1,46 @@
-from fields import Field, PkField, ManyToMany
+from fields import Field, PkField, CharField, ManyToMany, DateField
 from exceptions import ModelError
+
+
+class ModelManager(object):
+    model = None
+
+    @classmethod
+    def queryset(cls):
+        pass
 
 
 class Model(object):
     table_name = ''
 
+    objects = ModelManager()
+
     def __init__(self, **kwargs):
         # test done
+        self.objects.model = self.__class__
         if not self.table_name:
             self.table_name = self.__class__.__name__.lower()
-        self.fields, self.field_names = self.get_fields()
-        self.validate(kwargs)
+        self.fields, self.field_names, pk_needed = self.get_fields()
 
-    def validate(self, kwargs):
+        if pk_needed:
+            self.__class__.id = PkField()
+            self.fields = [self.id] + self.fields
+            self.field_names = ['id'] + self.field_names
+        self._validate(kwargs)
+
+        for field_name in self.field_names:
+            setattr(
+                self,
+                field_name,
+                kwargs.get(
+                    field_name,
+                    getattr(self.__class__, field_name).default
+                )
+            )
+
+        self.kwargs = kwargs
+
+    def _validate(self, kwargs):
         # test done
         attr_errors = [k for k in kwargs.keys() if k not in self.field_names]
 
@@ -26,7 +54,7 @@ class Model(object):
 
         for k, v in kwargs.items():
             att_class = getattr(self.__class__, k).__class__
-            att_class.validate(v)
+            att_class._validate(v)
 
     @property
     def fk_id(self):
@@ -38,13 +66,13 @@ class Model(object):
         fields = []
         field_names = []
         for f in cls.__dict__.keys():
-            if isinstance(getattr(cls, f), Field):
-                field = getattr(cls, f)
+            field = getattr(cls, f)
+            if isinstance(field, Field):
 
                 if not field.field_name:
                     setattr(field, 'field_name', f)
 
-                if isinstance(getattr(cls, f), ManyToMany):
+                if isinstance(field, ManyToMany):
                     setattr(
                         field,
                         'foreign_model',
@@ -54,11 +82,11 @@ class Model(object):
                 fields.append(field)
                 field_names.append(f)
 
+        pk_needed = False
         if PkField not in [f.__class__ for f in fields]:
-            fields = [PkField()] + fields
-            field_names = ['id'] + field_names
+            pk_needed = True
 
-        return fields, field_names
+        return fields, field_names, pk_needed
 
     def creation_query(self):
         return 'CREATE TABLE {table_name} ({field_queries});'.format(
@@ -77,10 +105,25 @@ class Model(object):
             if isinstance(f, ManyToMany)]
             )
 
-    # async def save(self, fields):
-    #     # performs the database save
+    def save_string(self, fields, field_data):
+        interpolate = ','.join(['{}'] * len(fields))
+        save_string = '''
+            INSERT INTO {table_name} ({interpolate}) VALUES ({interpolate});
+        '''.format(
+            table_name=self.__class__.table_name,
+            interpolate=interpolate,
+        )
+        save_string = save_string.format(*tuple(fields + field_data))
+        return save_string
 
-    #     changes_stack = {}
-    #     for f in self.field_names:
-    #         field_data = getattr(self, f)
-    #         if not isinstance(field_data, Field):
+    def save(self):
+        # performs the database save
+        fields, field_data = [], []
+        for k, data in self.kwargs.items():
+            f_class = getattr(self.__class__, k)
+
+            # we add the field_name in db
+            fields.append(f_class.field_name or k)
+            field_data.append(f_class.sanitize_data(data))
+
+        return self.save_string(fields, field_data)

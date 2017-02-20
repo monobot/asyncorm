@@ -1,5 +1,8 @@
 import aiopg
 import asyncio
+from datetime import datetime, timedelta
+from test_models.models import Book  # , Author, Publisher
+
 
 database_name = 'sanic'
 database_host = 'localhost'
@@ -16,7 +19,7 @@ connection = 'postgres://{0}:{1}@{2}/{3}'.format(
 loop = asyncio.get_event_loop()
 
 
-async def prepare_db(models):
+async def create_db(models):
     """
     We  create all tables for each of the declared models
     """
@@ -33,7 +36,7 @@ async def prepare_db(models):
                     await cur.execute(model().creation_query())
 
                 await cur.execute(
-                    'DROP TABLE IF EXISTS book_room cascade'.format(
+                    'DROP TABLE IF EXISTS author_publisher cascade'.format(
                         table=model().table_name
                     )
                 )
@@ -43,7 +46,22 @@ async def prepare_db(models):
                         await cur.execute(m2m_queries)
 
 
+async def create_book():
+    async with aiopg.create_pool(connection) as pool:
+        async with pool.acquire() as conn:
+            async with conn.cursor() as cur:
+
+                book = Book(**{
+                    'name': 'silvia',
+                    'content': 'se va a dormir',
+                    'date_created': datetime.now() - timedelta(days=23772),
+                    # 'author': 1
+                })
+
+                await cur.execute(book.save())
+
+
 if __name__ == '__main__':
-    from test_models.models import Publisher, Book, Author
-    task = loop.create_task(prepare_db([Publisher, Author, Book]))
+    # task = loop.create_task(create_db([Publisher, Book, Author]))
+    task = loop.create_task(create_book())
     loop.run_until_complete(asyncio.gather(task))

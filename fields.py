@@ -43,6 +43,9 @@ class Field(object):
     def validate_kwargs(self, kwargs):
         pass
 
+    def sanitize_data(self, value):
+        return value
+
 
 class PkField(Field):
 
@@ -51,7 +54,7 @@ class PkField(Field):
         super().__init__(field_name=field_name)
 
     @classmethod
-    def validate(cls, value):
+    def _validate(cls, value):
         if not isinstance(value, int):
             raise FieldError(
                 '{} is a wrong datatype for field {}'.format(
@@ -75,7 +78,7 @@ class CharField(Field):
             raise FieldError('"CharField" field requires max_length')
 
     @classmethod
-    def validate(cls, value):
+    def _validate(cls, value):
         if not isinstance(value, str):
             raise FieldError(
                 '{} is a wrong datatype for field {}'.format(
@@ -83,6 +86,9 @@ class CharField(Field):
                     cls.__name__
                 )
             )
+
+    def sanitize_data(self, value):
+        return "'{}'".format(value)
 
 
 class IntegerField(Field):
@@ -92,7 +98,7 @@ class IntegerField(Field):
         super().__init__(field_name=field_name, default=default, null=null)
 
     @classmethod
-    def validate(cls, value):
+    def _validate(cls, value):
         if not isinstance(value, int):
             raise FieldError(
                 '{} is a wrong datatype for field {}'.format(
@@ -112,7 +118,7 @@ class DateField(Field):
         )
 
     @classmethod
-    def validate(cls, value):
+    def _validate(cls, value):
         from datetime import datetime
         if not isinstance(value, datetime):
             raise FieldError(
@@ -121,6 +127,9 @@ class DateField(Field):
                     cls.__name__
                 )
             )
+
+    def sanitize_data(self, value):
+        return "'{}'".format(value)
 
 
 class ForeignKey(Field):
@@ -137,7 +146,7 @@ class ForeignKey(Field):
             raise FieldError('"ForeignKey" field requires foreign_key')
 
     @classmethod
-    def validate(cls, value):
+    def _validate(cls, value):
         if not isinstance(value, int):
             raise FieldError(
                 '{} is a wrong datatype for field {}'.format(
@@ -167,7 +176,7 @@ class ManyToMany(Field):
             raise FieldError('"ManyToMany" field requires foreign_key')
 
     @classmethod
-    def validate(cls, value):
+    def _validate(cls, value):
         if isinstance(value, list):
             for i in value:
                 if not isinstance(i, int):
