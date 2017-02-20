@@ -1,0 +1,82 @@
+2017-02-20 19:09:35,067 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:09:35,068 asyncorm - DEBUG: ... initiated
+2017-02-20 19:09:35,069 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:09:35,069 asyncorm - DEBUG: ... initiated
+2017-02-20 19:09:35,070 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:09:35,074 asyncorm - DEBUG: ... initiated
+2017-02-20 19:09:35,075 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:09:35,076 asyncorm - DEBUG: ... initiated
+2017-02-20 19:09:35,076 asyncorm - DEBUG: initiating model Author
+2017-02-20 19:09:35,076 asyncorm - DEBUG: ... initiated
+2017-02-20 19:09:44,952 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:09:44,959 asyncorm - DEBUG: ... initiated
+2017-02-20 19:09:44,959 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:09:44,960 asyncorm - DEBUG: ... initiated
+2017-02-20 19:09:44,960 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:09:44,960 asyncorm - DEBUG: ... initiated
+2017-02-20 19:09:44,961 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:09:44,962 asyncorm - DEBUG: ... initiated
+2017-02-20 19:09:44,962 asyncorm - DEBUG: initiating model Author
+2017-02-20 19:09:44,963 asyncorm - DEBUG: ... initiated
+2017-02-20 19:13:29,790 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:13:29,792 asyncorm - DEBUG: ... initiated
+2017-02-20 19:13:29,792 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:13:29,793 asyncorm - DEBUG: ... initiated
+2017-02-20 19:13:29,793 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:13:29,794 asyncorm - DEBUG: ... initiated
+2017-02-20 19:13:29,794 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:13:29,795 asyncorm - DEBUG: ... initiated
+2017-02-20 19:13:29,795 asyncorm - DEBUG: initiating model Author
+2017-02-20 19:13:29,796 asyncorm - DEBUG: ... initiated
+2017-02-20 19:18:17,882 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:18:17,883 asyncorm - DEBUG: ... initiated
+2017-02-20 19:18:17,883 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:18:17,883 asyncorm - DEBUG: ... initiated
+2017-02-20 19:18:17,884 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:18:17,884 asyncorm - DEBUG: ... initiated
+2017-02-20 19:18:17,885 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:18:17,885 asyncorm - DEBUG: ... initiated
+2017-02-20 19:18:17,886 asyncorm - DEBUG: initiating model Author
+2017-02-20 19:18:17,886 asyncorm - DEBUG: ... initiated
+2017-02-20 19:21:52,665 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:21:52,666 asyncorm - DEBUG: ... initiated
+2017-02-20 19:21:52,666 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:21:52,667 asyncorm - DEBUG: ... initiated
+2017-02-20 19:21:52,669 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:21:52,669 asyncorm - DEBUG: ... initiated
+2017-02-20 19:21:52,683 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:21:52,684 asyncorm - DEBUG: ... initiated
+2017-02-20 19:21:52,684 asyncorm - DEBUG: initiating model Author
+2017-02-20 19:21:52,685 asyncorm - DEBUG: ... initiated
+2017-02-20 19:22:00,468 asyncorm - DEBUG: initiating model Publisher
+2017-02-20 19:22:00,469 asyncorm - DEBUG: ... initiated
+2017-02-20 19:22:00,491 asyncorm - DEBUG: initiating model Publisher
+2017-02-20 19:22:00,492 asyncorm - DEBUG: ... initiated
+2017-02-20 19:22:00,528 asyncorm - DEBUG: initiating model Author
+2017-02-20 19:22:00,528 asyncorm - DEBUG: ... initiated
+2017-02-20 19:22:00,544 asyncorm - DEBUG: initiating model Author
+2017-02-20 19:22:00,545 asyncorm - DEBUG: ... initiated
+2017-02-20 19:22:00,557 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:22:00,557 asyncorm - DEBUG: ... initiated
+2017-02-20 19:22:00,563 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:22:00,564 asyncorm - DEBUG: ... initiated
+2017-02-20 19:22:00,590 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:22:00,590 asyncorm - DEBUG: ... initiated
+2017-02-20 19:22:00,596 asyncorm - DEBUG: initiating model Publisher
+2017-02-20 19:22:00,596 asyncorm - DEBUG: ... initiated
+2017-02-20 19:22:00,596 asyncorm - DEBUG: initiating model Author
+2017-02-20 19:22:00,597 asyncorm - DEBUG: ... initiated
+2017-02-20 19:22:00,605 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:22:00,606 asyncorm - DEBUG: ... initiated
+2017-02-20 19:22:00,634 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:22:00,635 asyncorm - DEBUG: ... initiated
+2017-02-20 19:22:16,699 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:22:16,699 asyncorm - DEBUG: ... initiated
+2017-02-20 19:22:16,700 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:22:16,700 asyncorm - DEBUG: ... initiated
+2017-02-20 19:22:16,700 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:22:16,701 asyncorm - DEBUG: ... initiated
+2017-02-20 19:22:16,701 asyncorm - DEBUG: initiating model Book
+2017-02-20 19:22:16,702 asyncorm - DEBUG: ... initiated
+2017-02-20 19:22:16,702 asyncorm - DEBUG: initiating model Author
+2017-02-20 19:22:16,702 asyncorm - DEBUG: ... initiated

@@ -1,5 +1,6 @@
 from fields import Field, PkField, CharField, ManyToMany, DateField
 from exceptions import ModelError
+from log import logger
 
 __all__ = ['Model', 'ModelManager']
 
@@ -18,6 +19,7 @@ class Model(object):
     objects = ModelManager()
 
     def __init__(self, **kwargs):
+        logger.debug('initiating model {}'.format(self.__class__.__name__))
         # test done
         self.objects.model = self.__class__
         if not self.table_name:
@@ -47,6 +49,7 @@ class Model(object):
             )
 
         self.kwargs = kwargs
+        logger.debug('... initiated')
 
     @classmethod
     def _get_fields(cls):

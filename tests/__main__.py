@@ -1,7 +1,7 @@
 import unittest
 
 from exceptions import ModelError, FieldError
-from test_models.models import Book, Author
+from tests.test_models import Book, Author
 
 
 class ModelTests(unittest.TestCase):

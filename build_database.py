@@ -1,7 +1,7 @@
 import aiopg
 import asyncio
 from datetime import datetime, timedelta
-from test_models.models import Book, Author, Publisher
+from tests.test_models import Book, Author, Publisher
 
 
 database_name = 'sanic'
