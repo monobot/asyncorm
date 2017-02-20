@@ -22,8 +22,10 @@ class Model(object):
         logger.debug('initiating model {}'.format(self.__class__.__name__))
         # test done
         self.objects.model = self.__class__
+
         if not self.table_name:
             self.table_name = self.__class__.__name__.lower()
+
         self.fields, self.field_names, pk_needed = self._get_fields()
 
         if pk_needed:
@@ -56,6 +58,8 @@ class Model(object):
         # test done
         fields = []
         field_names = []
+
+        attr_names = []
         for f in cls.__dict__.keys():
             field = getattr(cls, f)
             if isinstance(field, Field):
@@ -65,14 +69,10 @@ class Model(object):
                     setattr(field, 'field_name', f)
 
                 if isinstance(field, ManyToMany):
-                    setattr(
-                        field,
-                        'foreign_model',
+                    setattr(field, 'foreign_model',
                         cls.table_name or cls.__name__.lower()
                     )
-                    setattr(
-                        field,
-                        'table_name',
+                    setattr(field, 'table_name',
                         '{my_model}_{foreign_key}'.format(
                             my_model=cls.table_name or cls.__name__.lower(),
                             foreign_key=field.field_name,
@@ -82,6 +82,13 @@ class Model(object):
 
                 fields.append(field)
                 field_names.append(f)
+                attr_names.append(field.field_name)
+
+        if len(attr_names) != len(set(attr_names)):
+            raise ModelError(
+                'Models should have unique attribute names and '
+                'field_name if explicitly edited!'
+            )
 
         pk_needed = False
         if PkField not in [f.__class__ for f in fields]:
@@ -156,7 +163,7 @@ class Model(object):
             model_id=getattr(self, self._fk_orm_fieldname)
         )
         save_string = save_string.format(*tuple(fields + field_data))
-        print(save_string)
+        return save_string
 
     def _db_save(self):
         # performs the database save
@@ -172,3 +179,9 @@ class Model(object):
         if getattr(self, self._fk_db_fieldname):
             return self._update_save_string(fields, field_data)
         return self._create_save_string(fields, field_data)
+
+    def __str__(self):
+        return '{} object'.format(self.__class__.__name__)
+
+    def __repr__(self):
+        return '{} object'.format(self.__class__.__name__)

@@ -1,25 +1,29 @@
 import unittest
 
 from exceptions import ModelError, FieldError
-from tests.test_models import Book, Author
+from tests.test_models import Book, Author, WrongBook
 
 
 class ModelTests(unittest.TestCase):
 
     def test__init__(self):
         # classmethods tests
-        # self.assertEqual(Book().table_name, 'library')
-        # self.assertEqual(Author().table_name, 'author')
+        self.assertEqual(Book().table_name, 'library')
+        self.assertEqual(Author().table_name, 'author')
 
         fields, field_names, pk_needed = Book._get_fields()
 
-        self.assertEqual(len(fields), 4)
-        self.assertEqual(len(field_names), 4)
+        self.assertEqual(len(fields), 5)
+        self.assertEqual(len(field_names), 5)
 
         self.assertEqual(
             field_names.sort(),
             ['id', 'content', 'name', 'author', 'date_created'].sort()
         )
+
+        # trying to create a model with wrong field definition
+        with self.assertRaises(ModelError):
+            WrongBook._get_fields()
 
     def test_instantiated__init__(self):
         # classmethods tests
@@ -61,6 +65,7 @@ class ModelTests(unittest.TestCase):
 
         # now it correctly validates
         book._validate(kwargs)
+
 
     # def test__db_save(self):
     #     from datetime import datetime

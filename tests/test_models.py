@@ -16,6 +16,15 @@ class Book(Model):
     author = ForeignKey(foreign_key='Author', null=True)
 
 
+class WrongBook(Model):
+    table_name = 'meson'
+    name = CharField(max_length=50)
+    content = CharField(max_length=255, field_name='hhuhuhuh', )
+    hhuhuhuh = CharField(max_length=55)
+    date_created = DateField(auto_now=True)
+    author = ForeignKey(foreign_key='Author', null=True)
+
+
 class Author(Model):
     na = PkField(field_name='uid')
     name = CharField(max_length=50)

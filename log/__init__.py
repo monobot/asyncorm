@@ -4,8 +4,8 @@ from logging.config import dictConfig
 from os import path
 
 LOG_DIR = path.join(path.abspath(path.abspath(path.dirname(__file__))))
-print(LOG_DIR)
-LOGLEVEL = 'DEBUG'
+
+LOGLEVEL = 'INFO'
 
 
 logging_config = {
@@ -34,6 +34,7 @@ logging_config = {
         },
     'loggers': {
         'asyncorm': {
+            # 'handlers': ['stream', ],
             'handlers': ['stream', 'main_logger'],
             'propagate': True,
             'level': LOGLEVEL,
