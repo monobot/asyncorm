@@ -3,6 +3,8 @@ from fields import (CharField, DateField, IntegerField, ForeignKey,
     ManyToMany, PkField
 )
 
+__all__ = ('Publisher', 'Book', 'WrongBook', 'Author')
+
 
 class Publisher(Model):
     name = CharField(max_length=50)
