@@ -2,10 +2,20 @@ from exceptions import FieldError
 from datetime import datetime
 
 __all__ = ('Field', 'PkField', 'CharField', 'IntegerField', 'DateField',
-    'ForeignKey',
+    'ForeignKey', 'ManyToMany', 'DecimalField'
 )
 
 DATE_FIELDS = ['DateField', ]
+
+KWARGS_TYPES = {
+    'field_name': str,
+    'default': object,
+    'null': bool,
+    'max_length': int,
+    'foreign_key': str,
+    'auto_now': bool,
+    'reverse_field': str,
+}
 
 
 class Field(object):
@@ -15,17 +25,17 @@ class Field(object):
         self._validate_kwargs(kwargs)
         self.field_type = self.__class__.__name__
 
-        self.field_name = kwargs.get('field_name', None)
+        self.field_name = kwargs.get('field_name', '')
 
         self.default = kwargs.get('default', None)
         self.null = kwargs.get('null', False)
 
-        self.max_length = kwargs.get('max_length', None)
+        self.max_length = kwargs.get('max_length', 0)
 
-        self.foreign_key = kwargs.get('foreign_key', None)
+        self.foreign_key = kwargs.get('foreign_key', '')
 
         self.auto_now = kwargs.get('auto_now', False)
-        self.reverse_field = kwargs.get('reverse_field', None)
+        self.reverse_field = kwargs.get('reverse_field', '')
 
     def _creation_query(self):
         creation_string = '{field_name} ' + self.creation_string
@@ -35,10 +45,16 @@ class Field(object):
 
         default_value = self.default
         if default_value:
-            creation_string += ' DEFAULT \'{default}\''
+            creation_string += ' DEFAULT '
             if callable(self.default):
                 default_value = default_value()
                 self.default = default_value
+
+            if isinstance(default_value, str):
+                creation_string += '\'{}\''.format(default_value)
+            else:
+                creation_string += default_value
+
         elif date_field and self.auto_now:
             creation_string += ' DEFAULT now()'
 
@@ -53,8 +69,11 @@ class Field(object):
                         kw=kw,
                     )
                 )
-        if not isinstance(kwargs.get('max_length', 0), int):
-            raise FieldError('wrong value for max_length')
+
+        for k, v in kwargs.items():
+            check = isinstance(v, KWARGS_TYPES[k])
+            if not check:
+                raise FieldError('Wrong value for {k}'.format(k=k))
 
         if kwargs.get('field_name', None):
             self._set_field_name(kwargs['field_name'])
@@ -97,7 +116,7 @@ class CharField(Field):
     internal_type = str
     required_kwargs = ['max_length', ]
 
-    def __init__(self, field_name=None, default=None, max_length=None,
+    def __init__(self, field_name='', default=None, max_length=0,
             null=False):
         self.creation_string = 'varchar({max_length})'
         super().__init__(field_name=field_name, default=default,
@@ -119,7 +138,7 @@ class CharField(Field):
 class IntegerField(Field):
     internal_type = int
 
-    def __init__(self, field_name=None, default=None, null=False):
+    def __init__(self, field_name='', default=None, null=False):
         self.creation_string = 'integer'
         super().__init__(field_name=field_name, default=default, null=null)
 
@@ -127,7 +146,7 @@ class IntegerField(Field):
 class DecimalField(Field):
     internal_type = float
 
-    def __init__(self, field_name=None, default=None, null=False):
+    def __init__(self, field_name='', default=None, null=False):
         self.creation_string = 'integer'
         super().__init__(field_name=field_name, default=default, null=null)
 
@@ -135,7 +154,7 @@ class DecimalField(Field):
 class DateField(Field):
     internal_type = datetime
 
-    def __init__(self, field_name=None, default=None, auto_now=False,
+    def __init__(self, field_name='', default=None, auto_now=False,
             null=False):
         self.creation_string = 'timestamp'
         super().__init__(field_name=field_name, default=default,
@@ -152,7 +171,7 @@ class ForeignKey(Field):
     internal_type = int
     required_kwargs = ['foreign_key', ]
 
-    def __init__(self, field_name=None, default=None, foreign_key=None,
+    def __init__(self, field_name='', default=None, foreign_key='',
             null=False):
         self.creation_string = 'integer references {foreign_key}'
         super().__init__(field_name=field_name, default=default,
@@ -164,7 +183,7 @@ class ManyToMany(Field):
     internal_type = int
     required_kwargs = ['foreign_key', ]
 
-    def __init__(self, field_name=None, foreign_key=None, default=None):
+    def __init__(self, field_name='', foreign_key='', default=None):
         self.creation_string = '''
             CREATE TABLE {table_name} (
             {foreign_model} INTEGER REFERENCES {foreign_model} NOT NULL,
