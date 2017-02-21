@@ -22,6 +22,7 @@ class Field(object):
     required_kwargs = []
 
     def __init__(self, **kwargs):
+        # test done
         self._validate_kwargs(kwargs)
         self.field_type = self.__class__.__name__
 
@@ -61,6 +62,7 @@ class Field(object):
         return creation_string.format(**self.__dict__)
 
     def _validate_kwargs(self, kwargs):
+        # test done
         for kw in self.required_kwargs:
             if not kwargs.get(kw, None):
                 raise FieldError(
@@ -80,6 +82,7 @@ class Field(object):
 
     @classmethod
     def _validate(cls, value):
+        # test done
         if not isinstance(value, cls.internal_type):
             raise FieldError(
                 '{} is a wrong datatype for field {}'.format(
@@ -88,10 +91,12 @@ class Field(object):
             )
 
     def _sanitize_data(self, value):
+        # test done
         self._validate(value)
         return value
 
     def _set_field_name(self, field_name):
+        # test done
         if '__' in field_name:
             raise FieldError('field_name can not contain "__"')
         if field_name.startswith('_'):
@@ -102,28 +107,31 @@ class Field(object):
 
 
 class PkField(Field):
+    creation_string = 'serial primary key'
 
     def __init__(self, field_name='id'):
-        self.creation_string = 'serial primary key'
         super().__init__(field_name=field_name)
 
     @classmethod
     def _validate(cls, value):
+        # test done
         raise FieldError('Models can not be generated with forced id')
 
 
 class CharField(Field):
     internal_type = str
     required_kwargs = ['max_length', ]
+    creation_string = 'varchar({max_length})'
 
     def __init__(self, field_name='', default=None, max_length=0,
             null=False):
-        self.creation_string = 'varchar({max_length})'
+        # test done
         super().__init__(field_name=field_name, default=default,
             max_length=max_length, null=null
         )
 
     def _sanitize_data(self, value):
+        # test done
         super()._sanitize_data(value)
 
         if len(value) > self.max_length:
@@ -137,26 +145,24 @@ class CharField(Field):
 
 class IntegerField(Field):
     internal_type = int
+    creation_string = 'integer'
 
     def __init__(self, field_name='', default=None, null=False):
-        self.creation_string = 'integer'
+        # test done
         super().__init__(field_name=field_name, default=default, null=null)
 
 
-class DecimalField(Field):
+class DecimalField(IntegerField):
     internal_type = float
-
-    def __init__(self, field_name='', default=None, null=False):
-        self.creation_string = 'integer'
-        super().__init__(field_name=field_name, default=default, null=null)
 
 
 class DateField(Field):
     internal_type = datetime
+    creation_string = 'timestamp'
 
     def __init__(self, field_name='', default=None, auto_now=False,
             null=False):
-        self.creation_string = 'timestamp'
+        # test done
         super().__init__(field_name=field_name, default=default,
             auto_now=auto_now, null=null
         )
@@ -170,10 +176,11 @@ class DateField(Field):
 class ForeignKey(Field):
     internal_type = int
     required_kwargs = ['foreign_key', ]
+    creation_string = 'integer references {foreign_key}'
 
     def __init__(self, field_name='', default=None, foreign_key='',
             null=False):
-        self.creation_string = 'integer references {foreign_key}'
+        # test done
         super().__init__(field_name=field_name, default=default,
             foreign_key=foreign_key, null=null
         )
@@ -182,13 +189,14 @@ class ForeignKey(Field):
 class ManyToMany(Field):
     internal_type = int
     required_kwargs = ['foreign_key', ]
+    creation_string = '''
+        CREATE TABLE {table_name} (
+        {foreign_model} INTEGER REFERENCES {foreign_model} NOT NULL,
+        {foreign_key} INTEGER REFERENCES {foreign_key} NOT NULL
+        );'''
 
     def __init__(self, field_name='', foreign_key='', default=None):
-        self.creation_string = '''
-            CREATE TABLE {table_name} (
-            {foreign_model} INTEGER REFERENCES {foreign_model} NOT NULL,
-            {foreign_key} INTEGER REFERENCES {foreign_key} NOT NULL
-            );'''
+        # test done
         super().__init__(field_name=field_name, foreign_key=foreign_key,
             default=default
         )
