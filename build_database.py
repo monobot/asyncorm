@@ -15,25 +15,21 @@ class Database_Manager(object):
             'host': 'localhost',
             'user': 'sanicdbuser',
             'password': 'sanicDbPass',
-            'loop': loop,
+            # 'loop': loop,
         }
-        self.pool = None
+        self.conn = None
 
-    async def get_pool(self):
-        if not self.pool:
-            self.pool = await asyncpg.create_pool(**self.conn_data)
-        return self.pool
+    async def get_conn(self):
+        if not self.conn:
+            pool = await asyncpg.create_pool(**self.conn_data)
+            self.conn = await pool.acquire()
+        return self.conn
 
     async def transaction(self, queries):
-        pool = await self.get_pool()
-        async with pool.acquire() as conn:
-            async with conn.transaction():
-                for query in queries:
-                    await conn.execute(query)
-
-    def __del__(self):
-        if self.pool:
-            self.pool.close()
+        conn = await self.get_conn()
+        async with conn.transaction():
+            for query in queries:
+                await conn.execute(query)
 
 
 async def create_db(models):
@@ -83,6 +79,6 @@ if __name__ == '__main__':
     loop.run_until_complete(asyncio.gather(task))
 
     task_queue = []
-    for x in range(12):
+    for x in range(7):
         task_queue.append(loop.create_task(create_book()))
-    loop.run_until_complete(task_queue)
+    loop.run_until_complete(asyncio.gather(*task_queue))
