@@ -1,16 +1,10 @@
 from fields import Field, PkField, CharField, ManyToMany, DateField
+from manager import ModelManager
+
 from exceptions import ModelError
 from log import logger
 
-__all__ = ['Model', 'ModelManager']
-
-
-class ModelManager(object):
-    model = None
-
-    @classmethod
-    def queryset(cls):
-        pass
+__all__ = ['Model', ]
 
 
 class Model(object):
@@ -67,7 +61,7 @@ class Model(object):
                 field.orm_field_name = f
 
                 if not field.field_name:
-                    setattr(field, 'field_name', f)
+                    field._set_field_name(f)
 
                 if isinstance(field, ManyToMany):
                     setattr(field, 'foreign_model',

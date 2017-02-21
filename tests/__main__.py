@@ -2,11 +2,12 @@ import unittest
 
 from exceptions import ModelError, FieldError
 from tests.test_models import Book, Author, WrongBook
+from fields import *
 
 
 class ModelTests(unittest.TestCase):
 
-    def test__init__(self):
+    def test_class__init__(self):
         # classmethods tests
         self.assertEqual(Book().table_name, 'library')
         self.assertEqual(Author().table_name, 'author')
@@ -22,8 +23,13 @@ class ModelTests(unittest.TestCase):
         )
 
         # trying to create a model with wrong field definition
-        with self.assertRaises(ModelError):
+        with self.assertRaises(ModelError) as exc:
             WrongBook._get_fields()
+        self.assertEqual(
+            exc.exception.args[0],
+            'Models should have unique attribute names ' +
+            'and field_name if explicitly edited!'
+        )
 
     def test_instantiated__init__(self):
         # classmethods tests
@@ -39,33 +45,49 @@ class ModelTests(unittest.TestCase):
 
     def test__validate_kwargs(self):
         kwargs = {
-            'id': 34,
             'name': 'name',
             'content': 3,
         }
 
         # raises the validate content has an incorrect value
-        with self.assertRaises(FieldError):
+        with self.assertRaises(FieldError) as exc:
             book = Book()
             book._validate_kwargs(kwargs)
-        kwargs['content'] = 'correct content'
+        self.assertTrue(
+            'is a wrong datatype for field' in exc.exception.args[0]
+        )
+
+        kwargs = {
+            'id': 34,
+            'name': 'name',
+        }
 
         # also raises fielderror because you can not pre-set the object's id
-        with self.assertRaises(FieldError):
+        with self.assertRaises(FieldError) as exc:
             book = Book()
             book._validate_kwargs(kwargs)
+        self.assertEqual(
+            exc.exception.args[0],
+            'Models can not be generated with forced id'
+        )
+
         kwargs.pop('id')
 
         kwargs['volume'] = 23
         # raises the validate error because volume is not a correct attrib
-        with self.assertRaises(ModelError):
+        with self.assertRaises(ModelError) as exc:
             book = Book()
             book._validate_kwargs(kwargs)
+        # its a list because we validate all kwargs
+        self.assertEqual(
+            exc.exception.args[0],
+            ['"volume" is not an attribute for Book', ]
+        )
+
         kwargs.pop('volume')
 
         # now it correctly validates
         book._validate_kwargs(kwargs)
-
 
     # def test__db_save(self):
     #     from datetime import datetime
@@ -77,6 +99,53 @@ class ModelTests(unittest.TestCase):
     #         # 'author': 1
     #     })
     #     book._db_save()
+
+
+class FieldTests(unittest.TestCase):
+
+    def test_required_kwargs(self):
+
+        with self.assertRaises(FieldError) as exc:
+            CharField()
+        self.assertEqual(
+            exc.exception.args[0],
+            '"CharField" field requires max_length'
+        )
+
+        with self.assertRaises(FieldError) as exc:
+            CharField(max_length='gt')
+        self.assertEqual(
+            exc.exception.args[0],
+            'wrong value for max_length'
+        )
+
+        CharField(max_length=45)
+
+        # with
+
+    def test_field_name(self):
+        with self.assertRaises(FieldError) as exc:
+            CharField(max_length=35, field_name='_oneone')
+        self.assertEqual(
+            exc.exception.args[0],
+            'field_name can not start with "_"'
+        )
+
+        with self.assertRaises(FieldError) as exc:
+            CharField(max_length=35, field_name='oneone_')
+        self.assertEqual(
+            exc.exception.args[0],
+            'field_name can not end with "_"'
+        )
+
+        with self.assertRaises(FieldError) as exc:
+            CharField(max_length=35, field_name='one__one')
+        self.assertEqual(
+            exc.exception.args[0],
+            'field_name can not contain "__"'
+        )
+
+        CharField(max_length=35, field_name='one_one')
 
 
 if __name__ == '__main__':

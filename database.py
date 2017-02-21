@@ -25,11 +25,15 @@ class Database_Manager(object):
             self.conn = await pool.acquire()
         return self.conn
 
-    async def transaction(self, queries):
+    async def transaction_insert(self, queries):
         conn = await self.get_conn()
         async with conn.transaction():
             for query in queries:
                 await conn.execute(query)
+
+    async def select(self, query):
+        conn = await self.get_conn()
+        return await conn.fetch(query)
 
 
 async def create_db(models):
@@ -56,7 +60,7 @@ async def create_db(models):
         m2m_queries = model()._get_m2m_field_queries()
         if m2m_queries:
             queries.append(m2m_queries)
-    await db.transaction(queries)
+    await db.transaction_insert(queries)
 
 
 async def create_book():
@@ -71,7 +75,14 @@ async def create_book():
     })
 
     queries.append(book._db_save())
-    await db.transaction(queries)
+    await db.transaction_insert(queries)
+
+
+async def fetch_book():
+    db = Database_Manager()
+
+    result = await db.select(Book.objects._get_objects_query())
+    print(result)
 
 
 if __name__ == '__main__':
@@ -82,3 +93,6 @@ if __name__ == '__main__':
     for x in range(7):
         task_queue.append(loop.create_task(create_book()))
     loop.run_until_complete(asyncio.gather(*task_queue))
+
+    task = loop.create_task(fetch_book())
+    loop.run_until_complete(asyncio.gather(task))

@@ -16,10 +16,12 @@ class Field(object):
         self.field_type = self.__class__.__name__
 
         self.field_name = kwargs.get('field_name', None)
+
         self.default = kwargs.get('default', None)
         self.null = kwargs.get('null', False)
 
         self.max_length = kwargs.get('max_length', None)
+
         self.foreign_key = kwargs.get('foreign_key', None)
 
         self.auto_now = kwargs.get('auto_now', False)
@@ -51,6 +53,11 @@ class Field(object):
                         kw=kw,
                     )
                 )
+        if not isinstance(kwargs.get('max_length', 0), int):
+            raise FieldError('wrong value for max_length')
+
+        if kwargs.get('field_name', None):
+            self._set_field_name(kwargs['field_name'])
 
     def _sanitize_data(self, value):
         self._validate(value)
@@ -64,6 +71,15 @@ class Field(object):
                     value, cls.__name__
                 )
             )
+
+    def _set_field_name(self, field_name):
+        if '__' in field_name:
+            raise FieldError('field_name can not contain "__"')
+        if field_name.startswith('_'):
+            raise FieldError('field_name can not start with "_"')
+        if field_name.endswith('_'):
+            raise FieldError('field_name can not end with "_"')
+        self.field_name = field_name
 
 
 class PkField(Field):
