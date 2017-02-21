@@ -75,12 +75,8 @@ class Field(object):
             if not check:
                 raise FieldError('Wrong value for {k}'.format(k=k))
 
-        if kwargs.get('field_name', None):
+        if kwargs.get('field_name', ''):
             self._set_field_name(kwargs['field_name'])
-
-    def _sanitize_data(self, value):
-        self._validate(value)
-        return value
 
     @classmethod
     def _validate(cls, value):
@@ -90,6 +86,10 @@ class Field(object):
                     value, cls.__name__
                 )
             )
+
+    def _sanitize_data(self, value):
+        self._validate(value)
+        return value
 
     def _set_field_name(self, field_name):
         if '__' in field_name:
