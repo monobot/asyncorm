@@ -47,24 +47,24 @@ class ModelTests(unittest.TestCase):
         # raises the validate content has an incorrect value
         with self.assertRaises(FieldError):
             book = Book()
-            book._validate(kwargs)
+            book._validate_kwargs(kwargs)
         kwargs['content'] = 'correct content'
 
         # also raises fielderror because you can not pre-set the object's id
         with self.assertRaises(FieldError):
             book = Book()
-            book._validate(kwargs)
+            book._validate_kwargs(kwargs)
         kwargs.pop('id')
 
         kwargs['volume'] = 23
         # raises the validate error because volume is not a correct attrib
         with self.assertRaises(ModelError):
             book = Book()
-            book._validate(kwargs)
+            book._validate_kwargs(kwargs)
         kwargs.pop('volume')
 
         # now it correctly validates
-        book._validate(kwargs)
+        book._validate_kwargs(kwargs)
 
 
     # def test__db_save(self):

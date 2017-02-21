@@ -53,6 +53,7 @@ class Field(object):
                 )
 
     def _sanitize_data(self, value):
+        self._validate(value)
         return value
 
     @classmethod
@@ -88,6 +89,8 @@ class CharField(Field):
         )
 
     def _sanitize_data(self, value):
+        super()._sanitize_data(value)
+
         if len(value) > self.max_length:
             raise FieldError(
                 ('The string entered is bigger than '
@@ -124,6 +127,8 @@ class DateField(Field):
         )
 
     def _sanitize_data(self, value):
+        super()._sanitize_data(value)
+
         return "'{}'".format(value)
 
 

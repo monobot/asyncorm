@@ -39,7 +39,7 @@ class Model(object):
             pk_fields = [f for f in self.fields if isinstance(f, PkField)]
             self.fk_field = pk_fields[0]
 
-        self._validate(kwargs)
+        self._validate_kwargs(kwargs)
 
         for field_name in self.field_names:
             setattr(
@@ -97,7 +97,7 @@ class Model(object):
 
         return fields, field_names, pk_needed
 
-    def _validate(self, kwargs):
+    def _validate_kwargs(self, kwargs):
         '''validate the kwargs on object instantiation only'''
         # test done
         attr_errors = [k for k in kwargs.keys() if k not in self.field_names]
