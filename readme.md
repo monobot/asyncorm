@@ -9,4 +9,4 @@
 It is desined to be used together with [sanic](https://github.com/channelcat/sanic) or any other async webserver.
 
 ### Dependencies
-[aiopg](https://github.com/aio-libs/aiopg)
+[asyncpg](https://github.com/MagicStack/asyncpg)
