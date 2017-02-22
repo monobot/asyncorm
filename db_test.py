@@ -49,17 +49,19 @@ async def create_book():
 
 
 async def fetch_book():
-    return await db.select(Book.objects._get_objects_query())
+    result = await db.select(Book.objects._get_objects_query())
+    print(result)
+    return result
 
 
 if __name__ == '__main__':
     task = loop.create_task(create_db([Publisher, Author, Book]))
     loop.run_until_complete(asyncio.gather(task))
 
-    task_queue = []
-    for x in range(70):
-        task_queue.append(loop.create_task(create_book()))
-    loop.run_until_complete(asyncio.gather(*task_queue))
+    # task_queue = []
+    # for x in range(7):
+    #     task_queue.append(loop.create_task(create_book()))
+    # loop.run_until_complete(asyncio.gather(*task_queue))
 
     task = loop.create_task(fetch_book())
     loop.run_until_complete(asyncio.gather(task))

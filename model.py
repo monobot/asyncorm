@@ -1,4 +1,4 @@
-from fields import Field, PkField, CharField, ManyToMany, DateField
+from fields import Field, PkField, ManyToMany
 from manager import ModelManager
 
 from exceptions import ModelError
