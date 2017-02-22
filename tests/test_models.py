@@ -17,6 +17,9 @@ class Book(Model):
     date_created = DateField(auto_now=True)
     author = ForeignKey(foreign_key='Author', null=True)
 
+    def mi_nombre(self):
+        return ('es mi nombre: {}'.format(self.name)) * 20
+
 
 class WrongBook(Model):
     name = CharField(max_length=50)

@@ -17,6 +17,9 @@ class Model(object):
         # test done
         self.objects.model = self.__class__
 
+        manager = getattr(self, 'objects')
+        manager.model = self.__class__
+
         if not self.table_name:
             self.table_name = self.__class__.__name__.lower()
 
@@ -90,6 +93,12 @@ class Model(object):
             pk_needed = True
 
         return fields, field_names, pk_needed
+
+    def build(self, data):
+        # poblates the model with the data
+        for k, v in data.items():
+            setattr(self, k, v)
+        return self
 
     def _validate_kwargs(self, kwargs):
         '''validate the kwargs on object instantiation only'''
