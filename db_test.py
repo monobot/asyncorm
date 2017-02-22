@@ -31,7 +31,8 @@ async def create_db(models):
         m2m_queries = model()._get_m2m_field_queries()
         if m2m_queries:
             queries.append(m2m_queries)
-    await db.transaction_insert(queries)
+    result = await db.transaction_insert(queries)
+    return result
 
 
 async def create_book():
@@ -45,7 +46,8 @@ async def create_book():
     })
 
     queries.append(book._db_save())
-    await db.transaction_insert(queries)
+    result = await db.transaction_insert(queries)
+    return result
 
 
 async def fetch_book():
@@ -58,10 +60,9 @@ if __name__ == '__main__':
     task = loop.create_task(create_db([Publisher, Author, Book]))
     loop.run_until_complete(asyncio.gather(task))
 
-    # task_queue = []
-    # for x in range(7):
-    #     task_queue.append(loop.create_task(create_book()))
-    # loop.run_until_complete(asyncio.gather(*task_queue))
+    for x in range(1000):
+        task = loop.create_task(create_book())
+        loop.run_until_complete(asyncio.gather(task))
 
     task = loop.create_task(fetch_book())
     loop.run_until_complete(asyncio.gather(task))

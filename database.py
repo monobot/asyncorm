@@ -5,7 +5,7 @@ class Database_Manager(object):
 
     def __init__(self):
         self.conn_data = {
-            'database': 'sanic',
+            'database': 'asyncorm',
             'host': 'localhost',
             'user': 'sanicdbuser',
             'password': 'sanicDbPass',
