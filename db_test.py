@@ -59,7 +59,7 @@ if __name__ == '__main__':
     task = loop.create_task(create_db([Author, Publisher, Book]))
     loop.run_until_complete(asyncio.gather(task))
 
-    for x in range(1000):
+    for x in range(300):
         task = loop.create_task(create_book())
         loop.run_until_complete(asyncio.gather(task))
 

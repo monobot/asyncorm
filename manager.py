@@ -9,21 +9,21 @@ dm = Database_Manager()
 class ModelManager(object):
     model = None
 
-    async def build_object(self, data):
+    async def _construct_object(self, data):
         obj = self.model()
-        obj.build(data)
+        obj._construct(data)
         return obj
 
     async def _get_queryset(self):
         results = []
         for data in await dm.select(self._get_objects_query()):
-            results.append(self.model().build(data))
+            results.append(self.model()._construct(data))
         return results
 
     async def _get_filtered_queryset(self, **kwargs):
         results = []
         for data in await dm.select(self._get_objects_filtered(**kwargs)):
-            results.append(self.model().build(data))
+            results.append(self.model()._construct(data))
         return results
 
     def _get_objects_filtered(self, **kwargs):

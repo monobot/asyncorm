@@ -15,6 +15,7 @@ KWARGS_TYPES = {
     'foreign_key': str,
     'auto_now': bool,
     'reverse_field': str,
+    'choices': (dict, tuple),
 }
 
 
@@ -124,10 +125,10 @@ class CharField(Field):
     creation_string = 'varchar({max_length})'
 
     def __init__(self, field_name='', default=None, max_length=0,
-            null=False):
+            null=False, choices={}):
         # test done
         super().__init__(field_name=field_name, default=default,
-            max_length=max_length, null=null
+            max_length=max_length, null=null, choices=choices
         )
 
     def _sanitize_data(self, value):
@@ -147,9 +148,10 @@ class IntegerField(Field):
     internal_type = int
     creation_string = 'integer'
 
-    def __init__(self, field_name='', default=None, null=False):
+    def __init__(self, field_name='', default=None, null=False, choices={}):
         # test done
-        super().__init__(field_name=field_name, default=default, null=null)
+        super().__init__(field_name=field_name, default=default, null=null,
+            choices=choices)
 
 
 class DecimalField(IntegerField):
@@ -161,10 +163,10 @@ class DateField(Field):
     creation_string = 'timestamp'
 
     def __init__(self, field_name='', default=None, auto_now=False,
-            null=False):
+            null=False, choices={}):
         # test done
         super().__init__(field_name=field_name, default=default,
-            auto_now=auto_now, null=null
+            auto_now=auto_now, null=null, choices=choices
         )
 
     def _sanitize_data(self, value):

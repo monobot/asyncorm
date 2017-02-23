@@ -108,12 +108,6 @@ class BaseModel(object, metaclass=ModelMeta):
 
         return fields, field_names, pk_needed
 
-    def build(self, data):
-        # poblates the model with the data
-        for k, v in data.items():
-            setattr(self, k, v)
-        return self
-
     def _validate_kwargs(self, kwargs):
         '''validate the kwargs on object instantiation only'''
         # test done
@@ -206,4 +200,15 @@ class BaseModel(object, metaclass=ModelMeta):
 
 
 class Model(BaseModel):
-    pass
+
+    def _construct(self, data):
+        # poblates the model with the data
+        for k, v in data.items():
+            setattr(self, k, v)
+        return self
+
+    def save(self):
+        self.objects.save()
+
+    def delete(self):
+        self.objects.save()
