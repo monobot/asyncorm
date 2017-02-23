@@ -7,21 +7,35 @@ from log import logger
 __all__ = ['Model', ]
 
 
-class Model(object):
+class ModelMeta(type):
+
+    def __new__(cls, clsname, bases, clsdict):
+        base_class = super().__new__(cls, clsname, bases, clsdict)
+
+        base_class.objects = type(
+            "{}Manager".format(base_class.__name__),
+            (ModelManager, ),
+            {"model": base_class}
+        )()
+
+        return base_class
+
+
+class BaseModel(object, metaclass=ModelMeta):
     table_name = ''
 
-    objects = ModelManager()
+    objects = None
 
     def __init__(self, **kwargs):
         logger.debug('initiating model {}'.format(self.__class__.__name__))
         # test done
         self.objects.model = self.__class__
 
-        manager = getattr(self, 'objects')
-        manager.model = self.__class__
-
         if not self.table_name:
             self.table_name = self.__class__.__name__.lower()
+
+        manager = getattr(self, 'objects')
+        manager.model = self.__class__
 
         self.fields, self.field_names, pk_needed = self._get_fields()
 
@@ -189,3 +203,7 @@ class Model(object):
 
     def __repr__(self):
         return '{} object'.format(self.__class__.__name__)
+
+
+class Model(BaseModel):
+    pass
