@@ -92,7 +92,7 @@ class Field(object):
 
     def _sanitize_data(self, value):
         # test done
-        self._validate(value)
+        self.__class__._validate(value)
         return value
 
     def _set_field_name(self, field_name):
@@ -107,15 +107,11 @@ class Field(object):
 
 
 class PkField(Field):
+    internal_type = object
     creation_string = 'serial primary key'
 
     def __init__(self, field_name='id'):
         super().__init__(field_name=field_name)
-
-    @classmethod
-    def _validate(cls, value):
-        # test done
-        raise FieldError('Models can not be generated with forced id')
 
 
 class CharField(Field):
@@ -132,7 +128,7 @@ class CharField(Field):
 
     def _sanitize_data(self, value):
         # test done
-        super()._sanitize_data(value)
+        value = super()._sanitize_data(value)
 
         if len(value) > self.max_length:
             raise FieldError(
@@ -140,7 +136,7 @@ class CharField(Field):
                     'the "max_length" defined ({})'
                 ).format(self.max_length)
             )
-        return "'{}'".format(value)
+        return '\'{}\''.format(value)
 
 
 class IntegerField(Field):
@@ -168,7 +164,7 @@ class DateField(Field):
         )
 
     def _sanitize_data(self, value):
-        super()._sanitize_data(value)
+        value = super()._sanitize_data(value)
 
         return "'{}'".format(value)
 
