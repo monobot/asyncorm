@@ -1,7 +1,7 @@
 from fields import Field, PkField, ManyToMany
 from manager import ModelManager
 
-from exceptions import ModelError
+from exceptions import ModelError, FieldError
 from log import logger
 
 __all__ = ['Model', ]
@@ -124,6 +124,8 @@ class BaseModel(object, metaclass=ModelMeta):
         for k, v in kwargs.items():
             att_class = getattr(self.__class__, k).__class__
             att_class._validate(v)
+            if att_class is PkField and v:
+                raise FieldError('Models can not be generated with forced id')
 
     @property
     def _fk_db_fieldname(self):

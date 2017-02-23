@@ -6,6 +6,14 @@ __all__ = ['ModelManager', ]
 dm = Database_Manager()
 
 
+MIDDLE_OPERATOR = {
+    'gt': '>',
+    'lt': '<',
+    'gte': '>=',
+    'lte': '>=',
+}
+
+
 class ModelManager(object):
     model = None
 
@@ -28,10 +36,23 @@ class ModelManager(object):
 
     def _get_objects_filtered(self, **kwargs):
         query = self._get_objects_query()
-        condition = ','.join(['{}={}'.format(k, v) for k, v in kwargs.items()])
+        filter_list = []
 
+        for k, v in kwargs.items():
+            # we format the key, the conditional and the value
+            middle = '='
+            if len(k.split('__')) > 1:
+                k, middle = k.split('__')
+                middle = MIDDLE_OPERATOR[middle]
+
+            field = getattr(self.model, k)
+            v = field._sanitize_data(v)
+
+            filter_list.append('{}{}{}'.format(k, middle, v))
+
+        condition = ' AND '.join(filter_list)
         query = query.replace(';',
-            'WHERE ({}) ;'.format(condition)
+            'WHERE {} ;'.format(condition)
         )
         return query
 
