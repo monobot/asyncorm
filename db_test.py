@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime, timedelta
-from tests.test_models import Book, Author, Publisher
+from tests.test_models import Book  # , Author, Publisher
 from database import Database_Manager
 
 loop = asyncio.get_event_loop()
@@ -51,7 +51,8 @@ async def create_book():
 
 
 async def fetch_books():
-    return await Book().objects._get_queryset()
+    # return await Book().objects._get_queryset()
+    return await Book().objects._get_filtered_queryset(id=3)
 
 
 if __name__ == '__main__':

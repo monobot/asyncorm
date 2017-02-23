@@ -14,11 +14,26 @@ class ModelManager(object):
         obj.build(data)
         return obj
 
-    async def _get_queryset(self, **kwargs):
+    async def _get_queryset(self):
         results = []
         for data in await dm.select(self._get_objects_query()):
             results.append(self.model().build(data))
         return results
+
+    async def _get_filtered_queryset(self, **kwargs):
+        results = []
+        for data in await dm.select(self._get_objects_filtered(**kwargs)):
+            results.append(self.model().build(data))
+        return results
+
+    def _get_objects_filtered(self, **kwargs):
+        query = self._get_objects_query()
+        condition = ','.join(['{}={}'.format(k, v) for k, v in kwargs.items()])
+
+        query = query.replace(';',
+            'WHERE ({}) ;'.format(condition)
+        )
+        return query
 
     def _get_objects_query(self):
         table_name = self.model.table_name
