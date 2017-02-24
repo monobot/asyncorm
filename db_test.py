@@ -40,7 +40,7 @@ async def create_book():
 
     book = Book(**{
         'name': 'silvia',
-        'content': 'se va a dormir',
+        'content': 'tapa dura',
         'date_created': datetime.now() - timedelta(days=23772),
         # 'author': 1
     })
@@ -51,9 +51,8 @@ async def create_book():
 
 
 async def fetch_books():
-    # return await Book().objects._get_queryset()
     result = await Book().objects._get_filtered_queryset(
-        id__gt=3, name='silvia'
+        id__gt=280, name='silvia'
     )
     return result
 

@@ -21,6 +21,7 @@ KWARGS_TYPES = {
 
 class Field(object):
     required_kwargs = []
+    table_name = None
 
     def __init__(self, **kwargs):
         # test done
@@ -38,6 +39,7 @@ class Field(object):
 
         self.auto_now = kwargs.get('auto_now', False)
         self.reverse_field = kwargs.get('reverse_field', '')
+        self.choices = {k: v for k, v in kwargs.get('choices', [])}
 
     def _creation_query(self):
         creation_string = '{field_name} ' + self.creation_string
@@ -61,6 +63,24 @@ class Field(object):
             creation_string += ' DEFAULT now()'
 
         return creation_string.format(**self.__dict__)
+
+    def _field_constraints(self):
+        if self.choices:
+            key_list = ['\'{}\''.format(k) for k in self.choices.keys()]
+            return '''
+                ALTER TABLE {table_name}
+                ADD CONSTRAINT {const_name}
+                CHECK ({field_name} IN ({key_list}) );
+                '''.format(
+                    table_name=self.table_name,
+                    const_name='{}_{}_const'.format(
+                        self.table_name,
+                        self.field_name
+                    ),
+                    field_name=self.field_name,
+                    key_list=','.join(key_list),
+                )
+        return ''
 
     def _validate_kwargs(self, kwargs):
         # test done
