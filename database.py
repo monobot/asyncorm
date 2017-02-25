@@ -1,4 +1,5 @@
 class GeneralManager(object):
+    # things that belong to all the diff databases managers
     pass
 
 
