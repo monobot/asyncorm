@@ -1,7 +1,4 @@
-import asyncpg
-
-
-class DatabaseManager(object):
+class PostgresManager(object):
 
     def __init__(self):
         self.conn_data = {
@@ -14,6 +11,7 @@ class DatabaseManager(object):
         self.conn = None
 
     async def get_conn(self):
+        import asyncpg
         if not self.conn:
             pool = await asyncpg.create_pool(**self.conn_data)
             self.conn = await pool.acquire()

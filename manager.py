@@ -1,9 +1,9 @@
-from database import DatabaseManager
+from database import PostgresManager
 # import json
 
 __all__ = ['ModelManager', ]
 
-dm = DatabaseManager()
+dm = PostgresManager()
 
 
 MIDDLE_OPERATOR = {

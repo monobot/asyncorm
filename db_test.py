@@ -1,11 +1,11 @@
 import asyncio
 from datetime import datetime, timedelta
 from tests.test_models import Book, Author, Publisher
-from database import DatabaseManager
+from database import PostgresManager
 
 loop = asyncio.get_event_loop()
 
-dm = DatabaseManager()
+dm = PostgresManager()
 
 
 async def create_db(models):
