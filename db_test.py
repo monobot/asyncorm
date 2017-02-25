@@ -5,7 +5,13 @@ from database import PostgresManager
 
 loop = asyncio.get_event_loop()
 
-dm = PostgresManager()
+dm = PostgresManager({
+    'database': 'asyncorm',
+    'host': 'localhost',
+    'user': 'sanicdbuser',
+    'password': 'sanicDbPass',
+    # 'loop': loop,
+})
 
 
 async def create_db(models):
@@ -47,7 +53,7 @@ async def create_book():
 
 
 async def fetch_books():
-    result = await Book().objects._get_filtered_queryset(
+    result = await Book.objects._get_filtered_queryset(
         id__gt=280, name='silvia'
     )
     return result

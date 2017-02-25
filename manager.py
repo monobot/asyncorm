@@ -3,7 +3,13 @@ from database import PostgresManager
 
 __all__ = ['ModelManager', ]
 
-dm = PostgresManager()
+dm = PostgresManager({
+    'database': 'asyncorm',
+    'host': 'localhost',
+    'user': 'sanicdbuser',
+    'password': 'sanicDbPass',
+    # 'loop': loop,
+})
 
 
 MIDDLE_OPERATOR = {
@@ -17,7 +23,8 @@ MIDDLE_OPERATOR = {
 class ModelDbManager(object):
 
     def _db_save(self, instanced_model, save_data):
-        # this method is intended to make it more high level
+        # this method is intended to make it more high level so isolate from
+        # an specific database idiom
         pass
 
     def _create_save_string(self, instanced_model, fields, field_data):
@@ -48,47 +55,6 @@ class ModelDbManager(object):
         save_string = save_string.format(*tuple(fields + field_data))
         return save_string
 
-    async def save(self, instanced_model):
-        # performs the database save
-        fields, field_data = [], []
-        for k, data in instanced_model.data.items():
-            f_class = getattr(instanced_model.__class__, k)
-
-            # we add the field_name in db
-            fields.append(f_class.field_name or k)
-            field_data.append(f_class._sanitize_data(data))
-
-        self._update_save_string(instanced_model, fields, field_data)
-        if getattr(instanced_model, instanced_model._fk_db_fieldname):
-            query = self._update_save_string(
-                instanced_model,
-                fields, field_data
-            )
-        query = self._create_save_string(instanced_model, fields, field_data)
-
-        await dm.transaction_insert([query])
-
-
-class ModelManager(ModelDbManager):
-    model = None
-
-    async def _construct_object(self, data):
-        obj = self.model()
-        obj._construct(data)
-        return obj
-
-    async def _get_queryset(self):
-        results = []
-        for data in await dm.select(self._get_objects_query()):
-            results.append(self.model()._construct(data))
-        return results
-
-    async def _get_filtered_queryset(self, **kwargs):
-        results = []
-        for data in await dm.select(self._get_objects_filtered(**kwargs)):
-            results.append(self.model()._construct(data))
-        return results
-
     def _get_objects_filtered(self, **kwargs):
         query = self._get_objects_query()
         filter_list = []
@@ -111,9 +77,45 @@ class ModelManager(ModelDbManager):
         )
         return query
 
+
+class ModelManager(ModelDbManager):
+    model = None
+
+    async def _get_queryset(self):
+        results = []
+        for data in await dm.select(self._get_objects_query()):
+            results.append(self.model()._construct(data))
+        return results
+
+    async def _get_filtered_queryset(self, **kwargs):
+        results = []
+        for data in await dm.select(self._get_objects_filtered(**kwargs)):
+            results.append(self.model()._construct(data))
+        return results
+
     def _get_objects_query(self):
         table_name = self.model.table_name
         return 'SELECT * FROM {table_name} ;'.format(table_name=table_name)
+
+    async def save(self, instanced_model):
+        # performs the database save
+        fields, field_data = [], []
+        for k, data in instanced_model.data.items():
+            f_class = getattr(instanced_model.__class__, k)
+
+            # we add the field_name in db
+            fields.append(f_class.field_name or k)
+            field_data.append(f_class._sanitize_data(data))
+
+        self._update_save_string(instanced_model, fields, field_data)
+        if getattr(instanced_model, instanced_model._fk_db_fieldname):
+            query = self._update_save_string(
+                instanced_model,
+                fields, field_data
+            )
+        query = self._create_save_string(instanced_model, fields, field_data)
+
+        await dm.transaction_insert([query])
 
     @classmethod
     def queryset(cls):

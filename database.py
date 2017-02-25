@@ -1,13 +1,11 @@
-class PostgresManager(object):
+class GeneralManager(object):
+    pass
 
-    def __init__(self):
-        self.conn_data = {
-            'database': 'asyncorm',
-            'host': 'localhost',
-            'user': 'sanicdbuser',
-            'password': 'sanicDbPass',
-            # 'loop': loop,
-        }
+
+class PostgresManager(GeneralManager):
+
+    def __init__(self, conn_data):
+        self.conn_data = conn_data
         self.conn = None
 
     async def get_conn(self):
