@@ -18,6 +18,16 @@ class ModelMeta(type):
             {"model": base_class}
         )()
 
+        fields = base_class._get_fields()
+
+        for f in fields.values():
+            if f.choices:
+                setattr(
+                    base_class,
+                    '{}_display'.format(f.orm_field_name),
+                    'choices_placeholder'
+                )
+
         return base_class
 
 
@@ -38,7 +48,30 @@ class BaseModel(object, metaclass=ModelMeta):
         manager = getattr(self, 'objects')
         manager.model = self.__class__
 
-        self.__class__.fields = self._get_fields()
+        self.__class__.fields = self.__class__._get_fields()
+
+        # # resolve method for posible display methods
+        # for k, v in self.__class__.__dict__.items():
+        #     if v == 'choices_placeholder':
+        #         field_name = k.split('_display')[0]
+
+        #         def internat():
+        #             print('in func fn', field_name)
+        #             choices = getattr(self.__class__, field_name).choices
+        #             print('choices', choices)
+
+        #             if isinstance(choices, dict):
+        #                 f_iter = choices.items()
+        #             elif isinstance(choices, (list, tuple)):
+        #                 f_iter = choices
+
+        #             for what in f_iter:
+        #                 print(what)
+        #                 current_value = getattr(self, field_name)
+        #                 if a == current_value:
+        #                     return b
+
+        #         setattr(self, k, internat)
 
         pk_needed = False
         if PkField not in [f.__class__ for f in self.fields.values()]:

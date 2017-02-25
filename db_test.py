@@ -67,3 +67,6 @@ if __name__ == '__main__':
 
     task = loop.create_task(fetch_books())
     loop.run_until_complete(asyncio.gather(task))
+
+    # book = Book(content='tapa dura')
+    # print(book.content_display())
