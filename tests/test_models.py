@@ -3,7 +3,7 @@ from fields import (CharField, DateField, IntegerField, ForeignKey,
     ManyToMany, PkField
 )
 
-__all__ = ('Publisher', 'Book', 'WrongBook', 'Author')
+__all__ = ('Publisher', 'Book', 'Author')
 
 BOOK_CHOICES = (
     ('tapa dura', 'libro de tapa dura'),
@@ -24,14 +24,6 @@ class Book(Model):
 
     def mi_nombre(self):
         return ('es mi nombre: {}'.format(self.name)) * 20
-
-
-class WrongBook(Model):
-    name = CharField(max_length=50)
-    content = CharField(max_length=255, field_name='in_content', )
-    in_content = CharField(max_length=25, )
-    date_created = DateField(auto_now=True)
-    author = ForeignKey(foreign_key='Author', null=True)
 
 
 class Author(Model):

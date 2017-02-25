@@ -1,7 +1,7 @@
 import unittest
 
 from exceptions import *
-from tests.test_models import Book, Author, WrongBook
+from tests.test_models import Book, Author
 from fields import *
 
 
@@ -12,23 +12,13 @@ class ModelTests(unittest.TestCase):
         self.assertEqual(Book().table_name, 'library')
         self.assertEqual(Author().table_name, 'author')
 
-        fields, field_names, pk_needed = Book._get_fields()
+        fields = Book._get_fields()
 
         self.assertEqual(len(fields), 5)
-        self.assertEqual(len(field_names), 5)
 
         self.assertEqual(
-            field_names.sort(),
-            ['id', 'content', 'name', 'author', 'date_created'].sort()
-        )
-
-        # trying to create a model with wrong field definition
-        with self.assertRaises(ModelError) as exc:
-            WrongBook._get_fields()
-        self.assertEqual(
-            exc.exception.args[0],
-            'Models should have unique attribute names ' +
-            'and field_name if explicitly edited!'
+            sorted(list(fields.keys())),
+            sorted(['id', 'content', 'name', 'author', 'date_created'])
         )
 
     def test_instantiated__init__(self):

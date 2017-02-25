@@ -67,6 +67,7 @@ class Field(object):
     def _field_constraints(self):
         if self.choices:
             key_list = ['\'{}\''.format(k) for k in self.choices.keys()]
+
             return '''
                 ALTER TABLE {table_name}
                 ADD CONSTRAINT {const_name}

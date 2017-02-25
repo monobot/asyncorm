@@ -38,22 +38,27 @@ class BaseModel(object, metaclass=ModelMeta):
         manager = getattr(self, 'objects')
         manager.model = self.__class__
 
-        self.fields, self.field_names, pk_needed = self._get_fields()
+        self.__class__.fields = self._get_fields()
+
+        pk_needed = False
+        if PkField not in [f.__class__ for f in self.fields.values()]:
+            pk_needed = True
 
         if pk_needed:
             self.__class__.id = PkField()
             setattr(self.__class__.id, 'orm_field_name', 'id')
             self.fk_field = self.__class__.id
 
-            self.fields = [self.id] + self.fields
-            self.field_names = ['id'] + self.field_names
+            self.fields['id'] = self.__class__.id
         else:
-            pk_fields = [f for f in self.fields if isinstance(f, PkField)]
+            pk_fields = [
+                f for f in self.fields.values() if isinstance(f, PkField)
+            ]
             self.fk_field = pk_fields[0]
 
         self._validate_kwargs(kwargs)
 
-        for field_name in self.field_names:
+        for field_name in self.fields.keys():
             setattr(
                 self,
                 field_name,
@@ -69,8 +74,7 @@ class BaseModel(object, metaclass=ModelMeta):
     @classmethod
     def _get_fields(cls):
         # test done
-        fields = []
-        field_names = []
+        fields = {}
 
         attr_names = []
         for f in cls.__dict__.keys():
@@ -94,8 +98,7 @@ class BaseModel(object, metaclass=ModelMeta):
                         )
                     )
 
-                fields.append(field)
-                field_names.append(f)
+                fields[f] = field
                 attr_names.append(field.field_name)
 
         if len(attr_names) != len(set(attr_names)):
@@ -104,16 +107,12 @@ class BaseModel(object, metaclass=ModelMeta):
                 'field_name if explicitly edited!'
             )
 
-        pk_needed = False
-        if PkField not in [f.__class__ for f in fields]:
-            pk_needed = True
-
-        return fields, field_names, pk_needed
+        return fields
 
     def _validate_kwargs(self, kwargs):
         '''validate the kwargs on object instantiation only'''
         # test done
-        attr_errors = [k for k in kwargs.keys() if k not in self.field_names]
+        attr_errors = [k for k in kwargs.keys() if k not in self.fields.keys()]
 
         if attr_errors:
             err_string = '"{}" is not an attribute for {}'
@@ -154,16 +153,18 @@ class BaseModel(object, metaclass=ModelMeta):
 
     def _get_field_queries(self):
         # builds the table with all its fields definition
-        return ', '.join([f._creation_query() for f in self.fields
+        return ', '.join([f._creation_query() for f in self.fields.values()
             if not isinstance(f, ManyToMany)])
 
     def _get_field_constraints(self):
         # builds the table with all its fields definition
-        return '; '.join([f._field_constraints() for f in self.fields])
+        return '; '.join(
+            [f._field_constraints() for f in self.fields.values()]
+        )
 
     def _get_m2m_field_queries(self):
         # builds the relational 1_to_1 table
-        return '; '.join([f._creation_query() for f in self.fields
+        return '; '.join([f._creation_query() for f in self.fields.values()
             if isinstance(f, ManyToMany)]
             )
 
