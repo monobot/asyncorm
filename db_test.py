@@ -58,15 +58,12 @@ async def fetch_books():
 
 
 if __name__ == '__main__':
-    task = loop.create_task(create_db([Author, Publisher, Book]))
-    loop.run_until_complete(asyncio.gather(task))
+    # task = loop.create_task(create_db([Author, Publisher, Book]))
+    # loop.run_until_complete(asyncio.gather(task))
 
-    for x in range(300):
-        task = loop.create_task(create_book())
-        loop.run_until_complete(asyncio.gather(task))
+    # for x in range(300):
+    #     task = loop.create_task(create_book())
+    #     loop.run_until_complete(asyncio.gather(task))
 
-    task = loop.create_task(fetch_books())
-    loop.run_until_complete(asyncio.gather(task))
-
-    # book = Book(content='tapa dura')
-    # print(book.content_display())
+    # task = loop.create_task(fetch_books())
+    # loop.run_until_complete(asyncio.gather(task))

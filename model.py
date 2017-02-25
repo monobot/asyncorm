@@ -50,28 +50,19 @@ class BaseModel(object, metaclass=ModelMeta):
 
         self.__class__.fields = self.__class__._get_fields()
 
-        # # resolve method for posible display methods
-        # for k, v in self.__class__.__dict__.items():
-        #     if v == 'choices_placeholder':
-        #         field_name = k.split('_display')[0]
+        # resolve method for posible display methods
+        for k, v in self.__class__.__dict__.items():
+            if v == 'choices_placeholder':
+                field_name = k.split('_display')[0]
+                field = getattr(self.__class__, field_name)
 
-        #         def internat():
-        #             print('in func fn', field_name)
-        #             choices = getattr(self.__class__, field_name).choices
-        #             print('choices', choices)
+                def new_func(field=field, field_name=field_name):
+                    value = getattr(self, field_name)
+                    for a, b in field.choices.items():
+                        if a == value:
+                            return b
 
-        #             if isinstance(choices, dict):
-        #                 f_iter = choices.items()
-        #             elif isinstance(choices, (list, tuple)):
-        #                 f_iter = choices
-
-        #             for what in f_iter:
-        #                 print(what)
-        #                 current_value = getattr(self, field_name)
-        #                 if a == current_value:
-        #                     return b
-
-        #         setattr(self, k, internat)
+                setattr(self, k, new_func)
 
         pk_needed = False
         if PkField not in [f.__class__ for f in self.fields.values()]:

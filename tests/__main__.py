@@ -166,6 +166,13 @@ class FieldTests(unittest.TestCase):
         # this is an allowed fieldname
         CharField(max_length=35, field_name='one_one')
 
+    def test_choices(self):
+        book = Book(content='tapa dura')
+        self.assertEqual(book.content_display(), 'libro de tapa dura')
+
+        book = Book(content='tapa blanda')
+        self.assertEqual(book.content_display(), 'libro de tapa blanda')
+
 
 if __name__ == '__main__':
     unittest.main()
