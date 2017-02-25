@@ -192,46 +192,6 @@ class BaseModel(object, metaclass=ModelMeta):
             if isinstance(f, ManyToMany)]
             )
 
-    # def _create_save_string(self, fields, field_data):
-    #     interpolate = ','.join(['{}'] * len(fields))
-    #     save_string = '''
-    #         INSERT INTO {table_name} ({interpolate}) VALUES ({interpolate});
-    #     '''.format(
-    #         table_name=self.__class__.table_name,
-    #         interpolate=interpolate,
-    #     )
-    #     save_string = save_string.format(*tuple(fields + field_data))
-    #     return save_string
-
-    # def _update_save_string(self, fields, field_data):
-    #     interpolate = ','.join(['{}'] * len(fields))
-    #     save_string = '''
-    #         UPDATE ONLY {table_name} SET ({interpolate}) VALUES ({interpolate})
-    #         WHERE {_fk_db_fieldname}={model_id};
-    #     '''.format(
-    #         table_name=self.__class__.table_name,
-    #         interpolate=interpolate,
-    #         _fk_db_fieldname=self._fk_db_fieldname,
-    #         model_id=getattr(self, self._fk_orm_fieldname)
-    #     )
-    #     save_string = save_string.format(*tuple(fields + field_data))
-    #     return save_string
-
-    # def _db_save(self):
-    #     # performs the database save
-    #     fields, field_data = [], []
-    #     for k, data in self.kwargs.items():
-    #         f_class = getattr(self.__class__, k)
-
-    #         # we add the field_name in db
-    #         fields.append(f_class.field_name or k)
-    #         field_data.append(f_class._sanitize_data(data))
-
-    #     self._update_save_string(fields, field_data)
-    #     if getattr(self, self._fk_db_fieldname):
-    #         return self._update_save_string(fields, field_data)
-    #     return self._create_save_string(fields, field_data)
-
     def __str__(self):
         return '< {} object >'.format(self.__class__.__name__)
 
@@ -248,7 +208,7 @@ class Model(BaseModel):
         return self
 
     async def save(self):
-        # user accessed save method
+        # external save method
         return await self.objects.save(self)
 
     def delete(self):
