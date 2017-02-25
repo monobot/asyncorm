@@ -1,7 +1,7 @@
 import asyncpg
 
 
-class Database_Manager(object):
+class DatabaseManager(object):
 
     def __init__(self):
         self.conn_data = {

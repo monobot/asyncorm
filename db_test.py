@@ -1,11 +1,11 @@
 import asyncio
 from datetime import datetime, timedelta
 from tests.test_models import Book, Author, Publisher
-from database import Database_Manager
+from database import DatabaseManager
 
 loop = asyncio.get_event_loop()
 
-db = Database_Manager()
+dm = DatabaseManager()
 
 
 async def create_db(models):
@@ -31,13 +31,11 @@ async def create_db(models):
         m2m_queries = model()._get_m2m_field_queries()
         if m2m_queries:
             queries.append(m2m_queries)
-    result = await db.transaction_insert(queries)
+    result = await dm.transaction_insert(queries)
     return result
 
 
 async def create_book():
-    queries = []
-
     book = Book(**{
         'name': 'silvia',
         'content': 'tapa dura',
@@ -45,9 +43,7 @@ async def create_book():
         # 'author': 1
     })
 
-    queries.append(book._db_save())
-    result = await db.transaction_insert(queries)
-    return result
+    await book.save()
 
 
 async def fetch_books():
@@ -58,12 +54,12 @@ async def fetch_books():
 
 
 if __name__ == '__main__':
-    # task = loop.create_task(create_db([Author, Publisher, Book]))
-    # loop.run_until_complete(asyncio.gather(task))
+    task = loop.create_task(create_db([Author, Publisher, Book]))
+    loop.run_until_complete(asyncio.gather(task))
 
-    # for x in range(300):
-    #     task = loop.create_task(create_book())
-    #     loop.run_until_complete(asyncio.gather(task))
+    for x in range(300):
+        task = loop.create_task(create_book())
+        loop.run_until_complete(asyncio.gather(task))
 
     # task = loop.create_task(fetch_books())
     # loop.run_until_complete(asyncio.gather(task))

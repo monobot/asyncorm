@@ -1,9 +1,9 @@
-from database import Database_Manager
+from database import DatabaseManager
 # import json
 
 __all__ = ['ModelManager', ]
 
-dm = Database_Manager()
+dm = DatabaseManager()
 
 
 MIDDLE_OPERATOR = {
@@ -14,7 +14,62 @@ MIDDLE_OPERATOR = {
 }
 
 
-class ModelManager(object):
+class ModelDbManager(object):
+
+    def _db_save(self, instanced_model, save_data):
+        # this method is intended to make it more high level
+        pass
+
+    def _create_save_string(self, instanced_model, fields, field_data):
+        interpolate = ','.join(['{}'] * len(fields))
+        save_string = '''
+            INSERT INTO {table_name} ({interpolate}) VALUES ({interpolate});
+        '''.format(
+            table_name=instanced_model.__class__.table_name,
+            interpolate=interpolate,
+        )
+        save_string = save_string.format(*tuple(fields + field_data))
+        return save_string
+
+    def _update_save_string(self, instanced_model, fields, field_data):
+        interpolate = ','.join(['{}'] * len(fields))
+        save_string = '''
+            UPDATE ONLY {table_name} SET ({interpolate}) VALUES ({interpolate})
+            WHERE {_fk_db_fieldname}={model_id};
+        '''.format(
+            table_name=instanced_model.__class__.table_name,
+            interpolate=interpolate,
+            _fk_db_fieldname=instanced_model._fk_db_fieldname,
+            model_id=getattr(
+                instanced_model,
+                instanced_model._fk_orm_fieldname
+            )
+        )
+        save_string = save_string.format(*tuple(fields + field_data))
+        return save_string
+
+    async def save(self, instanced_model):
+        # performs the database save
+        fields, field_data = [], []
+        for k, data in instanced_model.data.items():
+            f_class = getattr(instanced_model.__class__, k)
+
+            # we add the field_name in db
+            fields.append(f_class.field_name or k)
+            field_data.append(f_class._sanitize_data(data))
+
+        self._update_save_string(instanced_model, fields, field_data)
+        if getattr(instanced_model, instanced_model._fk_db_fieldname):
+            query = self._update_save_string(
+                instanced_model,
+                fields, field_data
+            )
+        query = self._create_save_string(instanced_model, fields, field_data)
+
+        await dm.transaction_insert([query])
+
+
+class ModelManager(ModelDbManager):
     model = None
 
     async def _construct_object(self, data):
