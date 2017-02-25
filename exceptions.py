@@ -9,3 +9,8 @@ class ModelError(Exception):
 class FieldError(Exception):
     '''to be raised when there are field errors detected'''
     pass
+
+
+class QueryError(Exception):
+    '''to be raised when there are queryset errors detected'''
+    pass

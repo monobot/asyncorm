@@ -53,10 +53,11 @@ async def create_book():
 
 
 async def fetch_books():
-    result = await Book.objects._get_filtered_queryset(
-        id__gt=280, name='silvia'
-    )
-    return result
+    return await Book.objects.filter(id__gt=280, name='silvia')
+
+
+async def get_book():
+    return await Book.objects.get(id=280, name='silvia')
 
 
 if __name__ == '__main__':
@@ -66,6 +67,3 @@ if __name__ == '__main__':
     for x in range(300):
         task = loop.create_task(create_book())
         loop.run_until_complete(asyncio.gather(task))
-
-    # task = loop.create_task(fetch_books())
-    # loop.run_until_complete(asyncio.gather(task))

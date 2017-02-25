@@ -1,4 +1,5 @@
 from database import PostgresManager
+from exceptions import QueryError
 # import json
 
 __all__ = ['ModelManager', ]
@@ -81,21 +82,36 @@ class ModelDbManager(object):
 class ModelManager(ModelDbManager):
     model = None
 
+    def _get_objects_query(self):
+        table_name = self.model.table_name
+        return 'SELECT * FROM {table_name} ;'.format(table_name=table_name)
+
     async def _get_queryset(self):
         results = []
         for data in await dm.select(self._get_objects_query()):
             results.append(self.model()._construct(data))
         return results
 
-    async def _get_filtered_queryset(self, **kwargs):
+    async def get(self, **kwargs):
+        data = await dm.select(self._get_objects_filtered(**kwargs))
+        length = len(data)
+        if length:
+            if length > 1:
+                raise QueryError(
+                    'More than one {} where returned, there are {}!'.format(
+                        self.model.__name__,
+                        length,
+                    )
+                )
+
+            construct = self.model()._construct(data[0])
+        return construct
+
+    async def filter(self, **kwargs):
         results = []
         for data in await dm.select(self._get_objects_filtered(**kwargs)):
             results.append(self.model()._construct(data))
         return results
-
-    def _get_objects_query(self):
-        table_name = self.model.table_name
-        return 'SELECT * FROM {table_name} ;'.format(table_name=table_name)
 
     async def save(self, instanced_model):
         # performs the database save

@@ -1,11 +1,36 @@
 import unittest
+import asyncio
 
 from exceptions import *
 from tests.test_models import Book, Author
 from fields import *
 
 
-class ModelTests(unittest.TestCase):
+class AioTestCase(unittest.TestCase):
+
+    # noinspection PyPep8Naming
+    def __init__(self, methodName='runTest', loop=None):
+        self.loop = loop or asyncio.get_event_loop()
+        self._function_cache = {}
+        super(AioTestCase, self).__init__(methodName=methodName)
+
+    def coroutine_function_decorator(self, func):
+        def wrapper(*args, **kw):
+            return self.loop.run_until_complete(func(*args, **kw))
+        return wrapper
+
+    def __getattribute__(self, item):
+        attr = object.__getattribute__(self, item)
+        if asyncio.iscoroutinefunction(attr):
+            if item not in self._function_cache:
+                self._function_cache[item] = self.coroutine_function_decorator(
+                    attr
+                )
+            return self._function_cache[item]
+        return attr
+
+
+class ModelTests(AioTestCase):
 
     def test_class__init__(self):
         # classmethods tests
@@ -91,7 +116,7 @@ class ModelTests(unittest.TestCase):
     #     book._db_save()
 
 
-class FieldTests(unittest.TestCase):
+class FieldTests(AioTestCase):
 
     def test_required_kwargs(self):
 
@@ -172,6 +197,20 @@ class FieldTests(unittest.TestCase):
 
         book = Book(content='tapa blanda')
         self.assertEqual(book.content_display(), 'libro de tapa blanda')
+
+
+class ManageTestMethods(AioTestCase):
+
+    async def test_filter(self):
+        queryset = await Book.objects.filter(id__gt=280, name='silvia')
+
+        self.assertEqual(len(queryset), 20)
+        self.assertTrue(isinstance(queryset[0], Book))
+
+    async def test_get(self):
+        book = await Book.objects.get(id=280, name='silvia')
+
+        self.assertTrue(isinstance(book, Book))
 
 
 if __name__ == '__main__':
