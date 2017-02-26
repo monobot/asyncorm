@@ -212,7 +212,7 @@ class Model(BaseModel):
     async def save(self):
         # external save method
         if not self.deleted:
-            return await self.objects.save(self)
+            await self.objects.save(self)
         else:
             raise ModelError(
                 'That {model_name} has already been deleted!'.format(

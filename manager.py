@@ -29,56 +29,6 @@ class ModelDbManager(object):
         return 'SELECT * FROM {table_name} ;'.format(table_name=table_name)
 
     @classmethod
-    def _db_save(cls, instanced_model, save_data):
-        # this method is intended to make it more high level so isolate from
-        # an specific database idiom
-        pass
-
-    @classmethod
-    def _create_save_string(cls, instanced_model, fields, field_data):
-        interpolate = ','.join(['{}'] * len(fields))
-        save_string = '''
-            INSERT INTO {table_name} ({interpolate}) VALUES ({interpolate});
-        '''.format(
-            table_name=instanced_model.__class__.table_name,
-            interpolate=interpolate,
-        )
-        save_string = save_string.format(*tuple(fields + field_data))
-        return save_string
-
-    @classmethod
-    def _delete_string(cls, instanced_model):
-        id_data = '{}={}'.format(
-            instanced_model._fk_db_fieldname,
-            getattr(instanced_model, instanced_model._fk_db_fieldname)
-        )
-        delete_string = '''
-            DELETE FROM {table_name} WHERE {id_data};
-        '''.format(
-            table_name=instanced_model.__class__.table_name,
-            id_data=id_data,
-        )
-        return delete_string
-
-    @classmethod
-    def _update_save_string(cls, instanced_model, fields, field_data):
-        interpolate = ','.join(['{}'] * len(fields))
-        save_string = '''
-            UPDATE ONLY {table_name} SET ({interpolate}) VALUES ({interpolate})
-            WHERE {_fk_db_fieldname}={model_id};
-        '''.format(
-            table_name=instanced_model.__class__.table_name,
-            interpolate=interpolate,
-            _fk_db_fieldname=instanced_model._fk_db_fieldname,
-            model_id=getattr(
-                instanced_model,
-                instanced_model._fk_orm_fieldname
-            )
-        )
-        save_string = save_string.format(*tuple(fields + field_data))
-        return save_string
-
-    @classmethod
     def _get_objects_filtered(cls, **kwargs):
         query = cls._get_objects_query()
         filter_list = []
@@ -96,9 +46,7 @@ class ModelDbManager(object):
             filter_list.append('{}{}{}'.format(k, middle, v))
 
         condition = ' AND '.join(filter_list)
-        query = query.replace(';',
-            'WHERE {} ;'.format(condition)
-        )
+        query = query.replace(';', 'WHERE {} ;'.format(condition))
         return query
 
 
@@ -114,7 +62,7 @@ class ModelManager(ModelDbManager):
 
     @classmethod
     async def get(cls, **kwargs):
-        data = await dm.select(cls._get_objects_filtered(**kwargs))
+        data = await cls.filter(**kwargs)
         length = len(data)
         if length:
             if length > 1:
@@ -133,10 +81,27 @@ class ModelManager(ModelDbManager):
 
     @classmethod
     async def filter(cls, **kwargs):
-        results = []
-        for data in await dm.select(cls._get_objects_filtered(**kwargs)):
-            results.append(cls.model()._construct(data))
-        return results
+        filters = []
+        for k, v in kwargs.items():
+            # we format the key, the conditional and the value
+            middle = '='
+            if len(k.split('__')) > 1:
+                k, middle = k.split('__')
+                middle = MIDDLE_OPERATOR[middle]
+
+            field = getattr(cls.model, k)
+            v = field._sanitize_data(v)
+
+            filters.append('{}{}{}'.format(k, middle, v))
+        condition = ' AND '.join(filters)
+
+        db_request = {
+            'table_name': cls.model.table_name,
+            'action': '_object__select',
+            'condition': condition
+        }
+        response = await dm._request(db_request)
+        return response
 
     @classmethod
     async def save(cls, instanced_model):
@@ -145,41 +110,61 @@ class ModelManager(ModelDbManager):
         for k, data in instanced_model.data.items():
             f_class = getattr(instanced_model.__class__, k)
 
-            # we add the field_name in db
-            fields.append(f_class.field_name or k)
-            field_data.append(f_class._sanitize_data(data))
+            field_name = f_class.field_name or k
+            data = f_class._sanitize_data(data)
 
-        cls._update_save_string(instanced_model, fields, field_data)
-        if getattr(instanced_model, instanced_model._fk_db_fieldname):
-            query = cls._update_save_string(
+            fields.append(field_name)
+            field_data.append(data)
+
+        db_request = {
+            'table_name': cls.model.table_name,
+            'action': (
+                getattr(
+                    instanced_model, instanced_model._fk_db_fieldname
+                ) and '_object__update' or '_object__create'
+            ),
+            '_fk_db_fieldname': instanced_model._fk_db_fieldname,
+            'model_id': getattr(
                 instanced_model,
-                fields, field_data
+                instanced_model._fk_orm_fieldname
+            ),
+            'field_names': ', '.join(fields),
+            'field_values': ', '.join(field_data),
+            'condition': '{}={}'.format(
+                instanced_model._fk_db_fieldname,
+                getattr(instanced_model, instanced_model._fk_db_fieldname)
             )
-        query = cls._create_save_string(instanced_model, fields, field_data)
-        info_back = cls._get_objects_filtered(**instanced_model.data)
-
-        result_object = await dm._save([query, info_back])
+        }
+        response = await dm._request(db_request)
 
         data = {}
-        for k, v in result_object.items():
+        for k, v in response.items():
             data.update({k: v})
         instanced_model._construct(data)
 
     @classmethod
     async def delete(cls, instanced_model):
-        # performs the database delete
-        query = cls._delete_string(instanced_model)
-        await dm._delete(query)
-
-        return None
+        db_request = {
+            'table_name': cls.model.table_name,
+            'action': '_object__delete',
+            'id_data': '{}={}'.format(
+                instanced_model._fk_db_fieldname,
+                getattr(instanced_model, instanced_model._fk_db_fieldname)
+            )
+        }
+        response = await dm._request(db_request)
+        return response
 
     @classmethod
-    def queryset(cls):
-        pass
+    async def queryset(cls):
+        return await cls.all()
 
     @classmethod
     async def all(cls):
-        results = []
-        for data in await dm.select(cls._get_objects_query()):
-            results.append(cls.model()._construct(data))
-        return results
+
+        db_request = {
+            'table_name': cls.model.table_name,
+            'action': '_object__select_all',
+        }
+        response = await dm._request(db_request)
+        return response

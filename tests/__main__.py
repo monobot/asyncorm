@@ -191,69 +191,71 @@ class FieldTests(AioTestCase):
 
 class ManageTestMethods(AioTestCase):
 
-    async def test_save(self):
-        book = Book(**{
-            'name': 'silvia',
-            'content': 'tapa dura',
-            'date_created': datetime.now() - timedelta(days=23772),
-            # 'author': 1
-        })
-        self.assertFalse(book.id)
+    # async def test_save(self):
+    #     book = Book(**{
+    #         'name': 'silvia',
+    #         'content': 'tapa dura',
+    #         'date_created': datetime.now() - timedelta(days=23772),
+    #         # 'author': 1
+    #     })
+    #     self.assertFalse(book.id)
 
-        await book.save()
-        self.assertTrue(book.id)
+    #     await book.save()
+    #     self.assertTrue(book.id)
 
-        orig_id = book.id
+    #     orig_id = book.id
 
-        await book.save()
-        self.assertEqual(orig_id, book.id)
+    #     await book.save()
+    #     self.assertEqual(orig_id, book.id)
 
-    async def test_delete(self):
-        books = await Book.objects.all()
-        book = books[0]
+    # async def test_delete(self):
+    #     books = await Book.objects.all()
+    #     book = books[0]
 
-        await book.delete()
-        with self.assertRaises(ModelError) as exc:
-            await book.save()
-        self.assertTrue('has already been deleted!' in exc.exception.args[0])
+    #     await book.delete()
+    #     with self.assertRaises(ModelError) as exc:
+    #         await book.save()
+    #     self.assertTrue('has already been deleted!' in exc.exception.args[0])
 
-        with self.assertRaises(QuerysetError) as exc:
-            await Book.objects.get(**{'id': book.id})
-        self.assertTrue('does not exist' in exc.exception.args[0])
+    #     with self.assertRaises(QuerysetError) as exc:
+    #         await Book.objects.get(**{'id': book.id})
+    #     self.assertTrue('does not exist' in exc.exception.args[0])
 
     async def test_all(self):
         queryset = await Book.objects.all()
 
+        print(queryset)
+
         self.assertTrue(len(queryset) >= 300)
         self.assertTrue(isinstance(queryset[0], Book))
 
-    async def test_filter(self):
-        queryset = await Book.objects.filter(id__gt=280, name='silvia')
+#     async def test_filter(self):
+#         queryset = await Book.objects.filter(id__gt=280, name='silvia')
 
-        self.assertTrue(len(queryset) >= 20)
-        self.assertTrue(isinstance(queryset[0], Book))
+#         self.assertTrue(len(queryset) >= 20)
+#         self.assertTrue(isinstance(queryset[0], Book))
 
-        # empty queryset
-        queryset = await Book.objects.filter(id__gt=2800)
-        self.assertEqual(len(queryset), 0)
+#         # empty queryset
+#         queryset = await Book.objects.filter(id__gt=2800)
+#         self.assertEqual(len(queryset), 0)
 
-    async def test_get(self):
-        book = await Book.objects.get(id=280, name='silvia')
+#     async def test_get(self):
+#         book = await Book.objects.get(id=280, name='silvia')
 
-        self.assertTrue(isinstance(book, Book))
+#         self.assertTrue(isinstance(book, Book))
 
-        # now try to get using wrong arguments (more than one)
-        with self.assertRaises(QuerysetError) as exc:
-            await Book.objects.get(id__gt=280, name='silvia')
-        self.assertTrue(
-            'More than one Book where returned, there are' in
-            exc.exception.args[0]
-        )
+#         # now try to get using wrong arguments (more than one)
+#         with self.assertRaises(QuerysetError) as exc:
+#             await Book.objects.get(id__gt=280, name='silvia')
+#         self.assertTrue(
+#             'More than one Book where returned, there are' in
+#             exc.exception.args[0]
+#         )
 
-        # now try to get using wrong arguments (no object)
-        with self.assertRaises(QuerysetError) as exc:
-            await Book.objects.get(id=2800, name='silvia')
-        self.assertTrue('does not exist' in exc.exception.args[0])
+#         # now try to get using wrong arguments (no object)
+#         with self.assertRaises(QuerysetError) as exc:
+#             await Book.objects.get(id=2800, name='silvia')
+#         self.assertTrue('does not exist' in exc.exception.args[0])
 
 
 if __name__ == '__main__':
