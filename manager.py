@@ -23,12 +23,14 @@ MIDDLE_OPERATOR = {
 
 class ModelDbManager(object):
 
-    def _db_save(self, instanced_model, save_data):
+    @classmethod
+    def _db_save(cls, instanced_model, save_data):
         # this method is intended to make it more high level so isolate from
         # an specific database idiom
         pass
 
-    def _create_save_string(self, instanced_model, fields, field_data):
+    @classmethod
+    def _create_save_string(cls, instanced_model, fields, field_data):
         interpolate = ','.join(['{}'] * len(fields))
         save_string = '''
             INSERT INTO {table_name} ({interpolate}) VALUES ({interpolate});
@@ -39,7 +41,8 @@ class ModelDbManager(object):
         save_string = save_string.format(*tuple(fields + field_data))
         return save_string
 
-    def _update_save_string(self, instanced_model, fields, field_data):
+    @classmethod
+    def _update_save_string(cls, instanced_model, fields, field_data):
         interpolate = ','.join(['{}'] * len(fields))
         save_string = '''
             UPDATE ONLY {table_name} SET ({interpolate}) VALUES ({interpolate})
@@ -56,8 +59,9 @@ class ModelDbManager(object):
         save_string = save_string.format(*tuple(fields + field_data))
         return save_string
 
-    def _get_objects_filtered(self, **kwargs):
-        query = self._get_objects_query()
+    @classmethod
+    def _get_objects_filtered(cls, **kwargs):
+        query = cls._get_objects_query()
         filter_list = []
 
         for k, v in kwargs.items():
@@ -67,7 +71,7 @@ class ModelDbManager(object):
                 k, middle = k.split('__')
                 middle = MIDDLE_OPERATOR[middle]
 
-            field = getattr(self.model, k)
+            field = getattr(cls.model, k)
             v = field._sanitize_data(v)
 
             filter_list.append('{}{}{}'.format(k, middle, v))
@@ -82,38 +86,43 @@ class ModelDbManager(object):
 class ModelManager(ModelDbManager):
     model = None
 
-    def _get_objects_query(self):
-        table_name = self.model.table_name
+    @classmethod
+    def _get_objects_query(cls):
+        table_name = cls.model.table_name
         return 'SELECT * FROM {table_name} ;'.format(table_name=table_name)
 
-    async def _get_queryset(self):
+    @classmethod
+    async def _get_queryset(cls):
         results = []
-        for data in await dm.select(self._get_objects_query()):
-            results.append(self.model()._construct(data))
+        for data in await dm.select(cls._get_objects_query()):
+            results.append(cls.model()._construct(data))
         return results
 
-    async def get(self, **kwargs):
-        data = await dm.select(self._get_objects_filtered(**kwargs))
+    @classmethod
+    async def get(cls, **kwargs):
+        data = await dm.select(cls._get_objects_filtered(**kwargs))
         length = len(data)
         if length:
             if length > 1:
                 raise QuerysetError(
                     'More than one {} where returned, there are {}!'.format(
-                        self.model.__name__,
+                        cls.model.__name__,
                         length,
                     )
                 )
 
-            construct = self.model()._construct(data[0])
+            construct = cls.model()._construct(data[0])
         return construct
 
-    async def filter(self, **kwargs):
+    @classmethod
+    async def filter(cls, **kwargs):
         results = []
-        for data in await dm.select(self._get_objects_filtered(**kwargs)):
-            results.append(self.model()._construct(data))
+        for data in await dm.select(cls._get_objects_filtered(**kwargs)):
+            results.append(cls.model()._construct(data))
         return results
 
-    async def save(self, instanced_model):
+    @classmethod
+    async def save(cls, instanced_model):
         # performs the database save
         fields, field_data = [], []
         for k, data in instanced_model.data.items():
@@ -123,14 +132,14 @@ class ModelManager(ModelDbManager):
             fields.append(f_class.field_name or k)
             field_data.append(f_class._sanitize_data(data))
 
-        self._update_save_string(instanced_model, fields, field_data)
+        cls._update_save_string(instanced_model, fields, field_data)
         if getattr(instanced_model, instanced_model._fk_db_fieldname):
-            query = self._update_save_string(
+            query = cls._update_save_string(
                 instanced_model,
                 fields, field_data
             )
-        query = self._create_save_string(instanced_model, fields, field_data)
-        info_back = self._get_objects_filtered(**instanced_model.data)
+        query = cls._create_save_string(instanced_model, fields, field_data)
+        info_back = cls._get_objects_filtered(**instanced_model.data)
 
         result_object = await dm._save([query, info_back])
 
@@ -142,3 +151,10 @@ class ModelManager(ModelDbManager):
     @classmethod
     def queryset(cls):
         pass
+
+    @classmethod
+    async def all(cls):
+        results = []
+        for data in await dm.select(cls._get_objects_query()):
+            results.append(cls.model()._construct(data))
+        return results

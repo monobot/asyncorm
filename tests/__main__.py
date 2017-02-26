@@ -219,6 +219,12 @@ class ManageTestMethods(AioTestCase):
         await book.save()
         self.assertEqual(orig_id, book.id)
 
+    async def test_all(self):
+        queryset = await Book.objects.all()
+
+        self.assertTrue(len(queryset) >= 300)
+        self.assertTrue(isinstance(queryset[0], Book))
+
     async def test_filter(self):
         queryset = await Book.objects.filter(id__gt=280, name='silvia')
 
