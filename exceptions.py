@@ -1,4 +1,4 @@
-__all__ = ('ModelError', 'FieldError')
+__all__ = ('ModelError', 'FieldError', 'QuerysetError')
 
 
 class ModelError(Exception):
@@ -11,6 +11,6 @@ class FieldError(Exception):
     pass
 
 
-class QueryError(Exception):
+class QuerysetError(Exception):
     '''to be raised when there are queryset errors detected'''
     pass

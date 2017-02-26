@@ -20,7 +20,8 @@ class PostgresManager(GeneralManager):
         conn = await self.get_conn()
         async with conn.transaction():
             for query in queries:
-                await conn.execute(query)
+                result = await conn.execute(query)
+        return result
 
     async def select(self, query):
         conn = await self.get_conn()

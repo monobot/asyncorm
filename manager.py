@@ -1,5 +1,5 @@
 from database import PostgresManager
-from exceptions import QueryError
+from exceptions import QuerysetError
 # import json
 
 __all__ = ['ModelManager', ]
@@ -97,7 +97,7 @@ class ModelManager(ModelDbManager):
         length = len(data)
         if length:
             if length > 1:
-                raise QueryError(
+                raise QuerysetError(
                     'More than one {} where returned, there are {}!'.format(
                         self.model.__name__,
                         length,
@@ -130,8 +130,12 @@ class ModelManager(ModelDbManager):
                 fields, field_data
             )
         query = self._create_save_string(instanced_model, fields, field_data)
+        info_back = self._get_objects_filtered(**instanced_model.data)
 
-        await dm.transaction_insert([query])
+        data = await dm.transaction_insert([query, info_back])
+        # print(data)
+        # print(data.__class__)
+        # instanced_model._construct(**data)
 
     @classmethod
     def queryset(cls):

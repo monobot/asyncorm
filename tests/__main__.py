@@ -207,10 +207,22 @@ class ManageTestMethods(AioTestCase):
         self.assertEqual(len(queryset), 20)
         self.assertTrue(isinstance(queryset[0], Book))
 
+        # empty queryset
+        queryset = await Book.objects.filter(id__gt=2800, name='silvia')
+        self.assertEqual(len(queryset), 0)
+
     async def test_get(self):
         book = await Book.objects.get(id=280, name='silvia')
 
         self.assertTrue(isinstance(book, Book))
+
+        # now try to get using wrong arguments
+        with self.assertRaises(QuerysetError) as exc:
+            await Book.objects.get(id__gt=280, name='silvia')
+        self.assertTrue(
+            'More than one Book where returned, there are' in
+            exc.exception.args[0]
+        )
 
 
 if __name__ == '__main__':

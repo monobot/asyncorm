@@ -52,14 +52,6 @@ async def create_book():
     await book.save()
 
 
-async def fetch_books():
-    return await Book.objects.filter(id__gt=280, name='silvia')
-
-
-async def get_book():
-    return await Book.objects.get(id=280, name='silvia')
-
-
 if __name__ == '__main__':
     task = loop.create_task(create_db([Author, Publisher, Book]))
     loop.run_until_complete(asyncio.gather(task))
