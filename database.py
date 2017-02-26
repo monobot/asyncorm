@@ -57,3 +57,9 @@ class PostgresManager(GeneralManager):
                     return None
             else:
                 return await conn.fetch(query)
+
+    async def transaction_insert(self, queries):
+        conn = await self.get_conn()
+        async with conn.transaction():
+            for query in queries:
+                await conn.execute(query)
