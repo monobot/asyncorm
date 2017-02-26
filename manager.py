@@ -132,10 +132,12 @@ class ModelManager(ModelDbManager):
         query = self._create_save_string(instanced_model, fields, field_data)
         info_back = self._get_objects_filtered(**instanced_model.data)
 
-        data = await dm.transaction_insert([query, info_back])
-        # print(data)
-        # print(data.__class__)
-        # instanced_model._construct(**data)
+        result_object = await dm._save([query, info_back])
+
+        data = {}
+        for k, v in result_object.items():
+            data.update({k: v})
+        instanced_model._construct(data)
 
     @classmethod
     def queryset(cls):

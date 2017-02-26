@@ -1,5 +1,6 @@
 import unittest
 import asyncio
+from datetime import datetime, timedelta
 
 from exceptions import *
 from tests.test_models import Book, Author
@@ -201,10 +202,27 @@ class FieldTests(AioTestCase):
 
 class ManageTestMethods(AioTestCase):
 
+    async def test_save(self):
+        book = Book(**{
+            'name': 'silvia',
+            'content': 'tapa dura',
+            'date_created': datetime.now() - timedelta(days=23772),
+            # 'author': 1
+        })
+        self.assertFalse(book.id)
+
+        await book.save()
+        self.assertTrue(book.id)
+
+        orig_id = book.id
+
+        await book.save()
+        self.assertEqual(orig_id, book.id)
+
     async def test_filter(self):
         queryset = await Book.objects.filter(id__gt=280, name='silvia')
 
-        self.assertEqual(len(queryset), 20)
+        self.assertTrue(len(queryset) >= 20)
         self.assertTrue(isinstance(queryset[0], Book))
 
         # empty queryset

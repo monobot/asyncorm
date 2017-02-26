@@ -26,3 +26,10 @@ class PostgresManager(GeneralManager):
     async def select(self, query):
         conn = await self.get_conn()
         return await conn.fetch(query)
+
+    async def _save(self, queries):
+        conn = await self.get_conn()
+        async with conn.transaction():
+            await conn.execute(queries[0])
+            result = await conn.fetch(queries[1])
+        return result[0]
