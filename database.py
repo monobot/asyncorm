@@ -11,9 +11,10 @@ class PostgresManager(GeneralManager):
 
     @property
     def _object__create(self):
-        return (
-            'INSERT INTO {table_name} ({field_names}) VALUES ({field_values});'
-        )
+        return '''
+            INSERT INTO {table_name} ({field_names}) VALUES ({field_values})
+            RETURNING *;
+        '''
 
     @property
     def _object__select(self):
@@ -25,9 +26,11 @@ class PostgresManager(GeneralManager):
 
     @property
     def _object__update(self):
-        return '''UPDATE ONLY {table_name}
+        return '''
+            UPDATE ONLY {table_name}
             SET ({field_names}) = ({field_values})
-            WHERE {_fk_db_fieldname}={model_id} ;
+            WHERE {_fk_db_fieldname}={model_id}
+            RETURNING *;
         '''
 
     @property
@@ -45,21 +48,12 @@ class PostgresManager(GeneralManager):
         query = getattr(self, request_dict['action']).format(**request_dict)
         conn = await self.get_conn()
 
-        if '__select' not in request_dict['action']:
-            async with conn.transaction():
-                await conn.execute(query)
+        async with conn.transaction():
+            if '__select' not in request_dict['action']:
+                result = await conn.fetch(query)
                 if request_dict['action'] != '_object__delete':
-                    query = getattr(self, '_object__select')
-
-                    if request_dict['action'] == '_object__create':
-                        query = query.replace('WHERE {condition}', '')
-                        query = query.format(**request_dict)
-                        result = await conn.fetch(query)
-                        return result[-1]
-                    query = query.format(**request_dict)
-                    result = await conn.fetch(query)
                     return result[0]
                 else:
                     return None
-        else:
-            return await conn.fetch(query)
+            else:
+                return await conn.fetch(query)
