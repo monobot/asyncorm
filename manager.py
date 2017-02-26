@@ -1,6 +1,6 @@
+from fields import ManyToMany
 from database import PostgresManager
 from exceptions import QuerysetError
-# import json
 
 __all__ = ['ModelManager', ]
 
@@ -23,6 +23,43 @@ MIDDLE_OPERATOR = {
 
 class ModelManager(object):
     model = None
+
+    @classmethod
+    def _creation_query(cls):
+        constraints = cls._get_field_constraints()
+
+        query = (
+            'CREATE TABLE {table_name} ({field_queries});{constraints}{ending}'
+        ).format(
+            table_name=cls.model.table_name,
+            field_queries=cls._get_field_queries(),
+            constraints=constraints,
+            ending=constraints and ';' or '',
+        )
+        return query
+
+    @classmethod
+    def _get_field_queries(cls):
+        # builds the table with all its fields definition
+        return ', '.join(
+            [f._creation_query() for f in cls.model.fields.values()
+            if not isinstance(f, ManyToMany)]
+        )
+
+    @classmethod
+    def _get_field_constraints(cls):
+        # builds the table with all its fields definition
+        return '; '.join(
+            [f._field_constraints() for f in cls.model.fields.values()]
+        )
+
+    @classmethod
+    def _get_m2m_field_queries(cls):
+        # builds the relational 1_to_1 table
+        return '; '.join(
+            [f._creation_query() for f in cls.model.fields.values()
+            if isinstance(f, ManyToMany)]
+        )
 
     @classmethod
     def _construct_model(cls, record, instance=None):
@@ -48,13 +85,6 @@ class ModelManager(object):
         }
 
         return [cls._construct_model(r) for r in await dm._request(db_request)]
-
-    # @classmethod
-    # async def _get_queryset(cls):
-    #     results = []
-    #     for data in await dm.select(cls._get_objects_query()):
-    #         results.append(cls.model()._construct(data))
-    #     return results
 
     @classmethod
     async def get(cls, **kwargs):

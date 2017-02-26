@@ -163,42 +163,6 @@ class BaseModel(object, metaclass=ModelMeta):
         '''model foreign_key orm fieldname'''
         return self.fk_field.orm_field_name
 
-    def _creation_query(self):
-        constraints = self._get_field_constraints()
-
-        query = (
-            'CREATE TABLE {table_name} ({field_queries});{constraints}{ending}'
-        ).format(
-            table_name=self.table_name,
-            field_queries=self._get_field_queries(),
-            constraints=constraints,
-            ending=constraints and ';' or '',
-        )
-        return query
-
-    def _get_field_queries(self):
-        # builds the table with all its fields definition
-        return ', '.join([f._creation_query() for f in self.fields.values()
-            if not isinstance(f, ManyToMany)])
-
-    def _get_field_constraints(self):
-        # builds the table with all its fields definition
-        return '; '.join(
-            [f._field_constraints() for f in self.fields.values()]
-        )
-
-    def _get_m2m_field_queries(self):
-        # builds the relational 1_to_1 table
-        return '; '.join([f._creation_query() for f in self.fields.values()
-            if isinstance(f, ManyToMany)]
-            )
-
-    def __str__(self):
-        return '< {} object >'.format(self.__class__.__name__)
-
-    def __repr__(self):
-        return '< {} object >'.format(self.__class__.__name__)
-
 
 class Model(BaseModel):
 
@@ -224,3 +188,9 @@ class Model(BaseModel):
         # external delete method
         self.deleted = True
         return await self.objects.delete(self)
+
+    def __str__(self):
+        return '< {} object >'.format(self.__class__.__name__)
+
+    def __repr__(self):
+        return '< {} object >'.format(self.__class__.__name__)
