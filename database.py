@@ -1,13 +1,12 @@
 class GeneralManager(object):
     # things that belong to all the diff databases managers    @classmethod
-    pass
-
-
-class PostgresManager(GeneralManager):
 
     def __init__(self, conn_data):
         self.conn_data = conn_data
         self.conn = None
+
+
+class PostgresManager(GeneralManager):
 
     @property
     def _object__create(self):
@@ -44,7 +43,7 @@ class PostgresManager(GeneralManager):
             self.conn = await pool.acquire()
         return self.conn
 
-    async def _request(self, request_dict):
+    async def request(self, request_dict):
         query = getattr(self, request_dict['action']).format(**request_dict)
         conn = await self.get_conn()
 

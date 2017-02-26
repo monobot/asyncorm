@@ -43,8 +43,8 @@ async def create_db(models):
 
 async def create_book():
     book = Book(**{
-        'name': 'silvia',
-        'content': 'tapa dura',
+        'name': 'book name',
+        'content': 'hard cover',
         'date_created': datetime.now() - timedelta(days=23772),
         # 'author': 1
     })

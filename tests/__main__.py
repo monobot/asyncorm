@@ -1,6 +1,6 @@
 import unittest
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from exceptions import *
 from tests.test_models import Book, Author
@@ -182,20 +182,20 @@ class FieldTests(AioTestCase):
         CharField(max_length=35, field_name='one_one')
 
     def test_choices(self):
-        book = Book(content='tapa dura')
-        self.assertEqual(book.content_display(), 'libro de tapa dura')
+        book = Book(content='hard cover')
+        self.assertEqual(book.content_display(), 'hard cover book')
 
-        book = Book(content='tapa blanda')
-        self.assertEqual(book.content_display(), 'libro de tapa blanda')
+        book = Book(content='paperback')
+        self.assertEqual(book.content_display(), 'paperback book')
 
 
 class ManageTestMethods(AioTestCase):
 
     async def test_save(self):
         book = Book(**{
-            'name': 'silvia',
-            'content': 'tapa dura',
-            'date_created': datetime.now() - timedelta(days=23772),
+            'name': 'lord of the rings',
+            'content': 'hard cover',
+            'date_created': datetime.now(),
             # 'author': 1
         })
         self.assertFalse(book.id)
@@ -228,7 +228,7 @@ class ManageTestMethods(AioTestCase):
         self.assertTrue(isinstance(queryset[0], Book))
 
     async def test_filter(self):
-        queryset = await Book.objects.filter(id__gt=280, name='silvia')
+        queryset = await Book.objects.filter(id__gt=280)
 
         self.assertTrue(len(queryset) >= 20)
         self.assertTrue(isinstance(queryset[0], Book))
@@ -238,13 +238,13 @@ class ManageTestMethods(AioTestCase):
         self.assertEqual(len(queryset), 0)
 
     async def test_get(self):
-        book = await Book.objects.get(id=280, name='silvia')
+        book = await Book.objects.get(id=280)
 
         self.assertTrue(isinstance(book, Book))
 
         # now try to get using wrong arguments (more than one)
         with self.assertRaises(QuerysetError) as exc:
-            await Book.objects.get(id__gt=280, name='silvia')
+            await Book.objects.get(id__gt=280)
         self.assertTrue(
             'More than one Book where returned, there are' in
             exc.exception.args[0]
@@ -252,7 +252,7 @@ class ManageTestMethods(AioTestCase):
 
         # now try to get using wrong arguments (no object)
         with self.assertRaises(QuerysetError) as exc:
-            await Book.objects.get(id=2800, name='silvia')
+            await Book.objects.get(id=2800)
         self.assertTrue('does not exist' in exc.exception.args[0])
 
 

@@ -84,7 +84,7 @@ class ModelManager(object):
             'action': '_object__select_all',
         }
 
-        return [cls._construct_model(r) for r in await dm._request(db_request)]
+        return [cls._construct_model(r) for r in await dm.request(db_request)]
 
     @classmethod
     async def get(cls, **kwargs):
@@ -126,7 +126,7 @@ class ModelManager(object):
             'condition': condition
         }
 
-        return [cls._construct_model(r) for r in await dm._request(db_request)]
+        return [cls._construct_model(r) for r in await dm.request(db_request)]
 
     @classmethod
     async def save(cls, instanced_model):
@@ -160,7 +160,7 @@ class ModelManager(object):
                 getattr(instanced_model, instanced_model._fk_db_fieldname)
             )
         }
-        response = await dm._request(db_request)
+        response = await dm.request(db_request)
 
         cls._construct_model(response, instanced_model)
 
@@ -174,5 +174,5 @@ class ModelManager(object):
                 getattr(instanced_model, instanced_model._fk_db_fieldname)
             )
         }
-        response = await dm._request(db_request)
+        response = await dm.request(db_request)
         return response

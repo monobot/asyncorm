@@ -6,8 +6,8 @@ from fields import (CharField, DateField, IntegerField, ForeignKey,
 __all__ = ('Publisher', 'Book', 'Author')
 
 BOOK_CHOICES = (
-    ('tapa dura', 'libro de tapa dura'),
-    ('tapa blanda', 'libro de tapa blanda')
+    ('hard cover', 'hard cover book'),
+    ('paperback', 'paperback book')
 )
 
 
@@ -22,8 +22,8 @@ class Book(Model):
     date_created = DateField(auto_now=True)
     author = ForeignKey(foreign_key='Author', null=True)
 
-    def mi_nombre(self):
-        return ('es mi nombre: {}'.format(self.name)) * 20
+    def verbose_name(self):
+        return ('covername: {}'.format(self.name)) * 20
 
 
 class Author(Model):
