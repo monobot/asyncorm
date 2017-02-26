@@ -41,18 +41,10 @@ class PostgresManager(GeneralManager):
             self.conn = await pool.acquire()
         return self.conn
 
-    async def transaction_insert(self, queries):
-        conn = await self.get_conn()
-        async with conn.transaction():
-            for query in queries:
-                result = await conn.execute(query)
-        return result
-
     async def _request(self, request_dict):
         query = getattr(self, request_dict['action']).format(**request_dict)
         conn = await self.get_conn()
 
-        print(query)
         if '__select' not in request_dict['action']:
             async with conn.transaction():
                 await conn.execute(query)
@@ -70,5 +62,4 @@ class PostgresManager(GeneralManager):
                 else:
                     return None
         else:
-            print('here', request_dict['action'])
             return await conn.fetch(query)

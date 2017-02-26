@@ -21,44 +21,40 @@ MIDDLE_OPERATOR = {
 }
 
 
-class ModelDbManager(object):
-
-    @classmethod
-    def _get_objects_query(cls):
-        table_name = cls.model.table_name
-        return 'SELECT * FROM {table_name} ;'.format(table_name=table_name)
-
-    @classmethod
-    def _get_objects_filtered(cls, **kwargs):
-        query = cls._get_objects_query()
-        filter_list = []
-
-        for k, v in kwargs.items():
-            # we format the key, the conditional and the value
-            middle = '='
-            if len(k.split('__')) > 1:
-                k, middle = k.split('__')
-                middle = MIDDLE_OPERATOR[middle]
-
-            field = getattr(cls.model, k)
-            v = field._sanitize_data(v)
-
-            filter_list.append('{}{}{}'.format(k, middle, v))
-
-        condition = ' AND '.join(filter_list)
-        query = query.replace(';', 'WHERE {} ;'.format(condition))
-        return query
-
-
-class ModelManager(ModelDbManager):
+class ModelManager(object):
     model = None
 
     @classmethod
-    async def _get_queryset(cls):
-        results = []
-        for data in await dm.select(cls._get_objects_query()):
-            results.append(cls.model()._construct(data))
-        return results
+    def _construct_model(cls, record, instance=None):
+        if not instance:
+            instance = cls.model()
+
+        data = {}
+        for k, v in record.items():
+            data.update({k: v})
+
+        instance._construct(data)
+        return instance
+
+    @classmethod
+    async def queryset(cls):
+        return await cls.all()
+
+    @classmethod
+    async def all(cls):
+        db_request = {
+            'table_name': cls.model.table_name,
+            'action': '_object__select_all',
+        }
+
+        return [cls._construct_model(r) for r in await dm._request(db_request)]
+
+    # @classmethod
+    # async def _get_queryset(cls):
+    #     results = []
+    #     for data in await dm.select(cls._get_objects_query()):
+    #         results.append(cls.model()._construct(data))
+    #     return results
 
     @classmethod
     async def get(cls, **kwargs):
@@ -73,8 +69,7 @@ class ModelManager(ModelDbManager):
                     )
                 )
 
-            construct = cls.model()._construct(data[0])
-            return construct
+            return data[0]
         raise QuerysetError(
             'That {} does not exist'.format(cls.model.__name__)
         )
@@ -100,8 +95,8 @@ class ModelManager(ModelDbManager):
             'action': '_object__select',
             'condition': condition
         }
-        response = await dm._request(db_request)
-        return response
+
+        return [cls._construct_model(r) for r in await dm._request(db_request)]
 
     @classmethod
     async def save(cls, instanced_model):
@@ -137,10 +132,7 @@ class ModelManager(ModelDbManager):
         }
         response = await dm._request(db_request)
 
-        data = {}
-        for k, v in response.items():
-            data.update({k: v})
-        instanced_model._construct(data)
+        cls._construct_model(response, instanced_model)
 
     @classmethod
     async def delete(cls, instanced_model):
@@ -151,20 +143,6 @@ class ModelManager(ModelDbManager):
                 instanced_model._fk_db_fieldname,
                 getattr(instanced_model, instanced_model._fk_db_fieldname)
             )
-        }
-        response = await dm._request(db_request)
-        return response
-
-    @classmethod
-    async def queryset(cls):
-        return await cls.all()
-
-    @classmethod
-    async def all(cls):
-
-        db_request = {
-            'table_name': cls.model.table_name,
-            'action': '_object__select_all',
         }
         response = await dm._request(db_request)
         return response
