@@ -24,6 +24,11 @@ MIDDLE_OPERATOR = {
 class ModelDbManager(object):
 
     @classmethod
+    def _get_objects_query(cls):
+        table_name = cls.model.table_name
+        return 'SELECT * FROM {table_name} ;'.format(table_name=table_name)
+
+    @classmethod
     def _db_save(cls, instanced_model, save_data):
         # this method is intended to make it more high level so isolate from
         # an specific database idiom
@@ -40,6 +45,20 @@ class ModelDbManager(object):
         )
         save_string = save_string.format(*tuple(fields + field_data))
         return save_string
+
+    @classmethod
+    def _delete_string(cls, instanced_model):
+        id_data = '{}={}'.format(
+            instanced_model._fk_db_fieldname,
+            getattr(instanced_model, instanced_model._fk_db_fieldname)
+        )
+        delete_string = '''
+            DELETE FROM {table_name} WHERE {id_data};
+        '''.format(
+            table_name=instanced_model.__class__.table_name,
+            id_data=id_data,
+        )
+        return delete_string
 
     @classmethod
     def _update_save_string(cls, instanced_model, fields, field_data):
@@ -87,11 +106,6 @@ class ModelManager(ModelDbManager):
     model = None
 
     @classmethod
-    def _get_objects_query(cls):
-        table_name = cls.model.table_name
-        return 'SELECT * FROM {table_name} ;'.format(table_name=table_name)
-
-    @classmethod
     async def _get_queryset(cls):
         results = []
         for data in await dm.select(cls._get_objects_query()):
@@ -112,7 +126,10 @@ class ModelManager(ModelDbManager):
                 )
 
             construct = cls.model()._construct(data[0])
-        return construct
+            return construct
+        raise QuerysetError(
+            'That {} does not exist'.format(cls.model.__name__)
+        )
 
     @classmethod
     async def filter(cls, **kwargs):
@@ -147,6 +164,14 @@ class ModelManager(ModelDbManager):
         for k, v in result_object.items():
             data.update({k: v})
         instanced_model._construct(data)
+
+    @classmethod
+    async def delete(cls, instanced_model):
+        # performs the database delete
+        query = cls._delete_string(instanced_model)
+        await dm._delete(query)
+
+        return None
 
     @classmethod
     def queryset(cls):

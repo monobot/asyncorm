@@ -35,6 +35,7 @@ class BaseModel(object, metaclass=ModelMeta):
     table_name = ''
 
     objects = None
+    deleted = False
 
     def __init__(self, **kwargs):
         logger.debug('initiating model {}'.format(self.__class__.__name__))
@@ -201,15 +202,25 @@ class BaseModel(object, metaclass=ModelMeta):
 
 class Model(BaseModel):
 
-    def _construct(self, data):
+    def _construct(self, data, deleted=False):
         # poblates the model with the data
         for k, v in data.items():
             setattr(self, k, v)
+        self.deleted = deleted
         return self
 
     async def save(self):
         # external save method
-        return await self.objects.save(self)
+        if not self.deleted:
+            return await self.objects.save(self)
+        else:
+            raise ModelError(
+                'That {model_name} has already been deleted!'.format(
+                    model_name=self.__class__.__name__
+                )
+            )
 
-    def delete(self):
-        self.objects.save()
+    async def delete(self):
+        # external delete method
+        self.deleted = True
+        return await self.objects.delete(self)

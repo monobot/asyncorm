@@ -33,3 +33,8 @@ class PostgresManager(GeneralManager):
             await conn.execute(queries[0])
             result = await conn.fetch(queries[1])
         return result[0]
+
+    async def _delete(self, query):
+        conn = await self.get_conn()
+        async with conn.transaction():
+            await conn.execute(query)
