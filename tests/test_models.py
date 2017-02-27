@@ -22,9 +22,6 @@ class Book(Model):
     date_created = DateField(auto_now=True)
     author = ForeignKey(foreign_key='Author', null=True)
 
-    def verbose_name(self):
-        return ('covername: {}'.format(self.name)) * 20
-
 
 class Author(Model):
     na = PkField(field_name='uid')
