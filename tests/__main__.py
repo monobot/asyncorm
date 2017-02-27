@@ -6,6 +6,8 @@ from exceptions import *
 from tests.test_models import Book, Author
 from fields import *
 
+book = Book()
+
 
 class AioTestCase(unittest.TestCase):
 
@@ -224,7 +226,7 @@ class ManageTestMethods(AioTestCase):
     async def test_all(self):
         queryset = await Book.objects.all()
 
-        self.assertTrue(len(queryset) >= 300)
+        self.assertTrue(len(queryset) >= 250)
         self.assertTrue(isinstance(queryset[0], Book))
 
     async def test_filter(self):
@@ -233,6 +235,27 @@ class ManageTestMethods(AioTestCase):
         self.assertTrue(len(queryset) >= 20)
         self.assertTrue(isinstance(queryset[0], Book))
 
+        queryset = await Book.objects.filter(id=(280, 282))
+        self.assertEqual(len(queryset), 3)
+
+        # incorrect fitler tuple definition error catched
+        with self.assertRaises(QuerysetError) as exc:
+            await Book.objects.get(id=(280, 234, 23))
+        self.assertTrue(
+            ('Not a correct tuple definition, filter '
+            'only allows tuples of size 2') in
+            exc.exception.args[0]
+        )
+
+        # incorrect fitler tuple definition error catched
+        with self.assertRaises(QuerysetError) as exc:
+            await Book.objects.get(id=(280, ))
+        self.assertTrue(
+            ('Not a correct tuple definition, filter '
+            'only allows tuples of size 2') in
+            exc.exception.args[0]
+        )
+
         # empty queryset
         queryset = await Book.objects.filter(id__gt=2800)
         self.assertEqual(len(queryset), 0)
@@ -240,8 +263,11 @@ class ManageTestMethods(AioTestCase):
     async def test_exclude(self):
         queryset = await Book.objects.exclude(id__gt=280)
 
-        self.assertTrue(len(queryset) >= 250)
+        self.assertTrue(len(queryset) >= 20)
         self.assertTrue(isinstance(queryset[0], Book))
+
+        queryset = await Book.objects.exclude(id=(280, 282))
+        self.assertTrue(len(queryset) > 250)
 
         # empty queryset
         queryset = await Book.objects.exclude(id__lt=2800)

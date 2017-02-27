@@ -17,7 +17,7 @@ MIDDLE_OPERATOR = {
     'gt': '>',
     'lt': '<',
     'gte': '>=',
-    'lte': '>=',
+    'lte': '<=',
 }
 
 
@@ -87,6 +87,15 @@ class ModelManager(object):
         return [cls._construct_model(r) for r in await dm.request(db_request)]
 
     @classmethod
+    async def count(cls):
+        db_request = {
+            'table_name': cls.model.table_name,
+            'action': 'db__count',
+        }
+
+        return await dm.request(db_request)
+
+    @classmethod
     async def get(cls, **kwargs):
         data = await cls.filter(**kwargs)
         length = len(data)
@@ -104,8 +113,10 @@ class ModelManager(object):
             'That {} does not exist'.format(cls.model.__name__)
         )
 
-    @classmethod
-    async def filter(cls, **kwargs):
+    @staticmethod
+    def calc_filters(model, kwargs, exclude=False):
+        # recompose the filters
+        bool_string = exclude and 'NOT ' or ''
         filters = []
         for k, v in kwargs.items():
             # we format the key, the conditional and the value
@@ -114,10 +125,32 @@ class ModelManager(object):
                 k, middle = k.split('__')
                 middle = MIDDLE_OPERATOR[middle]
 
-            field = getattr(cls.model, k)
-            v = field._sanitize_data(v)
+            field = getattr(model, k)
 
-            filters.append('{}{}{}'.format(k, middle, v))
+            if middle == '=' and isinstance(v, tuple):
+                if len(v) != 2:
+                    raise QuerysetError(
+                        'Not a correct tuple definition, filter '
+                        'only allows tuples of size 2'
+                    )
+                filters.append(
+                    bool_string +
+                    '({k}>={min} AND {k}<={max})'.format(
+                        k=k,
+                        min=field._sanitize_data(v[0]),
+                        max=field._sanitize_data(v[1]),
+                    )
+                )
+            else:
+                v = field._sanitize_data(v)
+                filters.append(bool_string + '{}{}{}'.format(k, middle, v))
+
+        return filters
+
+    @classmethod
+    async def filter(cls, **kwargs):
+        filters = cls.calc_filters(cls.model, kwargs)
+
         condition = ' AND '.join(filters)
 
         db_request = {
@@ -130,23 +163,12 @@ class ModelManager(object):
 
     @classmethod
     async def exclude(cls, **kwargs):
-        filters = []
-        for k, v in kwargs.items():
-            # we format the key, the conditional and the value
-            middle = '='
-            if len(k.split('__')) > 1:
-                k, middle = k.split('__')
-                middle = MIDDLE_OPERATOR[middle]
-
-            field = getattr(cls.model, k)
-            v = field._sanitize_data(v)
-
-            filters.append('{}{}{}'.format(k, middle, v))
-        condition = ' AND NOT '.join(filters)
+        filters = cls.calc_filters(cls.model, kwargs, exclude=True)
+        condition = ' AND '.join(filters)
 
         db_request = {
             'table_name': cls.model.table_name,
-            'action': 'db__select_exclude',
+            'action': 'db__select',
             'condition': condition
         }
 

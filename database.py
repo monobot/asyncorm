@@ -16,16 +16,16 @@ class PostgresManager(GeneralManager):
         '''
 
     @property
+    def db__count(self):
+        return 'SELECT COUNT(*) FROM {table_name} ;'
+
+    @property
     def db__select_all(self):
         return 'SELECT * FROM {table_name} ;'
 
     @property
     def db__select(self):
-        return self.db__select_all.replace(';', 'WHERE {condition} ;')
-
-    @property
-    def db__select_exclude(self):
-        return self.db__select_all.replace(';', 'WHERE NOT {condition} ;')
+        return 'SELECT * FROM {table_name} WHERE {condition} ;'
 
     @property
     def db__update(self):
@@ -51,9 +51,7 @@ class PostgresManager(GeneralManager):
         query = getattr(self, request_dict['action']).format(**request_dict)
         conn = await self.get_conn()
 
-        if request_dict['action'] == 'db__exclude':
-            print(query)
-
+        # print(query)
         async with conn.transaction():
             result = await conn.fetch(query)
             if '__select' not in request_dict['action']:
