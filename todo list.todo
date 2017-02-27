@@ -1,0 +1,6 @@
+queryset:
+    really as django querysets that is generator
+    add exclude
+
+    allow nested behaviour ¿?
+
