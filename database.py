@@ -12,12 +12,12 @@ class PostgresManager(GeneralManager):
     def _object__create(self):
         return '''
             INSERT INTO {table_name} ({field_names}) VALUES ({field_values})
-            RETURNING *;
+            RETURNING * ;
         '''
 
     @property
     def _object__select(self):
-        return 'SELECT * FROM {table_name} WHERE {condition};'
+        return 'SELECT * FROM {table_name} WHERE {condition} ;'
 
     @property
     def _object__select_all(self):
@@ -29,12 +29,12 @@ class PostgresManager(GeneralManager):
             UPDATE ONLY {table_name}
             SET ({field_names}) = ({field_values})
             WHERE {_fk_db_fieldname}={model_id}
-            RETURNING *;
+            RETURNING * ;
         '''
 
     @property
     def _object__delete(self):
-        return 'DELETE FROM {table_name} WHERE {id_data};'
+        return 'DELETE FROM {table_name} WHERE {id_data} ;'
 
     async def get_conn(self):
         import asyncpg
@@ -48,14 +48,14 @@ class PostgresManager(GeneralManager):
         conn = await self.get_conn()
 
         async with conn.transaction():
+            result = await conn.fetch(query)
             if '__select' not in request_dict['action']:
-                result = await conn.fetch(query)
                 if request_dict['action'] != '_object__delete':
                     return result[0]
                 else:
                     return None
             else:
-                return await conn.fetch(query)
+                return result
 
     async def transaction_insert(self, queries):
         conn = await self.get_conn()
