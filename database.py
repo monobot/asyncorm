@@ -32,7 +32,7 @@ class PostgresManager(GeneralManager):
         return '''
             UPDATE ONLY {table_name}
             SET ({field_names}) = ({field_values})
-            WHERE {_fk_db_fieldname}={model_id}
+            WHERE {_db_pk}={model_id}
             RETURNING * ;
         '''
 

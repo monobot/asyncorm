@@ -18,9 +18,26 @@ class ModelMeta(type):
             {"model": base_class}
         )()
 
-        fields = base_class._get_fields()
+        base_class.fields = base_class._get_fields()
 
-        for f in fields.values():
+        pk_needed = False
+        if PkField not in [f.__class__ for f in base_class.fields.values()]:
+            pk_needed = True
+
+        if pk_needed:
+            base_class.id = PkField()
+            base_class.fields['id'] = base_class.id
+
+            base_class._db_pk = 'id'
+            base_class._orm_pk = 'id'
+        else:
+            pk_fields = [
+                f for f in base_class.fields.values() if isinstance(f, PkField)
+            ]
+            base_class._db_pk = pk_fields[0].field_name
+            base_class._orm_pk = pk_fields[0].orm_field_name
+
+        for f in base_class.fields.values():
             if f.choices:
                 setattr(
                     base_class,
@@ -65,22 +82,6 @@ class BaseModel(object, metaclass=ModelMeta):
 
                 setattr(self, k, new_func)
 
-        pk_needed = False
-        if PkField not in [f.__class__ for f in self.fields.values()]:
-            pk_needed = True
-
-        if pk_needed:
-            self.__class__.id = PkField()
-            setattr(self.__class__.id, 'orm_field_name', 'id')
-            self.fk_field = self.__class__.id
-
-            self.fields['id'] = self.__class__.id
-        else:
-            pk_fields = [
-                f for f in self.fields.values() if isinstance(f, PkField)
-            ]
-            self.fk_field = pk_fields[0]
-
         self._validate_kwargs(kwargs)
 
         for field_name in self.fields.keys():
@@ -119,12 +120,12 @@ class BaseModel(object, metaclass=ModelMeta):
                         '{my_model}_{foreign_key}'.format(
                             my_model=cls.table_name,
                             foreign_key=field.field_name,
-
                         )
                     )
 
                 fields[f] = field
-                attr_names.append(field.field_name)
+                if not isinstance(field.__class__, PkField):
+                    attr_names.append(field.field_name)
 
         if len(attr_names) != len(set(attr_names)):
             raise ModelError(
@@ -152,16 +153,6 @@ class BaseModel(object, metaclass=ModelMeta):
             att_class._validate(v)
             if att_class is PkField and v:
                 raise FieldError('Models can not be generated with forced id')
-
-    @property
-    def _fk_db_fieldname(self):
-        '''model foreign_key database fieldname'''
-        return self.fk_field.field_name
-
-    @property
-    def _fk_orm_fieldname(self):
-        '''model foreign_key orm fieldname'''
-        return self.fk_field.orm_field_name
 
 
 class Model(BaseModel):

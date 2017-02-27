@@ -135,7 +135,7 @@ class ModelManager(object):
                     )
                 filters.append(
                     bool_string +
-                    '({k}>={min} AND {k}<={max})'.format(
+                    '({k}>{min} AND {k}<{max})'.format(
                         k=k,
                         min=field._sanitize_data(v[0]),
                         max=field._sanitize_data(v[1]),
@@ -191,19 +191,19 @@ class ModelManager(object):
             'table_name': cls.model.table_name,
             'action': (
                 getattr(
-                    instanced_model, instanced_model._fk_db_fieldname
+                    instanced_model, instanced_model._db_pk
                 ) and 'db__update' or 'db__create'
             ),
-            '_fk_db_fieldname': instanced_model._fk_db_fieldname,
+            '_db_pk': instanced_model._db_pk,
             'model_id': getattr(
                 instanced_model,
-                instanced_model._fk_orm_fieldname
+                instanced_model._orm_pk
             ),
             'field_names': ', '.join(fields),
             'field_values': ', '.join(field_data),
             'condition': '{}={}'.format(
-                instanced_model._fk_db_fieldname,
-                getattr(instanced_model, instanced_model._fk_db_fieldname)
+                instanced_model._db_pk,
+                getattr(instanced_model, instanced_model._db_pk)
             )
         }
         response = await dm.request(db_request)
@@ -216,8 +216,8 @@ class ModelManager(object):
             'table_name': cls.model.table_name,
             'action': 'db__delete',
             'id_data': '{}={}'.format(
-                instanced_model._fk_db_fieldname,
-                getattr(instanced_model, instanced_model._fk_db_fieldname)
+                instanced_model._db_pk,
+                getattr(instanced_model, instanced_model._db_pk)
             )
         }
         response = await dm.request(db_request)

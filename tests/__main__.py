@@ -6,8 +6,6 @@ from exceptions import *
 from tests.test_models import Book, Author
 from fields import *
 
-book = Book()
-
 
 class AioTestCase(unittest.TestCase):
 
@@ -53,13 +51,13 @@ class ModelTests(AioTestCase):
         # classmethods tests
         book = Book()
 
-        self.assertEqual(book._fk_db_fieldname, 'id')
-        self.assertEqual(book._fk_orm_fieldname, 'id')
+        self.assertEqual(book._db_pk, 'id')
+        self.assertEqual(book._orm_pk, 'id')
 
         author = Author()
 
-        self.assertEqual(author._fk_db_fieldname, 'uid')
-        self.assertEqual(author._fk_orm_fieldname, 'na')
+        self.assertEqual(author._db_pk, 'uid')
+        self.assertEqual(author._orm_pk, 'na')
 
     def test__validate_kwargs(self):
         kwargs = {
@@ -236,7 +234,11 @@ class ManageTestMethods(AioTestCase):
         self.assertTrue(isinstance(queryset[0], Book))
 
         queryset = await Book.objects.filter(id=(280, 282))
-        self.assertEqual(len(queryset), 3)
+        self.assertEqual(len(queryset), 1)
+
+        # upside doesnt really makes sense but als works
+        queryset = await Book.objects.filter(id=(282, 280))
+        self.assertEqual(len(queryset), 0)
 
         # incorrect fitler tuple definition error catched
         with self.assertRaises(QuerysetError) as exc:
