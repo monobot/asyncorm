@@ -9,22 +9,26 @@ class GeneralManager(object):
 class PostgresManager(GeneralManager):
 
     @property
-    def _object__create(self):
+    def db__create(self):
         return '''
             INSERT INTO {table_name} ({field_names}) VALUES ({field_values})
             RETURNING * ;
         '''
 
     @property
-    def _object__select(self):
-        return 'SELECT * FROM {table_name} WHERE {condition} ;'
-
-    @property
-    def _object__select_all(self):
+    def db__select_all(self):
         return 'SELECT * FROM {table_name} ;'
 
     @property
-    def _object__update(self):
+    def db__select(self):
+        return self.db__select_all.replace(';', 'WHERE {condition} ;')
+
+    @property
+    def db__select_exclude(self):
+        return self.db__select_all.replace(';', 'WHERE NOT {condition} ;')
+
+    @property
+    def db__update(self):
         return '''
             UPDATE ONLY {table_name}
             SET ({field_names}) = ({field_values})
@@ -33,7 +37,7 @@ class PostgresManager(GeneralManager):
         '''
 
     @property
-    def _object__delete(self):
+    def db__delete(self):
         return 'DELETE FROM {table_name} WHERE {id_data} ;'
 
     async def get_conn(self):
@@ -47,10 +51,13 @@ class PostgresManager(GeneralManager):
         query = getattr(self, request_dict['action']).format(**request_dict)
         conn = await self.get_conn()
 
+        if request_dict['action'] == 'db__exclude':
+            print(query)
+
         async with conn.transaction():
             result = await conn.fetch(query)
             if '__select' not in request_dict['action']:
-                if request_dict['action'] != '_object__delete':
+                if request_dict['action'] != 'db__delete':
                     return result[0]
                 else:
                     return None

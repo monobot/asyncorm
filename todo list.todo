@@ -4,3 +4,7 @@ queryset:
 
     allow nested behaviour ¿?
 
+    ordering:
+        in meta and add it to all queries
+        add ordering to methods when nested behaviour implemented
+

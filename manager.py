@@ -81,7 +81,7 @@ class ModelManager(object):
     async def all(cls):
         db_request = {
             'table_name': cls.model.table_name,
-            'action': '_object__select_all',
+            'action': 'db__select_all',
         }
 
         return [cls._construct_model(r) for r in await dm.request(db_request)]
@@ -122,7 +122,31 @@ class ModelManager(object):
 
         db_request = {
             'table_name': cls.model.table_name,
-            'action': '_object__select',
+            'action': 'db__select',
+            'condition': condition
+        }
+
+        return [cls._construct_model(r) for r in await dm.request(db_request)]
+
+    @classmethod
+    async def exclude(cls, **kwargs):
+        filters = []
+        for k, v in kwargs.items():
+            # we format the key, the conditional and the value
+            middle = '='
+            if len(k.split('__')) > 1:
+                k, middle = k.split('__')
+                middle = MIDDLE_OPERATOR[middle]
+
+            field = getattr(cls.model, k)
+            v = field._sanitize_data(v)
+
+            filters.append('{}{}{}'.format(k, middle, v))
+        condition = ' AND NOT '.join(filters)
+
+        db_request = {
+            'table_name': cls.model.table_name,
+            'action': 'db__select_exclude',
             'condition': condition
         }
 
@@ -146,7 +170,7 @@ class ModelManager(object):
             'action': (
                 getattr(
                     instanced_model, instanced_model._fk_db_fieldname
-                ) and '_object__update' or '_object__create'
+                ) and 'db__update' or 'db__create'
             ),
             '_fk_db_fieldname': instanced_model._fk_db_fieldname,
             'model_id': getattr(
@@ -168,7 +192,7 @@ class ModelManager(object):
     async def delete(cls, instanced_model):
         db_request = {
             'table_name': cls.model.table_name,
-            'action': '_object__delete',
+            'action': 'db__delete',
             'id_data': '{}={}'.format(
                 instanced_model._fk_db_fieldname,
                 getattr(instanced_model, instanced_model._fk_db_fieldname)

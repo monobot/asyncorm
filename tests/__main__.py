@@ -237,6 +237,16 @@ class ManageTestMethods(AioTestCase):
         queryset = await Book.objects.filter(id__gt=2800)
         self.assertEqual(len(queryset), 0)
 
+    async def test_exclude(self):
+        queryset = await Book.objects.exclude(id__gt=280)
+
+        self.assertTrue(len(queryset) >= 250)
+        self.assertTrue(isinstance(queryset[0], Book))
+
+        # empty queryset
+        queryset = await Book.objects.exclude(id__lt=2800)
+        self.assertEqual(len(queryset), 0)
+
     async def test_get(self):
         book = await Book.objects.get(id=280)
 
