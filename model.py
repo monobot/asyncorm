@@ -50,7 +50,9 @@ class ModelMeta(type):
         base_class._ordering = None
         if defined_meta:
             if hasattr(defined_meta, 'ordering'):
-                base_class._ordering = getattr(defined_meta, 'ordering')
+                base_class._ordering = base_class.check_ordering(
+                    getattr(defined_meta, 'ordering')
+                )
 
         return base_class
 
@@ -160,6 +162,18 @@ class BaseModel(object, metaclass=ModelMeta):
             att_class._validate(v)
             if att_class is PkField and v:
                 raise FieldError('Models can not be generated with forced id')
+
+    @classmethod
+    def check_ordering(cls, ordering):
+        for f in ordering:
+            if f.startswith('-'):
+                f = f[1:]
+            if f not in cls.fields.keys():
+                raise ModelError(
+                    'Meta\'s ordering refers to a field '
+                    '{} not defined in the model'.format(f)
+                )
+        return ordering
 
 
 class Model(BaseModel):

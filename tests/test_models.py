@@ -23,7 +23,7 @@ class Book(Model):
     author = ForeignKey(foreign_key='Author', null=True)
 
     class Meta():
-        ordering = ['name', 'id']
+        ordering = ['-id']
 
 
 class Author(Model):
