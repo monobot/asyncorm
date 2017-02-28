@@ -1,7 +1,9 @@
 import unittest
 import asyncio
+
 from datetime import datetime
 
+from configuration import configure_orm
 from exceptions import *
 from tests.test_models import Book, Author
 from fields import *
@@ -29,6 +31,46 @@ class AioTestCase(unittest.TestCase):
                 )
             return self._function_cache[item]
         return attr
+
+
+class ModuleTests(AioTestCase):
+
+    def test_configuration(self):
+        import asyncio
+
+        config_dict = {'loop': asyncio.get_event_loop()}
+        with self.assertRaises(ModuleError) as exc:
+            configure_orm(config_dict)
+        self.assertEqual(
+            exc.exception.args[0],
+            'Imposible to configure without database configuration!'
+        )
+
+        config_dict = {
+            'db_config': {
+                'database': 'asyncorm',
+                'host': 'localhost',
+                'user': 'sanicdbuser',
+                'password': 'sanicDbPass',
+            }
+        }
+        with self.assertRaises(ModuleError) as exc:
+            configure_orm(config_dict)
+        self.assertEqual(
+            exc.exception.args[0],
+            'Imposible to configure without main loop!'
+        )
+
+        config_dict = {
+            'loop': asyncio.get_event_loop(),
+            'db_config': {
+                'database': 'asyncorm',
+                'host': 'localhost',
+                'user': 'sanicdbuser',
+                'password': 'sanicDbPass',
+            }
+        }
+        self.assertTrue(configure_orm(config_dict))
 
 
 class ModelTests(AioTestCase):

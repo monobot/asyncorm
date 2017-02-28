@@ -56,7 +56,7 @@ class PostgresManager(GeneralManager):
                 ';', 'ORDER BY {};'.format(','.join(request_dict['ordering']))
             )
 
-        print(query)
+        # print(query)
         async with conn.transaction():
             result = await conn.fetch(query)
             if '__select' not in request_dict['action']:

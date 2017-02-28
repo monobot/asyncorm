@@ -1,4 +1,9 @@
-__all__ = ('ModelError', 'FieldError', 'QuerysetError')
+__all__ = ('ModuleError', 'ModelError', 'FieldError', 'QuerysetError')
+
+
+class ModuleError(Exception):
+    '''to be raised when there are model module or config errors detected'''
+    pass
 
 
 class ModelError(Exception):
