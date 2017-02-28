@@ -105,6 +105,10 @@ class ModelTests(AioTestCase):
         # now it correctly validates
         book._validate_kwargs(kwargs)
 
+    async def test_ordering(self):
+        self.assertEqual(Book()._ordering, ['name', 'id'])
+        self.assertEqual(Author()._ordering, None)
+
 
 class FieldTests(AioTestCase):
 

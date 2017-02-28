@@ -18,6 +18,8 @@ class ModelMeta(type):
             {"model": base_class}
         )()
 
+        defined_meta = clsdict.pop('Meta', None)
+
         base_class.fields = base_class._get_fields()
 
         pk_needed = False
@@ -44,6 +46,11 @@ class ModelMeta(type):
                     '{}_display'.format(f.orm_field_name),
                     'choices_placeholder'
                 )
+
+        base_class._ordering = None
+        if defined_meta:
+            if hasattr(defined_meta, 'ordering'):
+                base_class._ordering = getattr(defined_meta, 'ordering')
 
         return base_class
 

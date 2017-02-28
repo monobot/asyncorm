@@ -159,6 +159,8 @@ class ModelManager(object):
             'condition': condition
         }
 
+        if cls.model._ordering:
+            db_request.update({'ordering': cls.model._ordering})
         return [cls._construct_model(r) for r in await dm.request(db_request)]
 
     @classmethod
@@ -172,6 +174,8 @@ class ModelManager(object):
             'condition': condition
         }
 
+        if cls.model._ordering:
+            db_request.update({'ordering': cls.model._ordering})
         return [cls._construct_model(r) for r in await dm.request(db_request)]
 
     @classmethod
