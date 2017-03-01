@@ -1,7 +1,7 @@
+from asyncpg.exceptions import UniqueViolationError
 from .fields import ManyToMany
-from .exceptions import QuerysetError
+from .exceptions import QuerysetError, ModelError
 from .application import configure_orm, orm_app
-
 __all__ = ['ModelManager', ]
 
 dm = orm_app.db_manager
@@ -209,7 +209,7 @@ class ModelManager(object):
             'table_name': cls.model.table_name,
             'action': (
                 getattr(
-                    instanced_model, instanced_model._db_pk
+                    instanced_model, instanced_model._orm_pk
                 ) and 'db__update' or 'db__create'
             ),
             '_db_pk': instanced_model._db_pk,
@@ -221,10 +221,13 @@ class ModelManager(object):
             'field_values': ', '.join(field_data),
             'condition': '{}={}'.format(
                 instanced_model._db_pk,
-                getattr(instanced_model, instanced_model._db_pk)
+                getattr(instanced_model, instanced_model._orm_pk)
             )
         }
-        response = await dm.request(db_request)
+        try:
+            response = await dm.request(db_request)
+        except UniqueViolationError:
+            raise ModelError('The model violates a unique constraint')
 
         cls._construct_model(response, instanced_model)
 

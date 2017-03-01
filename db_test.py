@@ -57,6 +57,15 @@ async def create_book():
     await book.save()
 
 
+async def create_author():
+    book = Author(**{
+        'name': 'pedrito',
+        'age': 23,
+    })
+
+    await book.save()
+
+
 if __name__ == '__main__':
     task = loop.create_task(create_db([Author, Publisher, Book]))
     loop.run_until_complete(asyncio.gather(task))

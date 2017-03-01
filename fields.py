@@ -177,6 +177,11 @@ class IntegerField(Field):
         super().__init__(field_name=field_name, default=default, null=null,
             choices=choices, unique=unique)
 
+    def _sanitize_data(self, value):
+        value = super()._sanitize_data(value)
+
+        return '{}'.format(value)
+
 
 class DecimalField(IntegerField):
     internal_type = float

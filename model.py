@@ -37,6 +37,8 @@ class ModelMeta(type):
             ]
             base_class._db_pk = pk_fields[0].field_name
             base_class._orm_pk = pk_fields[0].orm_field_name
+            print(base_class._db_pk)
+            print(base_class._orm_pk)
 
         for f in base_class.fields.values():
             if f.choices:
