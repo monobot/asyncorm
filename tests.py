@@ -4,9 +4,9 @@ import unittest
 from datetime import datetime
 
 # from application import OrmApp
-from .exceptions import *
-from .fields import *
-from .model import Model
+from asyncorm.exceptions import *
+from asyncorm.fields import *
+from asyncorm.model import Model
 
 BOOK_CHOICES = (
     ('hard cover', 'hard cover book'),
