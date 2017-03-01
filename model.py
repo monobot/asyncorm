@@ -47,10 +47,15 @@ class ModelMeta(type):
                 )
 
         base_class._ordering = None
+        base_class._unique_together = []
         if defined_meta:
             if hasattr(defined_meta, 'ordering'):
                 base_class._ordering = base_class.check_ordering(
                     getattr(defined_meta, 'ordering')
+                )
+            if hasattr(defined_meta, 'unique_together'):
+                base_class._unique_together = getattr(
+                    defined_meta, 'unique_together'
                 )
 
         return base_class
@@ -161,6 +166,26 @@ class BaseModel(object, metaclass=ModelMeta):
             att_class._validate(v)
             if att_class is PkField and v:
                 raise FieldError('Models can not be generated with forced id')
+
+    #     # check unique_together
+    #     if self.__class__._unique_together:
+    #         self._check_unique_together(kwargs)
+
+    # @classmethod
+    # def _check_unique_together(cls, kwargs):
+    #     get_kwargs = {}
+    #     for field_name in cls._unique_together:
+    #         field_value = kwargs.get(
+    #             field_name,
+    #             getattr(cls, field_name).default
+    #         )
+    #         get_kwargs[field_name] = field_value
+
+    #     try:
+    #         cls.objects.get(**get_kwargs)
+    #         raise ModelError('unique together contraint!')
+    #     except:
+    #         pass
 
     @classmethod
     def check_ordering(cls, ordering):

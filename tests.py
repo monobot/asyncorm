@@ -27,11 +27,12 @@ class Book(Model):
 
     class Meta():
         ordering = ['-id']
+        unique_together = ['name', 'content']
 
 
 class Author(Model):
     na = PkField(field_name='uid')
-    name = CharField(max_length=50)
+    name = CharField(max_length=50, unique=True)
     age = IntegerField()
     publisher = ManyToMany(foreign_key='Publisher')
 

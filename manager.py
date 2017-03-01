@@ -29,15 +29,19 @@ class ModelManager(object):
     @classmethod
     def _creation_query(cls):
         constraints = cls._get_field_constraints()
+        unique_together = cls._get_unique_together()
 
         query = (
-            'CREATE TABLE {table_name} ({field_queries});{constraints}{ending}'
+            'CREATE TABLE {table_name} ({field_queries}{unique_together});'
+            '{constraints}{ending}'
         ).format(
             table_name=cls.model.table_name,
             field_queries=cls._get_field_queries(),
+            unique_together=unique_together,
             constraints=constraints,
             ending=constraints and ';' or '',
         )
+        print(query)
         return query
 
     @classmethod
@@ -54,6 +58,14 @@ class ModelManager(object):
         return '; '.join(
             [f._field_constraints() for f in cls.model.fields.values()]
         )
+
+    @classmethod
+    def _get_unique_together(cls):
+        # builds the table with all its fields definition
+        unique_string = ', UNIQUE ({}) '.format(
+            ','.join(cls.model._unique_together)
+        )
+        return cls.model._unique_together and unique_string or ''
 
     @classmethod
     def _get_m2m_field_queries(cls):

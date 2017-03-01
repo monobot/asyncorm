@@ -17,6 +17,7 @@ KWARGS_TYPES = {
     'auto_now': bool,
     'reverse_field': str,
     'choices': (dict, tuple),
+    'unique': bool,
 }
 
 
@@ -32,6 +33,7 @@ class Field(object):
         self.field_name = kwargs.get('field_name', '')
 
         self.default = kwargs.get('default', None)
+        self.unique = kwargs.get('unique', None)
         self.null = kwargs.get('null', False)
 
         self.max_length = kwargs.get('max_length', 0)
@@ -62,6 +64,9 @@ class Field(object):
 
         elif date_field and self.auto_now:
             creation_string += ' DEFAULT now()'
+
+        if self.unique:
+            creation_string += ' UNIQUE'
 
         return creation_string.format(**self.__dict__)
 
@@ -133,8 +138,8 @@ class PkField(Field):
     internal_type = object
     creation_string = 'serial primary key'
 
-    def __init__(self, field_name='id'):
-        super().__init__(field_name=field_name)
+    def __init__(self, field_name='id', unique=False):
+        super().__init__(field_name=field_name, unique=unique)
 
 
 class CharField(Field):
@@ -143,10 +148,10 @@ class CharField(Field):
     creation_string = 'varchar({max_length})'
 
     def __init__(self, field_name='', default=None, max_length=0,
-            null=False, choices={}):
+            null=False, choices={}, unique=False):
         # test done
         super().__init__(field_name=field_name, default=default,
-            max_length=max_length, null=null, choices=choices
+            max_length=max_length, null=null, choices=choices, unique=unique
         )
 
     def _sanitize_data(self, value):
@@ -166,14 +171,16 @@ class IntegerField(Field):
     internal_type = int
     creation_string = 'integer'
 
-    def __init__(self, field_name='', default=None, null=False, choices={}):
+    def __init__(self, field_name='', default=None, null=False, choices={},
+            unique=False):
         # test done
         super().__init__(field_name=field_name, default=default, null=null,
-            choices=choices)
+            choices=choices, unique=unique)
 
 
 class DecimalField(IntegerField):
     internal_type = float
+    creation_string = 'decimal'
 
 
 class DateField(Field):
@@ -181,10 +188,10 @@ class DateField(Field):
     creation_string = 'timestamp'
 
     def __init__(self, field_name='', default=None, auto_now=False,
-            null=False, choices={}):
+            null=False, choices={}, unique=False):
         # test done
         super().__init__(field_name=field_name, default=default,
-            auto_now=auto_now, null=null, choices=choices
+            auto_now=auto_now, null=null, choices=choices, unique=unique
         )
 
     def _sanitize_data(self, value):
@@ -199,10 +206,10 @@ class ForeignKey(Field):
     creation_string = 'integer references {foreign_key}'
 
     def __init__(self, field_name='', default=None, foreign_key='',
-            null=False):
+            null=False, unique=False):
         # test done
         super().__init__(field_name=field_name, default=default,
-            foreign_key=foreign_key, null=null
+            foreign_key=foreign_key, null=null, unique=unique
         )
 
 
@@ -215,10 +222,11 @@ class ManyToMany(Field):
         {foreign_key} INTEGER REFERENCES {foreign_key} NOT NULL
         );'''
 
-    def __init__(self, field_name='', foreign_key='', default=None):
+    def __init__(self, field_name='', foreign_key='', default=None,
+            unique=False):
         # test done
         super().__init__(field_name=field_name, foreign_key=foreign_key,
-            default=default
+            default=default, unique=unique
         )
 
     def _creation_query(self):
