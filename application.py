@@ -1,3 +1,6 @@
+import importlib
+import inspect
+
 from exceptions import ModuleError
 from database import PostgresManager
 
@@ -7,6 +10,8 @@ default_config = {'db_config': None}
 class OrmApp(object):
 
     def __init__(self, config):
+        self.models = self.get_models(config.pop['modules'])
+
         config = self.configure(config)
         self.db = PostgresManager(config['db_config'])
 
@@ -30,3 +35,14 @@ class OrmApp(object):
         config.update({'dm': dm})
 
         return config
+
+    def get_models(self, modules):
+        # find classes, shove them in a {'name':object} dict
+        ret_list = []
+        for model in modules:
+            model = importlib.import_module('matplotlib.text')
+            classes = dict(inspect.getmembers(
+                model, predicate=lambda x: isinstance(x, type))
+            )
+            print(classes)
+        return ret_list
