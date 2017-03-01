@@ -2,18 +2,20 @@ import asyncio
 
 from datetime import datetime, timedelta
 
-from tests.test_models import Book, Author, Publisher
-from database import PostgresManager
+from tests import Book, Author, Publisher
+from application import configure_orm
 
 loop = asyncio.get_event_loop()
 
-dm = PostgresManager({
-    'database': 'asyncorm',
-    'host': 'localhost',
-    'user': 'sanicdbuser',
-    'password': 'sanicDbPass',
-    # 'loop': loop,
-})
+orm = configure_orm(
+    {'db_config': {
+        'database': 'asyncorm',
+        'host': 'localhost',
+        'user': 'sanicdbuser',
+        'password': 'sanicDbPass',
+    }})
+
+dm = orm.db_manager
 
 
 async def create_db(models):

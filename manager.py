@@ -1,16 +1,9 @@
 from fields import ManyToMany
 from exceptions import QuerysetError
 from application import configure_orm
-# from database import PostgresManager
 
 __all__ = ['ModelManager', ]
 
-# dm = PostgresManager({
-#         'database': 'asyncorm',
-#         'host': 'localhost',
-#         'user': 'sanicdbuser',
-#         'password': 'sanicDbPass',
-#     })
 orm = configure_orm({'db_config': {
         'database': 'asyncorm',
         'host': 'localhost',
