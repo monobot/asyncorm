@@ -1,10 +1,10 @@
 import importlib
-import inspect
+# import inspect
 import asyncio
 
 from exceptions import ModuleError
 
-default_config = {
+DEFAULT_CONFIG = {
     'db_config': None,
     'loop': asyncio.get_event_loop(),
     'manager': 'PostgresManager',
@@ -14,15 +14,14 @@ default_config = {
 
 class OrmApp(object):
     db_manager = None
-    models = None
-
-    def __init__(self, config):
-        config = self.configure(config)
+    # models = None
 
     def configure(self, config):
-        self.models = self.get_models(config.pop('modules', None))
+        # models = config.pop('modules', None)
+        # if models:
+        #     self.models = self.get_models(models)
 
-        default_config.update(config)
+        DEFAULT_CONFIG.update(config)
 
         db_config = config.get('db_config', None)
         if not db_config:
@@ -30,27 +29,33 @@ class OrmApp(object):
                 'Imposible to configure without database configuration!'
             )
 
-        loop = config.get('loop')
-        # if not loop:
-        #     raise ModuleError(
-        #         'Imposible to configure without main loop!'
-        #     )
+        loop = DEFAULT_CONFIG.get('loop')
         db_config['loop'] = loop
 
-        manager = importlib.import_module(
-            config.pop('manager')
-        )
+        database_module = importlib.import_module('database')
+
+        manager = getattr(database_module, 'PostgresManager')
         self.db_manager = manager(db_config)
 
         return config
 
-    def get_models(self, modules):
-        # find classes, shove them in a {'name':object} dict
-        ret_list = []
-        for model in modules:
-            model = importlib.import_module('matplotlib.text')
-            classes = dict(inspect.getmembers(
-                model, predicate=lambda x: isinstance(x, type))
-            )
-            print(classes)
-        return ret_list
+    # def get_models(self, modules):
+    #     # find classes, shove them in a {'name':object} dict
+    #     from model import Model
+    #     ret_list = []
+    #     for m in modules:
+    #         module = importlib.import_module(m)
+    #         classes = dict(inspect.getmembers(
+    #             module, predicate=lambda x: isinstance(x, Model))
+    #         )
+    #         print(classes)
+    #     return ret_list
+
+
+orm_app = OrmApp()
+
+
+def configure_orm(config):
+    global orm_app
+    orm_app.configure(config)
+    return orm_app

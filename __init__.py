@@ -3,4 +3,4 @@ from fields import *
 
 from exceptions import *
 from database import PostgresManager
-from configuration import configure_orm
+from application import configure_orm

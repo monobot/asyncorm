@@ -1,8 +1,9 @@
+from log import logger
+
 from fields import Field, PkField, ManyToMany
 from manager import ModelManager
 
 from exceptions import ModelError, FieldError
-from log import logger
 
 __all__ = ['Model', ]
 
