@@ -2,7 +2,7 @@ import importlib
 # import inspect
 import asyncio
 
-from exceptions import ModuleError
+from .exceptions import ModuleError
 
 DEFAULT_CONFIG = {
     'db_config': None,
@@ -32,7 +32,7 @@ class OrmApp(object):
         loop = DEFAULT_CONFIG.get('loop')
         db_config['loop'] = loop
 
-        database_module = importlib.import_module('database')
+        database_module = importlib.import_module('asyncorm.database')
 
         manager = getattr(database_module, 'PostgresManager')
         self.db_manager = manager(db_config)

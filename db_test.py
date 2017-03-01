@@ -2,8 +2,8 @@ import asyncio
 
 from datetime import datetime, timedelta
 
-from tests import Book, Author, Publisher
-from application import configure_orm
+from .tests import Book, Author, Publisher
+from .application import configure_orm
 
 loop = asyncio.get_event_loop()
 

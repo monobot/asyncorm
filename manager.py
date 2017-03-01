@@ -1,6 +1,6 @@
-from fields import ManyToMany
-from exceptions import QuerysetError
-from application import configure_orm
+from .fields import ManyToMany
+from .exceptions import QuerysetError
+from .application import configure_orm
 
 __all__ = ['ModelManager', ]
 

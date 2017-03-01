@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from exceptions import FieldError
+from .exceptions import FieldError
 
 __all__ = ('Field', 'PkField', 'CharField', 'IntegerField', 'DateField',
     'ForeignKey', 'ManyToMany', 'DecimalField'

@@ -1,12 +1,12 @@
-import unittest
 import asyncio
+import unittest
 
 from datetime import datetime
 
 # from application import OrmApp
-from exceptions import *
-from fields import *
-from model import Model
+from .exceptions import *
+from .fields import *
+from .model import Model
 
 BOOK_CHOICES = (
     ('hard cover', 'hard cover book'),
