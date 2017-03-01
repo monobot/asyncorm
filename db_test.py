@@ -3,19 +3,20 @@ import asyncio
 from datetime import datetime, timedelta
 
 from asyncorm.tests import Book, Author, Publisher
-from asyncorm.application import configure_orm
+from asyncorm.application import configure_orm, orm_app
 
-loop = asyncio.get_event_loop()
+dm = orm_app.db_manager
+loop = orm_app.loop
 
-orm = configure_orm(
-    {'db_config': {
-        'database': 'asyncorm',
-        'host': 'localhost',
-        'user': 'sanicdbuser',
-        'password': 'sanicDbPass',
-    }})
-
-dm = orm.db_manager
+if not dm:
+    orm = configure_orm({'db_config': {
+            'database': 'asyncorm',
+            'host': 'localhost',
+            'user': 'sanicdbuser',
+            'password': 'sanicDbPass',
+        }})
+    dm = orm.db_manager
+    loop = asyncio.get_event_loop()
 
 
 async def create_db(models):

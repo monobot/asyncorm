@@ -1,17 +1,19 @@
 from .fields import ManyToMany
 from .exceptions import QuerysetError
-from .application import configure_orm
+from .application import configure_orm, orm_app
 
 __all__ = ['ModelManager', ]
 
-orm = configure_orm({'db_config': {
-        'database': 'asyncorm',
-        'host': 'localhost',
-        'user': 'sanicdbuser',
-        'password': 'sanicDbPass',
-    }})
-dm = orm.db_manager
+dm = orm_app.db_manager
 
+if not dm:
+    orm = configure_orm({'db_config': {
+            'database': 'asyncorm',
+            'host': 'localhost',
+            'user': 'sanicdbuser',
+            'password': 'sanicDbPass',
+        }})
+    dm = orm.db_manager
 
 MIDDLE_OPERATOR = {
     'gt': '>',

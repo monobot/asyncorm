@@ -14,6 +14,7 @@ DEFAULT_CONFIG = {
 
 class OrmApp(object):
     db_manager = None
+    loop = None
     # models = None
 
     def configure(self, config):
@@ -31,6 +32,7 @@ class OrmApp(object):
 
         loop = DEFAULT_CONFIG.get('loop')
         db_config['loop'] = loop
+        self.loop = loop
 
         database_module = importlib.import_module('asyncorm.database')
 
