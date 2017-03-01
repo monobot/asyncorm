@@ -2,18 +2,17 @@ import importlib
 import inspect
 
 from exceptions import ModuleError
-from database import PostgresManager
 
 default_config = {'db_config': None}
 
 
 class OrmApp(object):
+    db_manager = None
 
     def __init__(self, config):
         self.models = self.get_models(config.pop['modules'])
 
         config = self.configure(config)
-        self.db = PostgresManager(config['db_config'])
 
     def configure(self, config):
         default_config.update(config)
@@ -31,8 +30,10 @@ class OrmApp(object):
             )
         db_config['loop'] = loop
 
-        dm = PostgresManager(db_config)
-        config.update({'dm': dm})
+        manager = importlib.import_module(
+            config.pop('manager', 'PostgresManager')
+        )
+        self.db_manager = manager(db_config)
 
         return config
 
