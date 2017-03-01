@@ -1,20 +1,27 @@
 import importlib
 import inspect
+import asyncio
 
 from exceptions import ModuleError
 
-default_config = {'db_config': None}
+default_config = {
+    'db_config': None,
+    'loop': asyncio.get_event_loop(),
+    'manager': 'PostgresManager',
+    'models': None,
+}
 
 
 class OrmApp(object):
     db_manager = None
+    models = None
 
     def __init__(self, config):
-        self.models = self.get_models(config.pop['modules'])
-
         config = self.configure(config)
 
     def configure(self, config):
+        self.models = self.get_models(config.pop('modules', None))
+
         default_config.update(config)
 
         db_config = config.get('db_config', None)
@@ -23,15 +30,15 @@ class OrmApp(object):
                 'Imposible to configure without database configuration!'
             )
 
-        loop = config.get('loop', None)
-        if not loop:
-            raise ModuleError(
-                'Imposible to configure without main loop!'
-            )
+        loop = config.get('loop')
+        # if not loop:
+        #     raise ModuleError(
+        #         'Imposible to configure without main loop!'
+        #     )
         db_config['loop'] = loop
 
         manager = importlib.import_module(
-            config.pop('manager', 'PostgresManager')
+            config.pop('manager')
         )
         self.db_manager = manager(db_config)
 
