@@ -41,7 +41,6 @@ class ModelManager(object):
             constraints=constraints,
             ending=constraints and ';' or '',
         )
-        print(query)
         return query
 
     @classmethod

@@ -1,17 +1,30 @@
 import asyncio
 import unittest
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # from application import OrmApp
+from asyncorm.application import configure_orm
 from asyncorm.exceptions import *
 from asyncorm.fields import *
 from asyncorm.model import Model
+
 
 BOOK_CHOICES = (
     ('hard cover', 'hard cover book'),
     ('paperback', 'paperback book')
 )
+
+dm = None
+if not dm:
+    orm = configure_orm({'db_config': {
+            'database': 'asyncorm',
+            'host': 'localhost',
+            'user': 'sanicdbuser',
+            'password': 'sanicDbPass',
+        }})
+    dm = orm.db_manager
+    loop = asyncio.get_event_loop()
 
 
 class Publisher(Model):
@@ -35,6 +48,63 @@ class Author(Model):
     name = CharField(max_length=50, unique=True)
     age = IntegerField()
     publisher = ManyToMany(foreign_key='Publisher')
+
+
+async def create_db(models):
+    """
+    We  create all tables for each of the declared models
+    """
+    queries = []
+
+    for model in models:
+        queries.append(
+            'DROP TABLE IF EXISTS {table} cascade'.format(
+                table=model().table_name
+            )
+        )
+        queries.append(model().objects._creation_query())
+
+    queries.append(
+        'DROP TABLE IF EXISTS author_publisher cascade'.format(
+            table=model().table_name
+        )
+    )
+    for model in models:
+        m2m_queries = model().objects._get_m2m_field_queries()
+        if m2m_queries:
+            queries.append(m2m_queries)
+    result = await dm.transaction_insert(queries)
+    return result
+
+
+async def create_book(x):
+    book = Book(**{
+        'name': 'book name {}' + str(x),
+        'content': 'hard cover',
+        'date_created': datetime.now() - timedelta(days=23772),
+        # 'author': 1
+    })
+
+    await book.save()
+
+
+async def create_author(x):
+    book = Author(**{
+        'name': 'pedrito {}'.format(str(x)),
+        'age': 23,
+    })
+
+    await book.save()
+
+task = loop.create_task(create_db([Author, Publisher, Book]))
+loop.run_until_complete(asyncio.gather(task))
+
+for x in range(300):
+    task = loop.create_task(create_book(x))
+    loop.run_until_complete(asyncio.gather(task))
+for x in range(3):
+    task = loop.create_task(create_author(x))
+    loop.run_until_complete(asyncio.gather(task))
 
 
 class AioTestCase(unittest.TestCase):
