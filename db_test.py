@@ -46,9 +46,9 @@ async def create_db(models):
     return result
 
 
-async def create_book():
+async def create_book(x):
     book = Book(**{
-        'name': 'book name',
+        'name': 'book name' + str(x),
         'content': 'hard cover',
         'date_created': datetime.now() - timedelta(days=23772),
         # 'author': 1
