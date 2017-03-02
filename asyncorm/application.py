@@ -1,5 +1,5 @@
 import importlib
-# import inspect
+import inspect
 import asyncio
 
 from .exceptions import ModuleError
@@ -15,12 +15,10 @@ DEFAULT_CONFIG = {
 class OrmApp(object):
     db_manager = None
     loop = None
-    # models = None
+    models = None
 
     def configure(self, config):
-        # models = config.pop('modules', None)
-        # if models:
-        #     self.models = self.get_models(models)
+        self.models = self.get_models(config.pop('modules', None))
 
         DEFAULT_CONFIG.update(config)
 
@@ -41,17 +39,19 @@ class OrmApp(object):
 
         return config
 
-    # def get_models(self, modules):
-    #     # find classes, shove them in a {'name':object} dict
-    #     from model import Model
-    #     ret_list = []
-    #     for m in modules:
-    #         module = importlib.import_module(m)
-    #         classes = dict(inspect.getmembers(
-    #             module, predicate=lambda x: isinstance(x, Model))
-    #         )
-    #         print(classes)
-    #     return ret_list
+    def get_models(self, modules):
+        if modules is None:
+            return None
+        # find classes, save them in a {'name':object} dict
+        from model import Model
+        ret_list = []
+        for m in modules:
+            module = importlib.import_module(m)
+            classes = dict(inspect.getmembers(
+                module, predicate=lambda x: isinstance(x, Model))
+            )
+            print(classes)
+        return ret_list
 
 
 orm_app = OrmApp()
@@ -60,4 +60,3 @@ orm_app = OrmApp()
 def configure_orm(config):
     global orm_app
     orm_app.configure(config)
-    return orm_app

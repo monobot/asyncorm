@@ -1,10 +1,10 @@
 import asyncio
 import unittest
 
-from datetime import datetime, timedelta
+from datetime import datetime  # , timedelta
 
 # from application import OrmApp
-from asyncorm.application import configure_orm
+from asyncorm.application import configure_orm, orm_app
 from asyncorm.exceptions import *
 from asyncorm.fields import *
 from asyncorm.model import Model
@@ -17,13 +17,13 @@ BOOK_CHOICES = (
 
 dm = None
 if not dm:
-    orm = configure_orm({'db_config': {
+    configure_orm({'db_config': {
             'database': 'asyncorm',
             'host': 'localhost',
             'user': 'sanicdbuser',
             'password': 'sanicDbPass',
         }})
-    dm = orm.db_manager
+    dm = orm_app.db_manager
     loop = asyncio.get_event_loop()
 
 
