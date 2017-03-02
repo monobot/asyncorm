@@ -8,4 +8,4 @@ from .application import configure_orm
 __doc__ = '''
 asyncorm is a fully asynchronous ORM library
 '''
-__version__ = '0.0.1'
+__version__ = '0.0.2'

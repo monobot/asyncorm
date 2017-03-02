@@ -19,7 +19,7 @@ test_requirements = [
 
 setup(
     name='asyncorm',
-    version='0.0.1',
+    version='0.0.2',
     description="A fully asynchronous python ORM",
     long_description=readme + '\n\n' + history,
     author="Héctor Alvarez (monobot)",
@@ -30,6 +30,7 @@ setup(
     ],
     package_dir={'asyncorm':
                  'asyncorm'},
+    package_data={'asyncorm': ['log/*']},
     include_package_data=True,
     install_requires=requirements,
     license="Apache Software License 2.0",
@@ -41,6 +42,7 @@ setup(
         'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
     test_suite='tests',
     tests_require=test_requirements
