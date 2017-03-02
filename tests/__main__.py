@@ -79,10 +79,9 @@ async def create_db(models):
 
 async def create_book(x):
     book = Book(**{
-        'name': 'book name {}' + str(x),
+        'name': 'book name {}'.format(str(x)),
         'content': 'hard cover',
-        'date_created': datetime.now() - timedelta(days=23772),
-        # 'author': 1
+        # 'date_created': datetime.now() - timedelta(days=23772),
     })
 
     await book.save()
@@ -96,14 +95,16 @@ async def create_author(x):
 
     await book.save()
 
+# clear and recreate the database
 task = loop.create_task(create_db([Author, Publisher, Book]))
 loop.run_until_complete(asyncio.gather(task))
 
-for x in range(300):
-    task = loop.create_task(create_book(x))
-    loop.run_until_complete(asyncio.gather(task))
+# create some test models
 for x in range(3):
     task = loop.create_task(create_author(x))
+    loop.run_until_complete(asyncio.gather(task))
+for x in range(300):
+    task = loop.create_task(create_book(x))
     loop.run_until_complete(asyncio.gather(task))
 
 
@@ -215,8 +216,8 @@ class ModelTests(AioTestCase):
         self.assertEqual(Book()._ordering, ['-id'])
         self.assertEqual(Author()._ordering, None)
 
-        q_books = await Book.objects.filter(id__gt=290)
-        self.assertEqual(q_books[-1].id, 291)
+        q_books = await Book.objects.filter(id__gt=10)
+        self.assertEqual(q_books[-1].id, 11)
 
 
 class FieldTests(AioTestCase):
@@ -320,6 +321,21 @@ class ManageTestMethods(AioTestCase):
 
         await book.save()
         self.assertEqual(orig_id, book.id)
+
+        # we can not create new books with same name and content together
+        book = Book(**{
+            'name': 'book name 5',
+            'content': 'hard cover',
+        })
+        with self.assertRaises(ModelError) as exc:
+            await book.save()
+        self.assertTrue(
+            'The model violates a unique constraint' == exc.exception.args[0]
+        )
+
+        # but when any of them are different there is no problem
+        book.name = 'this is a new name'
+        await book.save()
 
     async def test_delete(self):
         books = await Book.objects.all()

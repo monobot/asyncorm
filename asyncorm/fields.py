@@ -26,7 +26,6 @@ class Field(object):
     table_name = None
 
     def __init__(self, **kwargs):
-        # test done
         self._validate_kwargs(kwargs)
         self.field_type = self.__class__.__name__
 
@@ -90,7 +89,6 @@ class Field(object):
         return ''
 
     def _validate_kwargs(self, kwargs):
-        # test done
         for kw in self.required_kwargs:
             if not kwargs.get(kw, None):
                 raise FieldError(
@@ -110,7 +108,6 @@ class Field(object):
 
     @classmethod
     def _validate(cls, value):
-        # test done
         if not isinstance(value, cls.internal_type):
             raise FieldError(
                 '{} is a wrong datatype for field {}'.format(
@@ -119,12 +116,12 @@ class Field(object):
             )
 
     def _sanitize_data(self, value):
-        # test done
+        if value is None:
+            return 'NULL'
         self.__class__._validate(value)
         return value
 
     def _set_field_name(self, field_name):
-        # test done
         if '__' in field_name:
             raise FieldError('field_name can not contain "__"')
         if field_name.startswith('_'):
@@ -149,13 +146,13 @@ class CharField(Field):
 
     def __init__(self, field_name='', default=None, max_length=0,
             null=False, choices={}, unique=False):
-        # test done
         super().__init__(field_name=field_name, default=default,
             max_length=max_length, null=null, choices=choices, unique=unique
         )
 
     def _sanitize_data(self, value):
-        # test done
+        if value is None:
+            return 'NULL'
         value = super()._sanitize_data(value)
 
         if len(value) > self.max_length:
@@ -173,11 +170,12 @@ class IntegerField(Field):
 
     def __init__(self, field_name='', default=None, null=False, choices={},
             unique=False):
-        # test done
         super().__init__(field_name=field_name, default=default, null=null,
             choices=choices, unique=unique)
 
     def _sanitize_data(self, value):
+        if value is None:
+            return 'NULL'
         value = super()._sanitize_data(value)
 
         return '{}'.format(value)
@@ -192,14 +190,15 @@ class DateField(Field):
     internal_type = datetime
     creation_string = 'timestamp'
 
-    def __init__(self, field_name='', default=None, auto_now=False,
-            null=False, choices={}, unique=False):
-        # test done
+    def __init__(self, field_name='', default=None, auto_now=False, null=False,
+            choices={}, unique=False):
         super().__init__(field_name=field_name, default=default,
             auto_now=auto_now, null=null, choices=choices, unique=unique
         )
 
     def _sanitize_data(self, value):
+        if value is None:
+            return 'NULL'
         value = super()._sanitize_data(value)
 
         return "'{}'".format(value)
@@ -212,10 +211,15 @@ class ForeignKey(Field):
 
     def __init__(self, field_name='', default=None, foreign_key='',
             null=False, unique=False):
-        # test done
         super().__init__(field_name=field_name, default=default,
             foreign_key=foreign_key, null=null, unique=unique
         )
+
+    def _sanitize_data(self, value):
+        if value is None:
+            return 'NULL'
+        value = super()._sanitize_data(value)
+        return str(value)
 
 
 class ManyToMany(Field):
@@ -227,9 +231,8 @@ class ManyToMany(Field):
         {foreign_key} INTEGER REFERENCES {foreign_key} NOT NULL
         );'''
 
-    def __init__(self, field_name='', foreign_key='', default=None,
+    def __init__(self, field_name='', foreign_key=None, default=None,
             unique=False):
-        # test done
         super().__init__(field_name=field_name, foreign_key=foreign_key,
             default=default, unique=unique
         )
