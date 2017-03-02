@@ -167,26 +167,6 @@ class BaseModel(object, metaclass=ModelMeta):
             if att_class is PkField and v:
                 raise FieldError('Models can not be generated with forced id')
 
-    #     # check unique_together
-    #     if self.__class__._unique_together:
-    #         self._check_unique_together(kwargs)
-
-    # @classmethod
-    # def _check_unique_together(cls, kwargs):
-    #     get_kwargs = {}
-    #     for field_name in cls._unique_together:
-    #         field_value = kwargs.get(
-    #             field_name,
-    #             getattr(cls, field_name).default
-    #         )
-    #         get_kwargs[field_name] = field_value
-
-    #     try:
-    #         cls.objects.get(**get_kwargs)
-    #         raise ModelError('unique together contraint!')
-    #     except:
-    #         pass
-
     @classmethod
     def check_ordering(cls, ordering):
         for f in ordering:
