@@ -323,10 +323,7 @@ class ManageTestMethods(AioTestCase):
         self.assertEqual(orig_id, book.id)
 
         # we can not create new books with same name and content together
-        book = Book(**{
-            'name': 'book name 5',
-            'content': 'hard cover',
-        })
+        book = Book(**{'name': 'book name 5', 'content': 'hard cover'})
         with self.assertRaises(ModelError) as exc:
             await book.save()
         self.assertTrue(
@@ -336,6 +333,22 @@ class ManageTestMethods(AioTestCase):
         # but when any of them are different there is no problem
         book.name = 'this is a new name'
         await book.save()
+
+        # we can not create new books with same name and content together
+        author = Author(**{'name': 'Mnemonic', 'age': 73})
+        await author.save()
+
+        # author name is unique, will raise an exception
+        author2 = Author(**{'name': 'Mnemonic', 'age': 73})
+        with self.assertRaises(ModelError) as exc:
+            await author2.save()
+        self.assertTrue(
+            'The model violates a unique constraint' == exc.exception.args[0]
+        )
+
+        author2.name = 'different name'
+        # now it can be correctly saved
+        await author2.save()
 
     async def test_delete(self):
         books = await Book.objects.all()
