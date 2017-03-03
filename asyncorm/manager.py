@@ -1,7 +1,10 @@
 from asyncpg.exceptions import UniqueViolationError
-from .fields import ManyToMany
-from .exceptions import QuerysetError, ModelError
+
 from .application import configure_orm, orm_app
+from .exceptions import QuerysetError, ModelError
+from .fields import ManyToMany
+from .queryset import Queryset
+
 __all__ = ['ModelManager', ]
 
 dm = orm_app.db_manager
@@ -91,7 +94,7 @@ class ModelManager(object):
 
     @classmethod
     async def queryset(cls):
-        return await cls.all()
+        return Queryset(cls.model, cls.base_query)
 
     @classmethod
     async def all(cls):
