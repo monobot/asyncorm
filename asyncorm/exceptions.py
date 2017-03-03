@@ -1,8 +1,15 @@
-__all__ = ('ModuleError', 'ModelError', 'FieldError', 'QuerysetError')
+__all__ = ('FieldError', 'ManagerError', 'ModelError', 'ModuleError',
+    'QuerysetError'
+)
 
 
-class ModuleError(Exception):
-    '''to be raised when there are model module or config errors detected'''
+class FieldError(Exception):
+    '''to be raised when there are field errors detected'''
+    pass
+
+
+class ManagerError(Exception):
+    '''to be raised when there are queryset errors detected'''
     pass
 
 
@@ -11,8 +18,8 @@ class ModelError(Exception):
     pass
 
 
-class FieldError(Exception):
-    '''to be raised when there are field errors detected'''
+class ModuleError(Exception):
+    '''to be raised when there are model module or config errors detected'''
     pass
 
 
