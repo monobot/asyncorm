@@ -37,6 +37,8 @@ class OrmApp(object):
         manager = getattr(database_module, 'PostgresManager')
         self.db_manager = manager(db_config)
 
+        self._set_database_manager()
+
         return config
 
     def get_models(self, modules):
@@ -54,6 +56,10 @@ class OrmApp(object):
                 except TypeError:
                     pass
         return models
+
+    def _set_database_manager(self):
+        for model in self.models.values():
+            model._set_database_manager(self.db_manager)
 
 
 orm_app = OrmApp()

@@ -109,6 +109,10 @@ class BaseModel(object, metaclass=ModelMeta):
 
         logger.debug('... initiated')
 
+    @classmethod
+    def _set_database_manager(cls, db_manager):
+        cls.objects.db_manager = db_manager
+
     @property
     def data(self):
         d = {}

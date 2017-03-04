@@ -1,23 +1,10 @@
 from asyncpg.exceptions import UniqueViolationError
 
-from .application import configure_orm, orm_app
+# from .application import configure_orm, orm_app
 from .exceptions import QuerysetError, ModelError
 from .fields import ManyToMany
 
 __all__ = ['ModelManager', ]
-
-dm = orm_app.db_manager
-
-if not dm:
-    configure_orm(
-        {'db_config': {
-            'database': 'asyncorm',
-            'host': 'localhost',
-            'user': 'sanicdbuser',
-            'password': 'sanicDbPass',
-        }}
-    )
-    dm = orm_app.db_manager
 
 MIDDLE_OPERATOR = {
     'gt': '>',
@@ -29,6 +16,7 @@ MIDDLE_OPERATOR = {
 
 class Queryset(object):
     model = None
+    db_manager = None
     queryset = ''
 
     def _copy_me(self):
@@ -100,7 +88,7 @@ class Queryset(object):
             'action': 'db__select_all',
         }
 
-        return [self._construct_model(r) for r in await dm.request(db_request)]
+        return [self._construct_model(r) for r in await self.db_manager.request(db_request)]
 
     async def count(self):
         db_request = {
@@ -108,7 +96,7 @@ class Queryset(object):
             'action': 'db__count',
         }
 
-        return await dm.request(db_request)
+        return await self.db_manager.request(db_request)
 
     async def get(self, **kwargs):
         data = await self.filter(**kwargs)
@@ -173,7 +161,7 @@ class Queryset(object):
 
         if self.model._ordering:
             db_request.update({'ordering': self.model._ordering})
-        return [self._construct_model(r) for r in await dm.request(db_request)]
+        return [self._construct_model(r) for r in await self.db_manager.request(db_request)]
 
     async def exclude(self, **kwargs):
         filters = self.calc_filters(kwargs, exclude=True)
@@ -187,7 +175,7 @@ class Queryset(object):
 
         if self.model._ordering:
             db_request.update({'ordering': self.model._ordering})
-        return [self._construct_model(r) for r in await dm.request(db_request)]
+        return [self._construct_model(r) for r in await self.db_manager.request(db_request)]
 
     async def save(self, instanced_model):
         # performs the database save
@@ -221,7 +209,7 @@ class Queryset(object):
             )
         }
         try:
-            response = await dm.request(db_request)
+            response = await self.db_manager.request(db_request)
         except UniqueViolationError:
             raise ModelError('The model violates a unique constraint')
 
@@ -236,7 +224,7 @@ class Queryset(object):
                 getattr(instanced_model, instanced_model._db_pk)
             )
         }
-        response = await dm.request(db_request)
+        response = await self.db_manager.request(db_request)
         return response
 
 
