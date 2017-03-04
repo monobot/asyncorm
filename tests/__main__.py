@@ -7,8 +7,6 @@ from asyncorm.application import configure_orm, get_model
 from asyncorm.exceptions import *
 from asyncorm.fields import *
 
-# from tests.testapp.models import Publisher, Book, Author
-
 
 db_config = {
     'database': 'asyncorm',
@@ -26,6 +24,8 @@ loop = orm_app.loop
 Publisher = get_model('Publisher')
 Book = get_model('Book')
 Author = get_model('Author')
+Organization = get_model('Author')
+Developer = get_model('Developer')
 
 
 async def create_db(models):
@@ -34,19 +34,17 @@ async def create_db(models):
     """
     queries = []
 
+    queries.append('DROP TABLE IF EXISTS author_publisher CASCADE')
+    queries.append('DROP TABLE IF EXISTS developer_publisher CASCADE')
+
     for model in models:
         queries.append(
-            'DROP TABLE IF EXISTS {table} cascade'.format(
+            'DROP TABLE IF EXISTS {table} CASCADE'.format(
                 table=model().table_name
             )
         )
         queries.append(model().objects._creation_query())
 
-    queries.append(
-        'DROP TABLE IF EXISTS author_publisher cascade'.format(
-            table=model().table_name
-        )
-    )
     for model in models:
         m2m_queries = model().objects._get_m2m_field_queries()
         if m2m_queries:
@@ -74,7 +72,13 @@ async def create_author(x):
     await book.save()
 
 # clear and recreate the database
-task = loop.create_task(create_db([Author, Publisher, Book]))
+# task = loop.create_task(create_db(orm_app.models.values()))
+task = loop.create_task(
+    create_db([
+        Publisher, Author, Book,
+        # Organization, Developer
+    ])
+)
 loop.run_until_complete(asyncio.gather(task))
 
 # create some test models

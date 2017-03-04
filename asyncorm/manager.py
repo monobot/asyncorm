@@ -61,7 +61,7 @@ class Queryset(object):
         return self.model._unique_together and unique_string or ''
 
     def _get_m2m_field_queries(self):
-        # builds the relational 1_to_1 table
+        # builds the relational many to many table
         return '; '.join(
             [f._creation_query() for f in self.model.fields.values()
             if isinstance(f, ManyToMany)]

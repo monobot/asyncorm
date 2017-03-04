@@ -11,6 +11,13 @@ class Publisher(Model):
     name = CharField(max_length=50)
 
 
+class Author(Model):
+    na = PkField(field_name='uid')
+    name = CharField(max_length=50, unique=True)
+    age = IntegerField()
+    publisher = ManyToMany(foreign_key='Publisher')
+
+
 class Book(Model):
     table_name = 'library'
     name = CharField(max_length=50)
@@ -21,10 +28,3 @@ class Book(Model):
     class Meta():
         ordering = ['-id']
         unique_together = ['name', 'content']
-
-
-class Author(Model):
-    na = PkField(field_name='uid')
-    name = CharField(max_length=50, unique=True)
-    age = IntegerField()
-    publisher = ManyToMany(foreign_key='Publisher')
