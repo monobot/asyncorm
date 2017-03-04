@@ -8,7 +8,7 @@ DEFAULT_CONFIG = {
     'db_config': None,
     'loop': asyncio.get_event_loop(),
     'manager': 'PostgresManager',
-    'models': None,
+    'modules': None,
 }
 
 
@@ -43,15 +43,17 @@ class OrmApp(object):
         if modules is None:
             return None
         # find classes, save them in a {'name':object} dict
-        from model import Model
-        ret_list = []
+        from asyncorm.model import Model
+        models = {}
         for m in modules:
-            module = importlib.import_module(m)
-            classes = dict(inspect.getmembers(
-                module, predicate=lambda x: isinstance(x, Model))
-            )
-            print(classes)
-        return ret_list
+            module = importlib.import_module('{}.models'.format(m))
+            for k, v in inspect.getmembers(module):
+                try:
+                    if issubclass(v, Model):
+                        models.update({k: v})
+                except TypeError:
+                    pass
+        return models
 
 
 orm_app = OrmApp()

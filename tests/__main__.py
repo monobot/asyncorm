@@ -17,14 +17,19 @@ BOOK_CHOICES = (
 
 dm = None
 if not dm:
-    configure_orm({'db_config': {
+    configure_orm({
+        'db_config': {
             'database': 'asyncorm',
             'host': 'localhost',
             'user': 'sanicdbuser',
             'password': 'sanicDbPass',
-        }})
+        },
+        'modules': ['tests.testapp', 'tests.testapp2'],
+    })
     dm = orm_app.db_manager
     loop = asyncio.get_event_loop()
+
+print(orm_app.models)
 
 
 class Publisher(Model):
