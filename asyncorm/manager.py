@@ -27,20 +27,25 @@ MIDDLE_OPERATOR = {
 }
 
 
-class ModelManager(object):
+class Queryset(object):
     model = None
+    queryset = ''
 
-    @classmethod
-    def _creation_query(cls):
-        constraints = cls._get_field_constraints()
-        unique_together = cls._get_unique_together()
+    def _copy_me(self):
+        queryset = Queryset()
+        queryset.model = self.model
+        return queryset
+
+    def _creation_query(self):
+        constraints = self._get_field_constraints()
+        unique_together = self._get_unique_together()
 
         query = (
             'CREATE TABLE {table_name} ({field_queries}{unique_together});'
             '{constraints}{ending}'
         ).format(
-            table_name=cls.model.table_name,
-            field_queries=cls._get_field_queries(),
+            table_name=self.model.table_name,
+            field_queries=self._get_field_queries(),
             unique_together=unique_together,
             constraints=constraints,
             ending=constraints and ';' or '',
@@ -48,41 +53,36 @@ class ModelManager(object):
         # print(query)
         return query
 
-    @classmethod
-    def _get_field_queries(cls):
+    def _get_field_queries(self):
         # builds the table with all its fields definition
         return ', '.join(
-            [f._creation_query() for f in cls.model.fields.values()
+            [f._creation_query() for f in self.model.fields.values()
             if not isinstance(f, ManyToMany)]
         )
 
-    @classmethod
-    def _get_field_constraints(cls):
+    def _get_field_constraints(self):
         # builds the table with all its fields definition
         return '; '.join(
-            [f._field_constraints() for f in cls.model.fields.values()]
+            [f._field_constraints() for f in self.model.fields.values()]
         )
 
-    @classmethod
-    def _get_unique_together(cls):
+    def _get_unique_together(self):
         # builds the table with all its fields definition
         unique_string = ', UNIQUE ({}) '.format(
-            ','.join(cls.model._unique_together)
+            ','.join(self.model._unique_together)
         )
-        return cls.model._unique_together and unique_string or ''
+        return self.model._unique_together and unique_string or ''
 
-    @classmethod
-    def _get_m2m_field_queries(cls):
+    def _get_m2m_field_queries(self):
         # builds the relational 1_to_1 table
         return '; '.join(
-            [f._creation_query() for f in cls.model.fields.values()
+            [f._creation_query() for f in self.model.fields.values()
             if isinstance(f, ManyToMany)]
         )
 
-    @classmethod
-    def _construct_model(cls, record, instance=None):
+    def _construct_model(self, record, instance=None):
         if not instance:
-            instance = cls.model()
+            instance = self.model()
 
         data = {}
         for k, v in record.items():
@@ -91,48 +91,43 @@ class ModelManager(object):
         instance._construct(data)
         return instance
 
-    @classmethod
-    async def queryset(cls):
-        return await cls.all()
+    async def queryset(self):
+        return await self.all()
 
-    @classmethod
-    async def all(cls):
+    async def all(self):
         db_request = {
-            'table_name': cls.model.table_name,
+            'table_name': self.model.table_name,
             'action': 'db__select_all',
         }
 
-        return [cls._construct_model(r) for r in await dm.request(db_request)]
+        return [self._construct_model(r) for r in await dm.request(db_request)]
 
-    @classmethod
-    async def count(cls):
+    async def count(self):
         db_request = {
-            'table_name': cls.model.table_name,
+            'table_name': self.model.table_name,
             'action': 'db__count',
         }
 
         return await dm.request(db_request)
 
-    @classmethod
-    async def get(cls, **kwargs):
-        data = await cls.filter(**kwargs)
+    async def get(self, **kwargs):
+        data = await self.filter(**kwargs)
         length = len(data)
         if length:
             if length > 1:
                 raise QuerysetError(
                     'More than one {} where returned, there are {}!'.format(
-                        cls.model.__name__,
+                        self.model.__name__,
                         length,
                     )
                 )
 
             return data[0]
         raise QuerysetError(
-            'That {} does not exist'.format(cls.model.__name__)
+            'That {} does not exist'.format(self.model.__name__)
         )
 
-    @staticmethod
-    def calc_filters(model, kwargs, exclude=False):
+    def calc_filters(self, kwargs, exclude=False):
         # recompose the filters
         bool_string = exclude and 'NOT ' or ''
         filters = []
@@ -143,7 +138,7 @@ class ModelManager(object):
                 k, middle = k.split('__')
                 middle = MIDDLE_OPERATOR[middle]
 
-            field = getattr(model, k)
+            field = getattr(self.model, k)
 
             if middle == '=' and isinstance(v, tuple):
                 if len(v) != 2:
@@ -165,39 +160,36 @@ class ModelManager(object):
 
         return filters
 
-    @classmethod
-    async def filter(cls, **kwargs):
-        filters = cls.calc_filters(cls.model, kwargs)
+    async def filter(self, **kwargs):
+        filters = self.calc_filters(kwargs)
 
         condition = ' AND '.join(filters)
 
         db_request = {
-            'table_name': cls.model.table_name,
+            'table_name': self.model.table_name,
             'action': 'db__select',
             'condition': condition
         }
 
-        if cls.model._ordering:
-            db_request.update({'ordering': cls.model._ordering})
-        return [cls._construct_model(r) for r in await dm.request(db_request)]
+        if self.model._ordering:
+            db_request.update({'ordering': self.model._ordering})
+        return [self._construct_model(r) for r in await dm.request(db_request)]
 
-    @classmethod
-    async def exclude(cls, **kwargs):
-        filters = cls.calc_filters(cls.model, kwargs, exclude=True)
+    async def exclude(self, **kwargs):
+        filters = self.calc_filters(kwargs, exclude=True)
         condition = ' AND '.join(filters)
 
         db_request = {
-            'table_name': cls.model.table_name,
+            'table_name': self.model.table_name,
             'action': 'db__select',
             'condition': condition
         }
 
-        if cls.model._ordering:
-            db_request.update({'ordering': cls.model._ordering})
-        return [cls._construct_model(r) for r in await dm.request(db_request)]
+        if self.model._ordering:
+            db_request.update({'ordering': self.model._ordering})
+        return [self._construct_model(r) for r in await dm.request(db_request)]
 
-    @classmethod
-    async def save(cls, instanced_model):
+    async def save(self, instanced_model):
         # performs the database save
         fields, field_data = [], []
         for k, data in instanced_model.data.items():
@@ -210,7 +202,7 @@ class ModelManager(object):
             field_data.append(data)
 
         db_request = {
-            'table_name': cls.model.table_name,
+            'table_name': self.model.table_name,
             'action': (
                 getattr(
                     instanced_model, instanced_model._orm_pk
@@ -233,12 +225,11 @@ class ModelManager(object):
         except UniqueViolationError:
             raise ModelError('The model violates a unique constraint')
 
-        cls._construct_model(response, instanced_model)
+        self._construct_model(response, instanced_model)
 
-    @classmethod
-    async def delete(cls, instanced_model):
+    async def delete(self, instanced_model):
         db_request = {
-            'table_name': cls.model.table_name,
+            'table_name': self.model.table_name,
             'action': 'db__delete',
             'id_data': '{}={}'.format(
                 instanced_model._db_pk,
@@ -247,3 +238,7 @@ class ModelManager(object):
         }
         response = await dm.request(db_request)
         return response
+
+
+class ModelManager(Queryset):
+    pass
