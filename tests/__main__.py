@@ -1,29 +1,31 @@
 import asyncio
 import unittest
 
-from datetime import datetime  # , timedelta
+from datetime import datetime
 
-# from application import OrmApp
-from asyncorm.application import configure_orm, orm_app
+from asyncorm.application import configure_orm, get_model
 from asyncorm.exceptions import *
 from asyncorm.fields import *
 
-from tests.testapp.models import Publisher, Book, Author
+# from tests.testapp.models import Publisher, Book, Author
 
 
-dm = None
-if not dm:
-    configure_orm({
-        'db_config': {
-            'database': 'asyncorm',
-            'host': 'localhost',
-            'user': 'sanicdbuser',
-            'password': 'sanicDbPass',
-        },
-        'modules': ['tests.testapp', 'tests.testapp2'],
-    })
-    dm = orm_app.db_manager
-    loop = asyncio.get_event_loop()
+db_config = {
+    'database': 'asyncorm',
+    'host': 'localhost',
+    'user': 'sanicdbuser',
+    'password': 'sanicDbPass',
+}
+orm_app = configure_orm({
+    'db_config': db_config,
+    'modules': ['tests.testapp', 'tests.testapp2'],
+})
+dm = orm_app.db_manager
+loop = orm_app.loop
+
+Publisher = get_model('Publisher')
+Book = get_model('Book')
+Author = get_model('Author')
 
 
 async def create_db(models):
@@ -111,7 +113,15 @@ class AioTestCase(unittest.TestCase):
 class ModuleTests(AioTestCase):
 
     def test_configuration(self):
-        pass
+        with self.assertRaises(ModuleError) as exc:
+            get_model('Tato')
+        self.assertTrue(
+            'The model does not exists' in exc.exception.args[0]
+        )
+        self.assertEqual(orm_app.db_manager.conn_data, db_config)
+
+        # every model declared has the same db_manager
+        self.assertTrue(orm_app.db_manager is Book.objects.db_manager)
 
 
 class ModelTests(AioTestCase):

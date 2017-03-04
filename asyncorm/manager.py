@@ -1,6 +1,5 @@
 from asyncpg.exceptions import UniqueViolationError
 
-# from .application import configure_orm, orm_app
 from .exceptions import QuerysetError, ModelError
 from .fields import ManyToMany
 
@@ -88,7 +87,8 @@ class Queryset(object):
             'action': 'db__select_all',
         }
 
-        return [self._construct_model(r) for r in await self.db_manager.request(db_request)]
+        request = await self.db_manager.request(db_request)
+        return [self._construct_model(r) for r in request]
 
     async def count(self):
         db_request = {
@@ -161,7 +161,9 @@ class Queryset(object):
 
         if self.model._ordering:
             db_request.update({'ordering': self.model._ordering})
-        return [self._construct_model(r) for r in await self.db_manager.request(db_request)]
+
+        request = self.db_manager.request(db_request)
+        return [self._construct_model(r) for r in await request]
 
     async def exclude(self, **kwargs):
         filters = self.calc_filters(kwargs, exclude=True)
@@ -175,7 +177,9 @@ class Queryset(object):
 
         if self.model._ordering:
             db_request.update({'ordering': self.model._ordering})
-        return [self._construct_model(r) for r in await self.db_manager.request(db_request)]
+
+        request = await self.db_manager.request(db_request)
+        return [self._construct_model(r) for r in request]
 
     async def save(self, instanced_model):
         # performs the database save

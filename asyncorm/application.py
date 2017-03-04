@@ -68,3 +68,15 @@ orm_app = OrmApp()
 def configure_orm(config):
     global orm_app
     orm_app.configure(config)
+    return orm_app
+
+
+def get_model(model_name):
+    global orm_app
+    if orm_app.models is None:
+        raise ModuleError('There are no modules declared in the orm')
+
+    try:
+        return orm_app.models[model_name]
+    except KeyError:
+        raise ModuleError('The model does not exists')
