@@ -39,18 +39,15 @@ async def create_db(models):
     queries.append('DROP TABLE IF EXISTS Developer_Organization CASCADE')
 
     for model in models:
-        # print('@@@@@@@@@@@@@ MODEL!!!: ', model.__name__)
         queries.append(
             'DROP TABLE IF EXISTS {table} CASCADE'.format(
                 table=model().table_name
             )
         )
         queries.append(model.objects._creation_query())
-        # print(queries[-1])
 
         m2m_queries = model.objects._get_m2m_field_queries()
         if m2m_queries:
-            # print('@@@@@@@@@@@@@ HAS M2M MODEL!!!: ', model.__name__)
             delayed.append(m2m_queries)
 
     result = await dm.transaction_insert(queries + delayed)

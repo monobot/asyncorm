@@ -71,5 +71,4 @@ class PostgresManager(GeneralManager):
         conn = await self.get_conn()
         async with conn.transaction():
             for query in queries:
-                print(query)
                 await conn.execute(query)
