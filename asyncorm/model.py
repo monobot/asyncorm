@@ -73,7 +73,7 @@ class BaseModel(object, metaclass=ModelMeta):
         self.objects.model = self.__class__
 
         if not self.table_name:
-            self.table_name = self.__class__.__name__.lower()
+            self.table_name = self.__class__.__name__
             self.__class__.table_name = self.table_name
 
         manager = getattr(self, 'objects')
@@ -156,7 +156,7 @@ class BaseModel(object, metaclass=ModelMeta):
                     setattr(field, 'table_name',
                         '{my_model}_{foreign_key}'.format(
                             my_model=cls.table_name,
-                            foreign_key=field.field_name,
+                            foreign_key=field.foreign_key,
                         )
                     )
 

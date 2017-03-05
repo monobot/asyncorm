@@ -3,6 +3,7 @@ import inspect
 import asyncio
 
 from .exceptions import ModuleError
+from collections import OrderedDict
 
 DEFAULT_CONFIG = {
     'db_config': None,
@@ -15,10 +16,10 @@ DEFAULT_CONFIG = {
 class OrmApp(object):
     db_manager = None
     loop = None
-    models = None
+    models = OrderedDict()
 
     def configure(self, config):
-        self.models = self.get_models(config.pop('modules', None))
+        self.get_models(config.pop('modules', None))
 
         DEFAULT_CONFIG.update(config)
 
@@ -46,16 +47,14 @@ class OrmApp(object):
             return None
         # find classes, save them in a {'name':object} dict
         from asyncorm.model import Model
-        models = {}
         for m in modules:
             module = importlib.import_module('{}.models'.format(m))
             for k, v in inspect.getmembers(module):
                 try:
-                    if issubclass(v, Model):
-                        models.update({k: v})
+                    if issubclass(v, Model) and v is not Model:
+                        self.models[k] = v
                 except TypeError:
                     pass
-        return models
 
     def _set_database_manager(self):
         for model in self.models.values():

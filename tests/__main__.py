@@ -33,23 +33,26 @@ async def create_db(models):
     We  create all tables for each of the declared models
     """
     queries = []
+    delayed = []
 
-    queries.append('DROP TABLE IF EXISTS author_publisher CASCADE')
-    queries.append('DROP TABLE IF EXISTS developer_publisher CASCADE')
+    queries.append('DROP TABLE IF EXISTS Author_Publisher CASCADE')
 
     for model in models:
+        print('@@@@@@@@@@@@@ MODEL!!!: ', model.__name__)
         queries.append(
             'DROP TABLE IF EXISTS {table} CASCADE'.format(
                 table=model().table_name
             )
         )
-        queries.append(model().objects._creation_query())
+        queries.append(model.objects._creation_query())
+        print(queries[-1])
 
-    for model in models:
-        m2m_queries = model().objects._get_m2m_field_queries()
+        m2m_queries = model.objects._get_m2m_field_queries()
         if m2m_queries:
+            print('@@@@@@@@@@@@@ HAS M2M MODEL!!!: ', model.__name__)
             queries.append(m2m_queries)
-    result = await dm.transaction_insert(queries)
+
+    result = await dm.transaction_insert(queries + delayed)
     return result
 
 
@@ -57,7 +60,6 @@ async def create_book(x):
     book = Book(**{
         'name': 'book name {}'.format(str(x)),
         'content': 'hard cover',
-        # 'date_created': datetime.now() - timedelta(days=23772),
     })
 
     await book.save()
@@ -71,14 +73,7 @@ async def create_author(x):
 
     await book.save()
 
-# clear and recreate the database
-# task = loop.create_task(create_db(orm_app.models.values()))
-task = loop.create_task(
-    create_db([
-        Publisher, Author, Book,
-        # Organization, Developer
-    ])
-)
+task = loop.create_task(create_db(orm_app.models.values()))
 loop.run_until_complete(asyncio.gather(task))
 
 # create some test models
