@@ -110,6 +110,12 @@ class BaseModel(object, metaclass=ModelMeta):
         logger.debug('... initiated')
 
     @classmethod
+    def _set_reverse_foreignkey(cls, model_name):
+        def fk_set(self):
+            print(self.__name__)
+        setattr(cls, '{}_set'.format(model_name.lower()), fk_set)
+
+    @classmethod
     def _set_database_manager(cls, db_manager):
         cls.objects.db_manager = db_manager
 

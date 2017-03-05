@@ -67,7 +67,7 @@ class OrmApp(object):
                     # print(name, 'has m2m:', f.field_name,
                     #     self.get_model(f.foreign_key))
                 elif isinstance(f, ForeignKey):
-                    pass
+                    self.get_model(f.foreign_key)._set_reverse_foreignkey(name)
                     # print(name, 'has fk:', f.field_name,
                     #     self.get_model(f.foreign_key))
 
