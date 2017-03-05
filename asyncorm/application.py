@@ -2,8 +2,10 @@ import importlib
 import inspect
 import asyncio
 
-from .exceptions import ModuleError
 from collections import OrderedDict
+
+from .exceptions import ModuleError
+from .fields import ForeignKey, ManyToMany
 
 DEFAULT_CONFIG = {
     'db_config': None,
@@ -55,10 +57,32 @@ class OrmApp(object):
                         self.models[k] = v
                 except TypeError:
                     pass
+        self._models_configure()
+
+    def _models_configure(self):
+        for name, model in self.models.items():
+            for f in model.fields.values():
+                if isinstance(f, ManyToMany):
+                    pass
+                    # print(name, 'has m2m:', f.field_name,
+                    #     self.get_model(f.foreign_key))
+                elif isinstance(f, ForeignKey):
+                    pass
+                    # print(name, 'has fk:', f.field_name,
+                    #     self.get_model(f.foreign_key))
 
     def _set_database_manager(self):
         for model in self.models.values():
             model._set_database_manager(self.db_manager)
+
+    def get_model(self, model_name):
+        if self.models is None:
+            raise ModuleError('There are no modules declared in the orm')
+
+        try:
+            return self.models[model_name]
+        except KeyError:
+            raise ModuleError('The model does not exists')
 
 
 orm_app = OrmApp()
@@ -68,14 +92,3 @@ def configure_orm(config):
     global orm_app
     orm_app.configure(config)
     return orm_app
-
-
-def get_model(model_name):
-    global orm_app
-    if orm_app.models is None:
-        raise ModuleError('There are no modules declared in the orm')
-
-    try:
-        return orm_app.models[model_name]
-    except KeyError:
-        raise ModuleError('The model does not exists')

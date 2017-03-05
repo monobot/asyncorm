@@ -3,7 +3,7 @@ import unittest
 
 from datetime import datetime
 
-from asyncorm.application import configure_orm, get_model
+from asyncorm.application import configure_orm
 from asyncorm.exceptions import *
 from asyncorm.fields import *
 
@@ -21,11 +21,11 @@ orm_app = configure_orm({
 dm = orm_app.db_manager
 loop = orm_app.loop
 
-Publisher = get_model('Publisher')
-Book = get_model('Book')
-Author = get_model('Author')
-Organization = get_model('Author')
-Developer = get_model('Developer')
+Publisher = orm_app.get_model('Publisher')
+Book = orm_app.get_model('Book')
+Author = orm_app.get_model('Author')
+Organization = orm_app.get_model('Author')
+Developer = orm_app.get_model('Developer')
 
 
 async def create_db(models):
@@ -111,7 +111,7 @@ class ModuleTests(AioTestCase):
 
     def test_configuration(self):
         with self.assertRaises(ModuleError) as exc:
-            get_model('Tato')
+            orm_app.get_model('Tato')
         self.assertTrue(
             'The model does not exists' in exc.exception.args[0]
         )
