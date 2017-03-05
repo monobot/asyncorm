@@ -1,10 +1,11 @@
 import asyncio
 import unittest
 
-from asyncorm.application import configure_orm
+from asyncorm.application import get_model, orm_app
 from asyncorm.exceptions import *
 from asyncorm.fields import *
 
+Book = get_model('Book')
 
 db_config = {
     'database': 'asyncorm',
@@ -12,18 +13,6 @@ db_config = {
     'user': 'sanicdbuser',
     'password': 'sanicDbPass',
 }
-orm_app = configure_orm({
-    'db_config': db_config,
-    'modules': ['tests.testapp', 'tests.testapp2'],
-})
-dm = orm_app.db_manager
-loop = orm_app.loop
-
-Publisher = orm_app.get_model('Publisher')
-Book = orm_app.get_model('Book')
-Author = orm_app.get_model('Author')
-Organization = orm_app.get_model('Author')
-Developer = orm_app.get_model('Developer')
 
 
 class AioTestCase(unittest.TestCase):
@@ -54,11 +43,20 @@ class ModuleTests(AioTestCase):
 
     def test_configuration(self):
         with self.assertRaises(ModuleError) as exc:
-            orm_app.get_model('Tato')
+            get_model('Tato')
         self.assertTrue(
             'The model does not exists' in exc.exception.args[0]
         )
-        self.assertEqual(orm_app.db_manager.conn_data, db_config)
+
+        # the orm is configure on the start of tests, but the data is kept
+        self.assertEqual(
+            orm_app.db_manager.conn_data['password'],
+            db_config['password']
+        )
+        self.assertEqual(
+            orm_app.db_manager.conn_data['database'],
+            db_config['database']
+        )
 
         # every model declared has the same db_manager
         self.assertTrue(orm_app.db_manager is Book.objects.db_manager)

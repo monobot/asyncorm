@@ -37,7 +37,6 @@ class Queryset(object):
             constraints=constraints,
             ending=constraints and ';' or '',
         )
-        # print(query)
         return query
 
     def _get_field_queries(self):

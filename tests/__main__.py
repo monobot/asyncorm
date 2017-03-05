@@ -1,9 +1,7 @@
+import asyncio
 import unittest
 
-from .module_tests import *
-from .manage_tests import *
-from .model_tests import *
-from .field_tests import *
+from .testapp.models import Author, Book
 
 from asyncorm.application import configure_orm
 
@@ -13,7 +11,7 @@ db_config = {
     'user': 'sanicdbuser',
     'password': 'sanicDbPass',
 }
-configure_orm({
+orm_app = configure_orm({
     'db_config': db_config,
     'modules': ['tests.testapp', 'tests.testapp2'],
 })
@@ -75,5 +73,11 @@ for x in range(3):
 for x in range(300):
     task = loop.create_task(create_book(x))
     loop.run_until_complete(asyncio.gather(task))
+
 if __name__ == '__main__':
+    from .module_tests import ModuleTests
+    from .manage_tests import ManageTestMethods
+    from .model_tests import ModelTests
+    from .field_tests import FieldTests
+
     unittest.main()

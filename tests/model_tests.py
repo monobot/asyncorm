@@ -1,29 +1,14 @@
 import asyncio
 import unittest
 
-from asyncorm.application import configure_orm
+from asyncorm.application import get_model
 from asyncorm.exceptions import *
 from asyncorm.fields import *
 
+from .testapp.models import Book, Author
 
-db_config = {
-    'database': 'asyncorm',
-    'host': 'localhost',
-    'user': 'sanicdbuser',
-    'password': 'sanicDbPass',
-}
-orm_app = configure_orm({
-    'db_config': db_config,
-    'modules': ['tests.testapp', 'tests.testapp2'],
-})
-dm = orm_app.db_manager
-loop = orm_app.loop
-
-Publisher = orm_app.get_model('Publisher')
-Book = orm_app.get_model('Book')
-Author = orm_app.get_model('Author')
-Organization = orm_app.get_model('Author')
-Developer = orm_app.get_model('Developer')
+Book2 = get_model('Book')
+Author2 = get_model('Author')
 
 
 class AioTestCase(unittest.TestCase):
@@ -130,3 +115,7 @@ class ModelTests(AioTestCase):
 
         q_books = await Book.objects.filter(id__gt=10)
         self.assertEqual(q_books[-1].id, 11)
+
+    async def test_publisher_fk(self):
+        self.assertTrue(Author is Author2)
+        self.assertTrue(Book is Book2)
