@@ -14,7 +14,7 @@ To install asyncorm, run this command in your terminal:
 
     $ pip install asyncorm
 
-This is the preferred method to install asyncorm, as it will always install the most recent stable release. 
+This is the preferred method to install asyncorm, as it will always install the most recent stable release.
 
 If you don't have `pip`_ installed, this `Python installation guide`_ can guide
 you through the process.
@@ -38,7 +38,7 @@ Or download the `tarball`_:
 
 .. code-block:: console
 
-    $ curl  -OL https://github.com/monobot/asyncorm/tarball/master
+    $ curl  -OL https://github.com/monobot/asyncorm/tarball/pypi_version
 
 Once you have a copy of the source, you can install it with:
 
@@ -48,4 +48,4 @@ Once you have a copy of the source, you can install it with:
 
 
 .. _Github repo: https://github.com/monobot/asyncorm
-.. _tarball: https://github.com/monobot/asyncorm/tarball/master
+.. _tarball: https://github.com/monobot/asyncorm/tarball/pypi_version
