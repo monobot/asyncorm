@@ -73,7 +73,7 @@ class BaseModel(object, metaclass=ModelMeta):
         self.objects.model = self.__class__
 
         if not self.table_name:
-            self.table_name = self.__class__.__name__.lower()
+            self.table_name = self.__class__.__name__
             self.__class__.table_name = self.table_name
 
         manager = getattr(self, 'objects')
@@ -107,15 +107,45 @@ class BaseModel(object, metaclass=ModelMeta):
                 )
             )
 
-        self.data = kwargs
         logger.debug('... initiated')
+
+    @classmethod
+    def _set_reverse_foreignkey(cls, model_name):
+        def fk_set(self):
+            print(self.__name__)
+        setattr(cls, '{}_set'.format(model_name.lower()), fk_set)
+
+    @classmethod
+    def _set_database_manager(cls, db_manager):
+        cls.objects.db_manager = db_manager
+
+    @property
+    def data(self):
+        d = {}
+        created = bool(self._orm_pk)
+
+        for orm, db in self.__class__._attr_names:
+            class__orm = getattr(self.__class__, orm)
+            self__orm = getattr(self, orm)
+
+            not_pk = not self._orm_pk == orm
+            not_many = not isinstance(class__orm, ManyToMany)
+            if not_pk and not_many:
+                d[db] = self__orm
+
+                created_and_default = (
+                    created and self__orm == class__orm.default
+                )
+                if created_and_default:
+                    d.pop(db)
+        return d
 
     @classmethod
     def _get_fields(cls):
         # test done
         fields = {}
 
-        attr_names = []
+        cls._attr_names = []
         for f in cls.__dict__.keys():
             field = getattr(cls, f)
             if isinstance(field, Field):
@@ -132,15 +162,15 @@ class BaseModel(object, metaclass=ModelMeta):
                     setattr(field, 'table_name',
                         '{my_model}_{foreign_key}'.format(
                             my_model=cls.table_name,
-                            foreign_key=field.field_name,
+                            foreign_key=field.foreign_key,
                         )
                     )
 
                 fields[f] = field
                 if not isinstance(field.__class__, PkField):
-                    attr_names.append(field.field_name)
+                    cls._attr_names.append((f, field.field_name))
 
-        if len(attr_names) != len(set(attr_names)):
+        if len(cls._attr_names) != len(set(cls._attr_names)):
             raise ModelError(
                 'Models should have unique attribute names and '
                 'field_name if explicitly edited!'

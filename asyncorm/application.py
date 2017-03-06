@@ -1,26 +1,30 @@
 import importlib
-# import inspect
+import inspect
 import asyncio
 
+from collections import OrderedDict
+
 from .exceptions import ModuleError
+from .fields import ForeignKey, ManyToMany
 
 DEFAULT_CONFIG = {
     'db_config': None,
     'loop': asyncio.get_event_loop(),
     'manager': 'PostgresManager',
-    'models': None,
+    'modules': None,
 }
 
 
 class OrmApp(object):
     db_manager = None
     loop = None
-    # models = None
+    models = OrderedDict()
+
+    def __init__(self):
+        super().__init__()
 
     def configure(self, config):
-        # models = config.pop('modules', None)
-        # if models:
-        #     self.models = self.get_models(models)
+        self.get_models(config.pop('modules', None))
 
         DEFAULT_CONFIG.update(config)
 
@@ -39,19 +43,50 @@ class OrmApp(object):
         manager = getattr(database_module, 'PostgresManager')
         self.db_manager = manager(db_config)
 
+        self._set_database_manager()
+
         return config
 
-    # def get_models(self, modules):
-    #     # find classes, shove them in a {'name':object} dict
-    #     from model import Model
-    #     ret_list = []
-    #     for m in modules:
-    #         module = importlib.import_module(m)
-    #         classes = dict(inspect.getmembers(
-    #             module, predicate=lambda x: isinstance(x, Model))
-    #         )
-    #         print(classes)
-    #     return ret_list
+    def get_models(self, modules):
+        if modules is None:
+            return None
+        # find classes, save them in a {'name':object} dict
+        from asyncorm.model import Model
+        for m in modules:
+            module = importlib.import_module('{}.models'.format(m))
+            for k, v in inspect.getmembers(module):
+                try:
+                    if issubclass(v, Model) and v is not Model:
+                        self.models[k] = v
+                except TypeError:
+                    pass
+        self._models_configure()
+
+    def _models_configure(self):
+        for name, model in self.models.items():
+            for f in model.fields.values():
+                if isinstance(f, ManyToMany):
+                    pass
+                    # print(name, 'has m2m:', f.field_name,
+                    #     self.get_model(f.foreign_key))
+                elif isinstance(f, ForeignKey):
+                    other_model = self.get_model(f.foreign_key)
+                    other_model._set_reverse_foreignkey(name)
+                    # print(name, 'has fk:', f.field_name,
+                    #     self.get_model(f.foreign_key))
+
+    def _set_database_manager(self):
+        for model in self.models.values():
+            model._set_database_manager(self.db_manager)
+
+    def get_model(self, model_name):
+        if self.models is None:
+            raise ModuleError('There are no modules declared in the orm')
+
+        try:
+            return self.models[model_name]
+        except KeyError:
+            raise ModuleError('The model does not exists')
 
 
 orm_app = OrmApp()
@@ -61,3 +96,7 @@ def configure_orm(config):
     global orm_app
     orm_app.configure(config)
     return orm_app
+
+
+def get_model(model_name):
+    return orm_app.get_model(model_name)
