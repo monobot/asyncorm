@@ -19,35 +19,9 @@ orm_app = configure_orm({
 dm = orm_app.db_manager
 loop = orm_app.loop
 
+# from asyncorm.database.sync import sync_db
 
-from asyncorm.database.sync import sync_db
-
-
-sync_db()
-# async def create_db(models):
-#     """
-#     We  create all tables for each of the declared models
-#     """
-#     queries = []
-#     delayed = []
-
-#     queries.append('DROP TABLE IF EXISTS Author_Publisher CASCADE')
-#     queries.append('DROP TABLE IF EXISTS Developer_Organization CASCADE')
-
-#     for model in models:
-#         queries.append(
-#             'DROP TABLE IF EXISTS {table} CASCADE'.format(
-#                 table=model().table_name
-#             )
-#         )
-#         queries.append(model.objects._creation_query())
-
-#         m2m_queries = model.objects._get_m2m_field_queries()
-#         if m2m_queries:
-#             delayed.append(m2m_queries)
-
-#     result = await dm.transaction_insert(queries + delayed)
-#     return result
+orm_app.sync_db()
 
 
 async def create_book(x):

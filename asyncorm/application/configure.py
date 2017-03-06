@@ -88,6 +88,35 @@ class OrmApp(object):
         except KeyError:
             raise ModuleError('The model does not exists')
 
+    async def create_db(self):
+        """
+        We  create all tables for each of the declared models
+        """
+        queries = []
+        delayed = []
+
+        queries.append('DROP TABLE IF EXISTS Author_Publisher CASCADE')
+        queries.append('DROP TABLE IF EXISTS Developer_Organization CASCADE')
+
+        for model in self.models.values():
+            queries.append(
+                'DROP TABLE IF EXISTS {table} CASCADE'.format(
+                    table=model().table_name
+                )
+            )
+            queries.append(model.objects._creation_query())
+
+            m2m_queries = model.objects._get_m2m_field_queries()
+            if m2m_queries:
+                delayed.append(m2m_queries)
+
+        await self.db_manager.transaction_insert(queries + delayed)
+
+    def sync_db(self):
+        self.loop.run_until_complete(
+            asyncio.gather(self.loop.create_task(self.create_db()))
+        )
+
 
 orm_app = OrmApp()
 
