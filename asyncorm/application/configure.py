@@ -4,8 +4,8 @@ import asyncio
 
 from collections import OrderedDict
 
-from .exceptions import ModuleError
-from .fields import ForeignKey, ManyToMany
+from ..exceptions import ModuleError
+from ..fields import ForeignKey, ManyToMany
 
 DEFAULT_CONFIG = {
     'db_config': None,
