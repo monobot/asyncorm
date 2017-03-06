@@ -20,9 +20,6 @@ class OrmApp(object):
     loop = None
     models = OrderedDict()
 
-    def __init__(self):
-        super().__init__()
-
     def configure(self, config):
         self.get_models(config.pop('modules', None))
 
@@ -34,18 +31,16 @@ class OrmApp(object):
                 'Imposible to configure without database configuration!'
             )
 
-        loop = DEFAULT_CONFIG.get('loop')
-        db_config['loop'] = loop
-        self.loop = loop
+        db_config['loop'] = self.loop = DEFAULT_CONFIG.get('loop')
 
         database_module = importlib.import_module('asyncorm.database')
 
-        manager = getattr(database_module, 'PostgresManager')
+        # we get the manager defined in the config file
+        manager = getattr(database_module, DEFAULT_CONFIG['manager'])
         self.db_manager = manager(db_config)
 
+        # and we set it to all the different models defined
         self._set_database_manager()
-
-        return config
 
     def get_models(self, modules):
         if modules is None:
@@ -60,6 +55,7 @@ class OrmApp(object):
                         self.models[k] = v
                 except TypeError:
                     pass
+
         self._models_configure()
 
     def _models_configure(self):
@@ -67,13 +63,9 @@ class OrmApp(object):
             for f in model.fields.values():
                 if isinstance(f, ManyToMany):
                     pass
-                    # print(name, 'has m2m:', f.field_name,
-                    #     self.get_model(f.foreign_key))
                 elif isinstance(f, ForeignKey):
                     other_model = self.get_model(f.foreign_key)
                     other_model._set_reverse_foreignkey(name)
-                    # print(name, 'has fk:', f.field_name,
-                    #     self.get_model(f.foreign_key))
 
     def _set_database_manager(self):
         for model in self.models.values():
@@ -122,10 +114,12 @@ orm_app = OrmApp()
 
 
 def configure_orm(config):
+    # configure and return the already configured orm
     global orm_app
     orm_app.configure(config)
     return orm_app
 
 
 def get_model(model_name):
+    # wrapper around the orm method
     return orm_app.get_model(model_name)
