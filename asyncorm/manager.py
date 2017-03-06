@@ -28,14 +28,14 @@ class Queryset(object):
         unique_together = self._get_unique_together()
 
         query = (
-            'CREATE TABLE {table_name} ({field_queries}{unique_together});'
-            '{constraints}{ending}'
+            'CREATE TABLE IF NOT EXISTS {table_name} '
+            '({field_queries}{unique_together}); '
+            '{constraints}'
         ).format(
             table_name=self.model.table_name,
             field_queries=self._get_field_queries(),
             unique_together=unique_together,
-            constraints=constraints,
-            ending=constraints and ';' or '',
+            constraints=constraints and constraints + ';' or '',
         )
         return query
 

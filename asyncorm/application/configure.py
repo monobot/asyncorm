@@ -87,9 +87,6 @@ class OrmApp(object):
         queries = []
         delayed = []
 
-        queries.append('DROP TABLE IF EXISTS Author_Publisher CASCADE')
-        queries.append('DROP TABLE IF EXISTS Developer_Organization CASCADE')
-
         for model in self.models.values():
             queries.append(
                 'DROP TABLE IF EXISTS {table} CASCADE'.format(

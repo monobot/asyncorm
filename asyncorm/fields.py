@@ -150,11 +150,15 @@ class CharField(Field):
             max_length=max_length, null=null, choices=choices, unique=unique
         )
 
+    # def _validate(self, value):
+    #     self.__class__._validate(value)
+    #     return value
+    #     value = self._validate(value)
+
     def _sanitize_data(self, value):
         if value is None:
             return 'NULL'
         value = super()._sanitize_data(value)
-
         if len(value) > self.max_length:
             raise FieldError(
                 ('The string entered is bigger than '
@@ -226,7 +230,7 @@ class ManyToMany(Field):
     internal_type = int
     required_kwargs = ['foreign_key', ]
     creation_string = '''
-        CREATE TABLE {table_name} (
+        CREATE TABLE IF NOT EXISTS {table_name} (
         {foreign_model} INTEGER REFERENCES {foreign_model} NOT NULL,
         {foreign_key} INTEGER REFERENCES {foreign_key} NOT NULL
         );'''
@@ -241,7 +245,7 @@ class ManyToMany(Field):
         return self.creation_string.format(**self.__dict__)
 
     @classmethod
-    def _validate(cls, value):
+    def _validate(self, value):
         if isinstance(value, list):
             for i in value:
                 super()._validate(value)
