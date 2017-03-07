@@ -6,7 +6,7 @@ from asyncorm.exceptions import *
 from asyncorm.fields import *
 
 from .testapp.models import Book, Author
-from .testapp2.models import Developer, Client
+from .testapp2.models import Developer, Client, Organization
 
 Book2 = get_model('Book')
 Author2 = get_model('Author')
@@ -121,7 +121,7 @@ class ModelTests(AioTestCase):
         q_books = await Book.objects.filter(id__gt=10)
         self.assertEqual(q_books[-1].id, 11)
 
-    async def test_publisher_fk(self):
+    async def test_fk(self):
         # the inverse relation is correctly set
         self.assertTrue(hasattr(Developer, 'client_set'))
 
@@ -141,3 +141,21 @@ class ModelTests(AioTestCase):
         clients_returned = await dev.client_set()
         # and is correct
         self.assertTrue(clients_returned[0].id == dev.id)
+
+    async def test_m2m(self):
+        print(dir(Organization))
+        # the inverse relation is correctly set
+        self.assertTrue(hasattr(Organization, 'developer_set'))
+
+        # new organization
+        org = Organization(name='ong molona')
+        await org.save()
+        # create a developer
+        dev = Developer(name='developnew', age=22, org=org.id)
+        await dev.save()
+
+        # and the relation comes back
+        # the method exists
+        devs_returned = await org.developer_set()
+        # and is correct
+        self.assertTrue(devs_returned[0].id == dev.id)

@@ -82,6 +82,7 @@ class Queryset(object):
 
     async def all(self):
         db_request = {
+            'select': '*',
             'table_name': self.model.table_name,
             'action': 'db__select_all',
         }
@@ -91,6 +92,7 @@ class Queryset(object):
 
     async def count(self):
         db_request = {
+            'select': '*',
             'table_name': self.model.table_name,
             'action': 'db__count',
         }
@@ -153,6 +155,7 @@ class Queryset(object):
         condition = ' AND '.join(filters)
 
         db_request = {
+            'select': '*',
             'table_name': self.model.table_name,
             'action': 'db__select',
             'condition': condition
@@ -169,9 +172,28 @@ class Queryset(object):
         condition = ' AND '.join(filters)
 
         db_request = {
+            'select': '*',
             'table_name': self.model.table_name,
             'action': 'db__select',
             'condition': condition
+        }
+
+        if self.model._ordering:
+            db_request.update({'ordering': self.model._ordering})
+
+        request = await self.db_manager.request(db_request)
+        return [self._construct_model(r) for r in request]
+
+    async def m2m(self, table_name, my_column, other_column, my_id):
+
+        db_request = {
+            'select': other_column,
+            'table_name': table_name,
+            'action': 'db__select',
+            'condition': '{my_column}={my_id}'.format(
+                my_column=my_column,
+                my_id=my_id,
+            )
         }
 
         if self.model._ordering:
@@ -220,6 +242,7 @@ class Queryset(object):
 
     async def delete(self, instanced_model):
         db_request = {
+            'select': '*',
             'table_name': self.model.table_name,
             'action': 'db__delete',
             'id_data': '{}={}'.format(

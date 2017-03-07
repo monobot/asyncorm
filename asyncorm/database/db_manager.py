@@ -17,15 +17,15 @@ class PostgresManager(GeneralManager):
 
     @property
     def db__count(self):
-        return 'SELECT COUNT(*) FROM {table_name} ;'
+        return 'SELECT COUNT({select}) FROM {table_name} ;'
 
     @property
     def db__select_all(self):
-        return 'SELECT * FROM {table_name} ;'
+        return 'SELECT {select} FROM {table_name} ;'
 
     @property
     def db__select(self):
-        return 'SELECT * FROM {table_name} WHERE {condition} ;'
+        return 'SELECT {select} FROM {table_name} WHERE {condition} ;'
 
     @property
     def db__update(self):

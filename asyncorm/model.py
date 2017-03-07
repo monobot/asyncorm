@@ -1,5 +1,5 @@
 from .log import logger
-from .fields import Field, PkField, ManyToMany, ForeignKey
+from .fields import Field, PkField, ManyToMany  # , ForeignKey
 from .manager import ModelManager
 from .exceptions import ModelError, FieldError
 from .application import get_model
@@ -114,10 +114,25 @@ class BaseModel(object, metaclass=ModelMeta):
         async def fk_set(self):
             model = get_model(model_name)
 
-            # important add here the id value of the actual object
-            return await model.objects.filter(**{field_name: 1})
+            return await model.objects.filter(
+                **{field_name: getattr(self, self._orm_pk)}
+            )
 
         setattr(cls, '{}_set'.format(model_name.lower()), fk_set)
+
+    @classmethod
+    def _set_manytomany(cls, table_name, my_column, other_column):
+
+        async def m2m_set(self):
+            # change this to consult the correct table name and not the model
+            return await cls.objects.m2m(
+                table_name,
+                my_column,
+                other_column,
+                getattr(self, self._orm_pk)
+            )
+
+        setattr(cls, '{}_set'.format(other_column.lower()), m2m_set)
 
     @classmethod
     def _set_database_manager(cls, db_manager):

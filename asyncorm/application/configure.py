@@ -62,7 +62,14 @@ class OrmApp(object):
         for name, model in self.models.items():
             for f in model.fields.values():
                 if isinstance(f, ManyToMany):
-                    pass
+                    print('#~#~#~#~#~###~###~')
+                    other_model = self.get_model(f.foreign_key)
+                    other_model._set_manytomany(
+                        f.table_name, f.foreign_key, f.field_name,
+                    )
+
+                    # model._set_manytomany(f.foreign_key, f.field_name)
+
                 elif isinstance(f, ForeignKey):
                     other_model = self.get_model(f.foreign_key)
                     other_model._set_reverse_foreignkey(name, f.field_name)
