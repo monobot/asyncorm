@@ -116,8 +116,6 @@ class BaseModel(object, metaclass=ModelMeta):
             model = get_model(model_name)
 
             # important add here the id value of the actual object
-            print(self)
-            print({field_name: getattr(self, self._orm_pk)})
             return await model.objects.filter(**{field_name: 1})
 
         setattr(cls, '{}_set'.format(model_name.lower()), fk_set)

@@ -12,6 +12,6 @@ class Developer(Model):
     org = ManyToMany(foreign_key='Organization')
 
 
-class Loco(Model):
+class Client(Model):
     name = CharField(max_length=10)
     dev = ForeignKey(foreign_key='Developer')
