@@ -132,9 +132,12 @@ class ModelTests(AioTestCase):
         client = Client(name='devman', dev=dev.id)
         await client.save()
 
-        # and now we check that is correctly returned back
-        self.assertTrue(await dev.client_set())
+        # the client has the dev correctly set
+        self.assertTrue(client.dev == client.id)
 
-        # and is exactly the correct one
-        devs_returned = await dev.client_set()
-        self.assertTrue(devs_returned[0].id == dev.id)
+        # and the relation comes back
+        # the method exists
+        self.assertTrue(await dev.client_set())
+        clients_returned = await dev.client_set()
+        # and is correct
+        self.assertTrue(clients_returned[0].id == dev.id)

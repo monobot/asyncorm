@@ -1,5 +1,5 @@
 from .log import logger
-from .fields import Field, PkField, ManyToMany
+from .fields import Field, PkField, ManyToMany, ForeignKey
 from .manager import ModelManager
 from .exceptions import ModelError, FieldError
 from .application import get_model
@@ -70,7 +70,6 @@ class BaseModel(object, metaclass=ModelMeta):
 
     def __init__(self, **kwargs):
         logger.debug('initiating model {}'.format(self.__class__.__name__))
-        # test done
         self.objects.model = self.__class__
 
         if not self.table_name:
@@ -147,7 +146,6 @@ class BaseModel(object, metaclass=ModelMeta):
 
     @classmethod
     def _get_fields(cls):
-        # test done
         fields = {}
 
         cls._attr_names = []
@@ -185,7 +183,6 @@ class BaseModel(object, metaclass=ModelMeta):
 
     def _validate_kwargs(self, kwargs):
         '''validate the kwargs on object instantiation only'''
-        # test done
         attr_errors = [k for k in kwargs.keys() if k not in self.fields.keys()]
 
         if attr_errors:
