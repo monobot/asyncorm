@@ -39,6 +39,10 @@ class ModelTests(AioTestCase):
 
     def test_class__init__(self):
         # classmethods tests
+        # no matter how you import them they are the same object
+        self.assertTrue(Author is Author2)
+        self.assertTrue(Book is Book2)
+
         self.assertEqual(Book().table_name, 'library')
         self.assertEqual(Author().table_name, 'Author')
 
@@ -117,5 +121,7 @@ class ModelTests(AioTestCase):
         self.assertEqual(q_books[-1].id, 11)
 
     async def test_publisher_fk(self):
-        self.assertTrue(Author is Author2)
-        self.assertTrue(Book is Book2)
+        # the inverse relation is correctly set
+        self.assertTrue(hasattr(Author, 'book_set'))
+        author = await Author.objects.all()
+        print(await author[0].book_set())

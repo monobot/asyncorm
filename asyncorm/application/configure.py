@@ -65,7 +65,7 @@ class OrmApp(object):
                     pass
                 elif isinstance(f, ForeignKey):
                     other_model = self.get_model(f.foreign_key)
-                    other_model._set_reverse_foreignkey(name)
+                    other_model._set_reverse_foreignkey(name, f.field_name)
 
     def _set_database_manager(self):
         for model in self.models.values():

@@ -2,6 +2,7 @@ from .log import logger
 from .fields import Field, PkField, ManyToMany
 from .manager import ModelManager
 from .exceptions import ModelError, FieldError
+from .application import get_model
 
 __all__ = ['Model', ]
 
@@ -110,9 +111,13 @@ class BaseModel(object, metaclass=ModelMeta):
         logger.debug('... initiated')
 
     @classmethod
-    def _set_reverse_foreignkey(cls, model_name):
-        def fk_set(self):
-            print(self.__name__)
+    def _set_reverse_foreignkey(cls, model_name, field_name):
+        async def fk_set(self):
+            model = get_model(model_name)
+
+            # important add here the id value of the actual object
+            return await model.objects.filter(**{field_name: 1})
+
         setattr(cls, '{}_set'.format(model_name.lower()), fk_set)
 
     @classmethod
