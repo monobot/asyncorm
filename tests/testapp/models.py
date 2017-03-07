@@ -17,6 +17,9 @@ class Author(Model):
     age = IntegerField()
     publisher = ManyToMany(foreign_key='Publisher')
 
+    def __str__(self):
+        return 'Author {}'.format(self.na)
+
 
 class Book(Model):
     table_name = 'library'

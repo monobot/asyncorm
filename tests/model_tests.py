@@ -6,6 +6,7 @@ from asyncorm.exceptions import *
 from asyncorm.fields import *
 
 from .testapp.models import Book, Author
+from .testapp2.models import Developer, Loco
 
 Book2 = get_model('Book')
 Author2 = get_model('Author')
@@ -122,6 +123,10 @@ class ModelTests(AioTestCase):
 
     async def test_publisher_fk(self):
         # the inverse relation is correctly set
-        self.assertTrue(hasattr(Author, 'book_set'))
-        author = await Author.objects.all()
-        print(await author[0].book_set())
+        self.assertTrue(hasattr(Developer, 'loco_set'))
+        dev = Developer(name='loco1', age=24)
+        await dev.save()
+        loco = Loco(name='devman', dev=dev.id)
+        await loco.save()
+
+        self.assertTrue(await dev.loco_set())
