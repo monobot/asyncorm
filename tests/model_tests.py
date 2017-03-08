@@ -143,7 +143,6 @@ class ModelTests(AioTestCase):
         self.assertTrue(clients_returned[0].id == dev.id)
 
     async def test_m2m(self):
-        print(dir(Organization))
         # the inverse relation is correctly set
         self.assertTrue(hasattr(Organization, 'developer_set'))
 
@@ -151,11 +150,12 @@ class ModelTests(AioTestCase):
         org = Organization(name='ong molona')
         await org.save()
         # create a developer
-        dev = Developer(name='developnew', age=22, org=org.id)
+        dev = Developer(name='developer', age=22, org=org.id)
         await dev.save()
 
         # and the relation comes back
         # the method exists
         devs_returned = await org.developer_set()
         # and is correct
+        print(devs_returned)
         self.assertTrue(devs_returned[0].id == dev.id)
