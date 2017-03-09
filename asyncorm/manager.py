@@ -222,10 +222,7 @@ class Queryset(object):
                 ) and 'db__update' or 'db__create'
             ),
             '_db_pk': instanced_model._db_pk,
-            'model_id': getattr(
-                instanced_model,
-                instanced_model._orm_pk
-            ),
+            'model_id': getattr(instanced_model, instanced_model._orm_pk),
             'field_names': ', '.join(fields),
             'field_values': ', '.join(field_data),
             'condition': '{}={}'.format(
@@ -237,6 +234,14 @@ class Queryset(object):
             response = await self.db_manager.request(db_request)
         except UniqueViolationError:
             raise ModelError('The model violates a unique constraint')
+
+        # now we have to save the m2m relations: m2m_data
+        fields, field_data = [], []
+        for k, data in instanced_model.m2m_data.items():
+            print('data: ', data)
+            # for each of the m2m fields in the model, we have to check
+            # if the table register already exists in the table otherwise
+            # and delete the ones that are not in the list
 
         self._construct_model(response, instanced_model)
 

@@ -122,7 +122,6 @@ class BaseModel(object, metaclass=ModelMeta):
 
     @classmethod
     def _set_manytomany(cls, table_name, my_column, other_column):
-
         async def m2m_set(self):
             # change this to consult the correct table name and not the model
             return await cls.objects.m2m(
@@ -147,16 +146,35 @@ class BaseModel(object, metaclass=ModelMeta):
             class__orm = getattr(self.__class__, orm)
             self__orm = getattr(self, orm)
 
-            not_pk = not self._orm_pk == orm
-            not_many = not isinstance(class__orm, ManyToMany)
-            if not_pk and not_many:
+            has_pk = self._orm_pk == orm
+            many2many = isinstance(class__orm, ManyToMany)
+            if not has_pk and not many2many:
                 d[db] = self__orm
 
-                created_and_default = (
-                    created and self__orm == class__orm.default
-                )
-                if created_and_default:
+                default = self__orm == class__orm.default
+                if created and default:
                     d.pop(db)
+
+        return d
+
+    @property
+    def m2m_data(self):
+        d = {}
+        created = bool(self._orm_pk)
+
+        for orm, db in self.__class__._attr_names:
+            class__orm = getattr(self.__class__, orm)
+            self__orm = getattr(self, orm)
+
+            has_pk = self._orm_pk == orm
+            many2many = isinstance(class__orm, ManyToMany)
+            if not has_pk and many2many:
+                d[db] = self__orm
+
+                default = self__orm == class__orm.default
+                if created and default:
+                    d.pop(db)
+
         return d
 
     @classmethod
