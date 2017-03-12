@@ -195,7 +195,9 @@ class BaseModel(object, metaclass=ModelMeta):
 
                 if isinstance(field, ManyToMany):
                     setattr(field, 'foreign_model', cls.table_name)
-                    setattr(field, 'table_name',
+                    setattr(
+                        field,
+                        'table_name',
                         '{my_model}_{foreign_key}'.format(
                             my_model=cls.table_name,
                             foreign_key=field.foreign_key,
