@@ -3,8 +3,8 @@ from datetime import datetime
 from .exceptions import FieldError  # , ModuleError
 
 __all__ = ('Field', 'PkField', 'CharField', 'IntegerField', 'DateField',
-    'ForeignKey', 'ManyToMany', 'DecimalField'
-)
+           'ForeignKey', 'ManyToMany', 'DecimalField'
+           )
 
 DATE_FIELDS = ['DateField', ]
 
@@ -73,19 +73,20 @@ class Field(object):
         if self.choices:
             key_list = ['\'{}\''.format(k) for k in self.choices.keys()]
 
-            return '''
+            return_query = '''
                 ALTER TABLE {table_name}
                 ADD CONSTRAINT {const_name}
                 CHECK ({field_name} IN ({key_list}) );
-                '''.format(
-                    table_name=self.table_name,
-                    const_name='{}_{}_const'.format(
-                        self.table_name,
-                        self.field_name
-                    ),
-                    field_name=self.field_name,
-                    key_list=','.join(key_list),
-                )
+            '''
+            return return_query.format(
+                table_name=self.table_name,
+                const_name='{}_{}_const'.format(
+                    self.table_name,
+                    self.field_name
+                ),
+                field_name=self.field_name,
+                key_list=','.join(key_list),
+            )
         return ''
 
     def _validate_kwargs(self, kwargs):
@@ -145,10 +146,12 @@ class CharField(Field):
     creation_string = 'varchar({max_length})'
 
     def __init__(self, field_name='', default=None, max_length=0,
-            null=False, choices={}, unique=False):
+                 null=False, choices={}, unique=False
+                 ):
         super().__init__(field_name=field_name, default=default,
-            max_length=max_length, null=null, choices=choices, unique=unique
-        )
+                         max_length=max_length, null=null, choices=choices,
+                         unique=unique
+                         )
 
     # def _validate(self, value):
     #     self.__class__._validate(value)
@@ -162,8 +165,8 @@ class CharField(Field):
         if len(value) > self.max_length:
             raise FieldError(
                 ('The string entered is bigger than '
-                    'the "max_length" defined ({})'
-                ).format(self.max_length)
+                 'the "max_length" defined ({})'
+                 ).format(self.max_length)
             )
         return '\'{}\''.format(value)
 
@@ -173,9 +176,9 @@ class IntegerField(Field):
     creation_string = 'integer'
 
     def __init__(self, field_name='', default=None, null=False, choices={},
-            unique=False):
+                 unique=False):
         super().__init__(field_name=field_name, default=default, null=null,
-            choices=choices, unique=unique)
+                         choices=choices, unique=unique)
 
     def _sanitize_data(self, value):
         if value is None:
@@ -195,10 +198,12 @@ class DateField(Field):
     creation_string = 'timestamp'
 
     def __init__(self, field_name='', default=None, auto_now=False, null=False,
-            choices={}, unique=False):
+                 choices={}, unique=False
+                 ):
         super().__init__(field_name=field_name, default=default,
-            auto_now=auto_now, null=null, choices=choices, unique=unique
-        )
+                         auto_now=auto_now, null=null, choices=choices,
+                         unique=unique
+                         )
 
     def _sanitize_data(self, value):
         if value is None:
@@ -214,10 +219,10 @@ class ForeignKey(Field):
     creation_string = 'integer references {foreign_key}'
 
     def __init__(self, field_name='', default=None, foreign_key='',
-            null=False, unique=False):
+                 null=False, unique=False):
         super().__init__(field_name=field_name, default=default,
-            foreign_key=foreign_key, null=null, unique=unique
-        )
+                         foreign_key=foreign_key, null=null, unique=unique
+                         )
 
     def _sanitize_data(self, value):
         if value is None:
@@ -227,7 +232,7 @@ class ForeignKey(Field):
 
 
 class ManyToMany(Field):
-    internal_type = int
+    internal_type = list, int
     required_kwargs = ['foreign_key', ]
     creation_string = '''
         CREATE TABLE IF NOT EXISTS {table_name} (
@@ -236,10 +241,10 @@ class ManyToMany(Field):
         );'''
 
     def __init__(self, field_name='', foreign_key=None, default=None,
-            unique=False):
+                 unique=False):
         super().__init__(field_name=field_name, foreign_key=foreign_key,
-            default=default, unique=unique
-        )
+                         default=default, unique=unique
+                         )
 
     def _creation_query(self):
         return self.creation_string.format(**self.__dict__)

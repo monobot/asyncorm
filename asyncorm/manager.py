@@ -43,7 +43,8 @@ class Queryset(object):
         # builds the table with all its fields definition
         return ', '.join(
             [f._creation_query() for f in self.model.fields.values()
-            if not isinstance(f, ManyToMany)]
+             if not isinstance(f, ManyToMany)
+             ]
         )
 
     def _get_field_constraints(self):
@@ -63,7 +64,8 @@ class Queryset(object):
         # builds the relational many to many table
         return '; '.join(
             [f._creation_query() for f in self.model.fields.values()
-            if isinstance(f, ManyToMany)]
+             if isinstance(f, ManyToMany)
+             ]
         )
 
     def _construct_model(self, record, instance=None):
@@ -202,6 +204,9 @@ class Queryset(object):
         request = await self.db_manager.request(db_request)
         return [self._construct_model(r) for r in request]
 
+
+class ModelManager(Queryset):
+
     async def save(self, instanced_model):
         # performs the database save
         fields, field_data = [], []
@@ -235,15 +240,23 @@ class Queryset(object):
         except UniqueViolationError:
             raise ModelError('The model violates a unique constraint')
 
+        self._construct_model(response, instanced_model)
+
         # now we have to save the m2m relations: m2m_data
         fields, field_data = [], []
         for k, data in instanced_model.m2m_data.items():
-            print('data: ', data)
             # for each of the m2m fields in the model, we have to check
             # if the table register already exists in the table otherwise
             # and delete the ones that are not in the list
 
-        self._construct_model(response, instanced_model)
+            # first get the table_name
+            cls_field = getattr(instanced_model.__class__, k)
+            table_name = cls_field.table_name
+
+            model_column = instanced_model.table_name
+            model_id = getattr(instanced_model, instanced_model._orm_pk)
+
+            print(table_name, data, model_column, model_id)
 
     async def delete(self, instanced_model):
         db_request = {
@@ -257,7 +270,3 @@ class Queryset(object):
         }
         response = await self.db_manager.request(db_request)
         return response
-
-
-class ModelManager(Queryset):
-    pass

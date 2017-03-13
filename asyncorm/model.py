@@ -160,19 +160,15 @@ class BaseModel(object, metaclass=ModelMeta):
     @property
     def m2m_data(self):
         d = {}
-        created = bool(self._orm_pk)
 
         for orm, db in self.__class__._attr_names:
             class__orm = getattr(self.__class__, orm)
-            self__orm = getattr(self, orm)
-
-            has_pk = self._orm_pk == orm
-            many2many = isinstance(class__orm, ManyToMany)
-            if not has_pk and many2many:
+            if isinstance(class__orm, ManyToMany):
+                self__orm = getattr(self, orm)
                 d[db] = self__orm
 
                 default = self__orm == class__orm.default
-                if created and default:
+                if bool(self._orm_pk) and default:
                     d.pop(db)
 
         return d
@@ -204,9 +200,10 @@ class BaseModel(object, metaclass=ModelMeta):
                         )
                     )
 
-                fields[f] = field
                 if not isinstance(field.__class__, PkField):
                     cls._attr_names.append((f, field.field_name))
+
+                fields[f] = field
 
         if len(cls._attr_names) != len(set(cls._attr_names)):
             raise ModelError(

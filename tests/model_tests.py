@@ -157,7 +157,7 @@ class ModelTests(AioTestCase):
         org = Organization(name='ong molona')
         await org.save()
         # create a developer
-        dev = Developer(name='developer', age=22, org=org.id)
+        dev = Developer(name='developer', age=55, org=org.id)
         await dev.save()
 
         # and the relation comes back
@@ -165,4 +165,5 @@ class ModelTests(AioTestCase):
         devs_returned = await org.developer_set()
         # and is correct
         print(devs_returned)
+        print(dev.fields)
         self.assertTrue(devs_returned[0].id == dev.id)
