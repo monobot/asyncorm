@@ -187,7 +187,6 @@ class Queryset(object):
         return [self._construct_model(r) for r in request]
 
     async def m2m(self, table_name, my_column, other_column, my_id):
-
         db_request = {
             'select': other_column,
             'table_name': table_name,
@@ -252,11 +251,29 @@ class ModelManager(Queryset):
             # first get the table_name
             cls_field = getattr(instanced_model.__class__, k)
             table_name = cls_field.table_name
+            foreign_column = cls_field.foreign_key
 
             model_column = instanced_model.table_name
+
             model_id = getattr(instanced_model, instanced_model._orm_pk)
 
-            print(table_name, data, model_column, model_id)
+            db_request = {
+                'table_name': table_name,
+                'action': 'db__create',
+                'field_names': ', '.join([model_column, foreign_column]),
+                'field_values': ', '.join([str(model_id), str(data)]),
+                # 'ordering': 'id',
+            }
+
+            if isinstance(data, list):
+                for d in data:
+                    await self.db_manager.request(db_request)
+                    db_request.update({
+                        'field_values': ', '.join([str(model_id), str(d)])
+                    })
+                    await self.db_manager.request(db_request)
+            else:
+                await self.db_manager.request(db_request)
 
     async def delete(self, instanced_model):
         db_request = {

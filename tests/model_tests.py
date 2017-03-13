@@ -163,7 +163,7 @@ class ModelTests(AioTestCase):
         # and the relation comes back
         # the method exists
         devs_returned = await org.developer_set()
+        print([t.id for t in devs_returned])
+        print(dev.id)
         # and is correct
-        print(devs_returned)
-        print(dev.fields)
         self.assertTrue(devs_returned[0].id == dev.id)

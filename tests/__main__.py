@@ -19,8 +19,6 @@ orm_app = configure_orm({
 dm = orm_app.db_manager
 loop = orm_app.loop
 
-# from asyncorm.database.sync import sync_db
-
 orm_app.sync_db()
 
 
@@ -40,9 +38,6 @@ async def create_author(x):
     })
 
     await book.save()
-
-# task = loop.create_task(create_db(orm_app.models.values()))
-# loop.run_until_complete(asyncio.gather(task))
 
 # create some test models
 for x in range(3):
