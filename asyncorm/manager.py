@@ -24,10 +24,10 @@ class Queryset(object):
         cls.orm = orm
         cls.db_manager = orm.db_manager
 
-    def _copy_me(self):
-        queryset = Queryset()
-        queryset.model = self.model
-        return queryset
+    # def _copy_me(self):
+    #     queryset = Queryset()
+    #     queryset.model = self.model
+    #     return queryset
 
     def _creation_query(self):
         constraints = self._get_field_constraints()
