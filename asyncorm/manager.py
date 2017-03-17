@@ -19,11 +19,6 @@ class Queryset(object):
     queryset = ''
     orm = None
 
-    _model_name = ''
-    _model_tablename = ''
-    _model_ordering = ''
-    _model_fields = []
-
     @classmethod
     def _set_orm(cls, orm):
         cls.orm = orm
