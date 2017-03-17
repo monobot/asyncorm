@@ -21,7 +21,18 @@ class OrmApp(object):
     models = OrderedDict()
 
     def configure(self, config):
-        self.get_models(config.pop('modules', None))
+        '''
+        Configures the system:
+        get all the models declared
+        sets the database configured and adds the loop
+
+        Then the database manager is configured, and set to all the
+        models previously declared
+        and then we finish the models configurations using
+        _models_configure(): will take care of the inverse relations for
+        foreignkeys and many2many
+        '''
+        self.get_declared_models(config.pop('modules', None))
 
         DEFAULT_CONFIG.update(config)
 
@@ -39,10 +50,10 @@ class OrmApp(object):
         manager = getattr(database_module, DEFAULT_CONFIG['manager'])
         self.db_manager = manager(db_config)
 
-        # and we set it to all the different models defined
-        self._set_database_manager()
+        # After the manager is set then we can build the rest of db features
+        self._models_configure()
 
-    def get_models(self, modules):
+    def get_declared_models(self, modules):
         if modules is None:
             return None
         # find classes, save them in a {'name':object} dict
@@ -56,10 +67,21 @@ class OrmApp(object):
                 except TypeError:
                     pass
 
-        self._models_configure()
+    def get_model(self, model_name):
+        if self.models is None:
+            raise ModuleError('There are no modules declared in the orm')
+
+        try:
+            return self.models[model_name]
+        except KeyError:
+            raise ModuleError('The model does not exists')
 
     def _models_configure(self):
+        # and we set it to all the different models defined
+        self._set_model_orm()
+
         for name, model in self.models.items():
+
             for f in model.fields.values():
                 if isinstance(f, ManyToMany):
                     other_model = self.get_model(f.foreign_key)
@@ -79,18 +101,9 @@ class OrmApp(object):
                     other_model = self.get_model(f.foreign_key)
                     other_model._set_reverse_foreignkey(name, f.field_name)
 
-    def _set_database_manager(self):
+    def _set_model_orm(self):
         for model in self.models.values():
-            model._set_database_manager(self.db_manager)
-
-    def get_model(self, model_name):
-        if self.models is None:
-            raise ModuleError('There are no modules declared in the orm')
-
-        try:
-            return self.models[model_name]
-        except KeyError:
-            raise ModuleError('The model does not exists')
+            model._set_orm(self)
 
     async def create_db(self):
         """

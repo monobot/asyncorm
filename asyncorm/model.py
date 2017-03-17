@@ -122,20 +122,22 @@ class BaseModel(object, metaclass=ModelMeta):
 
     @classmethod
     def _set_manytomany(cls, table_name, my_column, other_column):
+        from .manager import Queryset
+
+        queryset = Queryset()
+        queryset._set_orm(cls.objects.orm)
+        queryset._model_tablename = table_name
+        queryset._return_modelname = other_column
+
         async def m2m_set(self):
-            # change this to consult the correct table name and not the model
-            return await cls.objects.m2m(
-                table_name,
-                my_column,
-                other_column,
-                getattr(self, self._orm_pk)
-            )
+            m2m_filter = {my_column: getattr(self, self._orm_pk)}
+            return await queryset.filter(**m2m_filter)
 
         setattr(cls, '{}_set'.format(other_column.lower()), m2m_set)
 
     @classmethod
-    def _set_database_manager(cls, db_manager):
-        cls.objects.db_manager = db_manager
+    def _set_orm(cls, orm):
+        cls.objects._set_orm(orm)
 
     @property
     def data(self):

@@ -17,6 +17,66 @@ class Queryset(object):
     model = None
     db_manager = None
     queryset = ''
+    orm = None
+
+    _model_name = ''
+    _model_tablename = ''
+    _model_ordering = ''
+    _model_fields = []
+    _return_modelname = None
+
+    @property
+    def model_name(self):
+        '''
+        properties to be requested all the time and used for meta querysets
+        '''
+        if self._model_name:
+            return self._model_name
+
+        if self.model:
+            self._model_name = self.model.__name__
+        return self._model_name
+
+    @property
+    def model_tablename(self):
+        '''
+        properties to be requested all the time and used for meta querysets
+        '''
+        if self._model_tablename:
+            return self._model_tablename
+
+        if self.model:
+            self._model_tablename = self.model.table_name
+        return self._model_tablename
+
+    @property
+    def model_fields(self):
+        '''
+        properties to be requested all the time and used for meta querysets
+        '''
+        if self._model_fields:
+            return self._model_fields
+
+        if self.model:
+            self._model_fields = self.model.fields
+        return self._model_fields
+
+    @property
+    def model_ordering(self):
+        '''
+        properties to be requested all the time and used for meta querysets
+        '''
+        if self._model_ordering:
+            return self._model_ordering
+
+        if self.model:
+            self._model_ordering = self.model._ordering
+        return self._model_ordering
+
+    @classmethod
+    def _set_orm(cls, orm):
+        cls.orm = orm
+        cls.db_manager = orm.db_manager
 
     def _copy_me(self):
         queryset = Queryset()
@@ -32,7 +92,7 @@ class Queryset(object):
             '({field_queries}{unique_together}); '
             '{constraints}'
         ).format(
-            table_name=self.model.table_name,
+            table_name=self.model_tablename,
             field_queries=self._get_field_queries(),
             unique_together=unique_together,
             constraints=constraints and constraints + ';' or '',
@@ -42,7 +102,7 @@ class Queryset(object):
     def _get_field_queries(self):
         # builds the table with all its fields definition
         return ', '.join(
-            [f._creation_query() for f in self.model.fields.values()
+            [f._creation_query() for f in self.model_fields.values()
              if not isinstance(f, ManyToMany)
              ]
         )
@@ -50,7 +110,7 @@ class Queryset(object):
     def _get_field_constraints(self):
         # builds the table with all its fields definition
         return '; '.join(
-            [f._field_constraints() for f in self.model.fields.values()]
+            [f._field_constraints() for f in self.model_fields.values()]
         )
 
     def _get_unique_together(self):
@@ -63,14 +123,17 @@ class Queryset(object):
     def _get_m2m_field_queries(self):
         # builds the relational many to many table
         return '; '.join(
-            [f._creation_query() for f in self.model.fields.values()
+            [f._creation_query() for f in self.model_fields.values()
              if isinstance(f, ManyToMany)
              ]
         )
 
-    def _construct_model(self, record, instance=None):
+    def _model_constructor(self, record, instance=None):
         if not instance:
-            instance = self.model()
+            if self._return_modelname:
+                instance = self.orm.get_model(self._return_modelname)()
+            else:
+                instance = self.model()
 
         data = {}
         for k, v in record.items():
@@ -85,17 +148,17 @@ class Queryset(object):
     async def all(self):
         db_request = {
             'select': '*',
-            'table_name': self.model.table_name,
+            'table_name': self.model_tablename,
             'action': 'db__select_all',
         }
 
         request = await self.db_manager.request(db_request)
-        return [self._construct_model(r) for r in request]
+        return [self._model_constructor(r) for r in request]
 
     async def count(self):
         db_request = {
             'select': '*',
-            'table_name': self.model.table_name,
+            'table_name': self.model_tablename,
             'action': 'db__count',
         }
 
@@ -108,47 +171,53 @@ class Queryset(object):
             if length > 1:
                 raise QuerysetError(
                     'More than one {} where returned, there are {}!'.format(
-                        self.model.__name__,
+                        self.model_name,
                         length,
                     )
                 )
 
             return data[0]
         raise QuerysetError(
-            'That {} does not exist'.format(self.model.__name__)
+            'That {} does not exist'.format(self.model_name)
         )
 
     def calc_filters(self, kwargs, exclude=False):
         # recompose the filters
         bool_string = exclude and 'NOT ' or ''
         filters = []
-        for k, v in kwargs.items():
-            # we format the key, the conditional and the value
-            middle = '='
-            if len(k.split('__')) > 1:
-                k, middle = k.split('__')
-                middle = MIDDLE_OPERATOR[middle]
 
-            field = getattr(self.model, k)
+        # if the queryset is a real model_queryset
+        if self.model:
+            for k, v in kwargs.items():
+                # we format the key, the conditional and the value
+                middle = '='
+                if len(k.split('__')) > 1:
+                    k, middle = k.split('__')
+                    middle = MIDDLE_OPERATOR[middle]
 
-            if middle == '=' and isinstance(v, tuple):
-                if len(v) != 2:
-                    raise QuerysetError(
-                        'Not a correct tuple definition, filter '
-                        'only allows tuples of size 2'
+                field = getattr(self.model, k)
+
+                if middle == '=' and isinstance(v, tuple):
+                    if len(v) != 2:
+                        raise QuerysetError(
+                            'Not a correct tuple definition, filter '
+                            'only allows tuples of size 2'
+                        )
+                    filters.append(
+                        bool_string +
+                        '({k}>{min} AND {k}<{max})'.format(
+                            k=k,
+                            min=field._sanitize_data(v[0]),
+                            max=field._sanitize_data(v[1]),
+                        )
                     )
-                filters.append(
-                    bool_string +
-                    '({k}>{min} AND {k}<{max})'.format(
-                        k=k,
-                        min=field._sanitize_data(v[0]),
-                        max=field._sanitize_data(v[1]),
-                    )
-                )
-            else:
-                v = field._sanitize_data(v)
-                filters.append(bool_string + '{}{}{}'.format(k, middle, v))
+                else:
+                    v = field._sanitize_data(v)
+                    filters.append(bool_string + '{}{}{}'.format(k, middle, v))
 
+        else:
+            for k, v in kwargs.items():
+                filters.append('{}={}'.format(k, v))
         return filters
 
     async def filter(self, **kwargs):
@@ -158,16 +227,16 @@ class Queryset(object):
 
         db_request = {
             'select': '*',
-            'table_name': self.model.table_name,
+            'table_name': self.model_tablename,
             'action': 'db__select',
             'condition': condition
         }
 
-        if self.model._ordering:
-            db_request.update({'ordering': self.model._ordering})
+        if self.model_ordering:
+            db_request.update({'ordering': self.model_ordering})
 
         request = self.db_manager.request(db_request)
-        return [self._construct_model(r) for r in await request]
+        return [self._model_constructor(r) for r in await request]
 
     async def exclude(self, **kwargs):
         filters = self.calc_filters(kwargs, exclude=True)
@@ -175,16 +244,16 @@ class Queryset(object):
 
         db_request = {
             'select': '*',
-            'table_name': self.model.table_name,
+            'table_name': self.model_tablename,
             'action': 'db__select',
             'condition': condition
         }
 
-        if self.model._ordering:
-            db_request.update({'ordering': self.model._ordering})
+        if self.model_ordering:
+            db_request.update({'ordering': self.model_ordering})
 
         request = await self.db_manager.request(db_request)
-        return [self._construct_model(r) for r in request]
+        return [self._model_constructor(r) for r in request]
 
     async def m2m(self, table_name, my_column, other_column, my_id):
         db_request = {
@@ -197,11 +266,11 @@ class Queryset(object):
             )
         }
 
-        if self.model._ordering:
-            db_request.update({'ordering': self.model._ordering})
+        if self.model_ordering:
+            db_request.update({'ordering': self.model_ordering})
 
         request = await self.db_manager.request(db_request)
-        return [self._construct_model(r) for r in request]
+        return [self._model_constructor(r) for r in request]
 
 
 class ModelManager(Queryset):
@@ -219,7 +288,7 @@ class ModelManager(Queryset):
             field_data.append(data)
 
         db_request = {
-            'table_name': self.model.table_name,
+            'table_name': self.model_tablename,
             'action': (
                 getattr(
                     instanced_model, instanced_model._orm_pk
@@ -239,7 +308,7 @@ class ModelManager(Queryset):
         except UniqueViolationError:
             raise ModelError('The model violates a unique constraint')
 
-        self._construct_model(response, instanced_model)
+        self._model_constructor(response, instanced_model)
 
         # now we have to save the m2m relations: m2m_data
         fields, field_data = [], []
@@ -278,7 +347,7 @@ class ModelManager(Queryset):
     async def delete(self, instanced_model):
         db_request = {
             'select': '*',
-            'table_name': self.model.table_name,
+            'table_name': self.model_tablename,
             'action': 'db__delete',
             'id_data': '{}={}'.format(
                 instanced_model._db_pk,
