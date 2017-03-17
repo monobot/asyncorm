@@ -24,42 +24,6 @@ class Queryset(object):
     _model_ordering = ''
     _model_fields = []
 
-    @property
-    def model_name(self):
-        '''
-        properties to be requested all the time and used for meta querysets
-        '''
-        if not self._model_name:
-            self._model_name = self.model.__name__
-        return self._model_name
-
-    @property
-    def model_tablename(self):
-        '''
-        properties to be requested all the time and used for meta querysets
-        '''
-        if not self._model_tablename:
-            self._model_tablename = self.model.table_name
-        return self._model_tablename
-
-    @property
-    def model_fields(self):
-        '''
-        properties to be requested all the time and used for meta querysets
-        '''
-        if not self._model_fields:
-            self._model_fields = self.model.fields
-        return self._model_fields
-
-    @property
-    def model_ordering(self):
-        '''
-        properties to be requested all the time and used for meta querysets
-        '''
-        if not self._model_ordering:
-            self._model_ordering = self.model._ordering
-        return self._model_ordering
-
     @classmethod
     def _set_orm(cls, orm):
         cls.orm = orm
@@ -79,7 +43,7 @@ class Queryset(object):
             '({field_queries}{unique_together}); '
             '{constraints}'
         ).format(
-            table_name=self.model_tablename,
+            table_name=self.model.table_name,
             field_queries=self._get_field_queries(),
             unique_together=unique_together,
             constraints=constraints and constraints + ';' or '',
@@ -89,7 +53,7 @@ class Queryset(object):
     def _get_field_queries(self):
         # builds the table with all its fields definition
         return ', '.join(
-            [f._creation_query() for f in self.model_fields.values()
+            [f._creation_query() for f in self.model.fields.values()
              if not isinstance(f, ManyToMany)
              ]
         )
@@ -97,7 +61,7 @@ class Queryset(object):
     def _get_field_constraints(self):
         # builds the table with all its fields definition
         return '; '.join(
-            [f._field_constraints() for f in self.model_fields.values()]
+            [f._field_constraints() for f in self.model.fields.values()]
         )
 
     def _get_unique_together(self):
@@ -110,7 +74,7 @@ class Queryset(object):
     def _get_m2m_field_queries(self):
         # builds the relational many to many table
         return '; '.join(
-            [f._creation_query() for f in self.model_fields.values()
+            [f._creation_query() for f in self.model.fields.values()
              if isinstance(f, ManyToMany)
              ]
         )
@@ -132,7 +96,7 @@ class Queryset(object):
     async def all(self):
         db_request = {
             'select': '*',
-            'table_name': self.model_tablename,
+            'table_name': self.model.table_name,
             'action': 'db__select_all',
         }
 
@@ -142,7 +106,7 @@ class Queryset(object):
     async def count(self):
         db_request = {
             'select': '*',
-            'table_name': self.model_tablename,
+            'table_name': self.model.table_name,
             'action': 'db__count',
         }
 
@@ -155,14 +119,14 @@ class Queryset(object):
             if length > 1:
                 raise QuerysetError(
                     'More than one {} where returned, there are {}!'.format(
-                        self.model_name,
+                        self.model.__name__,
                         length,
                     )
                 )
 
             return data[0]
         raise QuerysetError(
-            'That {} does not exist'.format(self.model_name)
+            'That {} does not exist'.format(self.model.__name__)
         )
 
     def calc_filters(self, kwargs, exclude=False):
@@ -211,21 +175,21 @@ class Queryset(object):
 
         db_request = {
             'select': '*',
-            'table_name': self.model_tablename,
+            'table_name': self.model.table_name,
             'action': 'db__select',
             'condition': condition
         }
 
-        if self.model_ordering:
-            db_request.update({'ordering': self.model_ordering})
+        if self.model._ordering:
+            db_request.update({'ordering': self.model._ordering})
 
         request = self.db_manager.request(db_request)
         return [self._model_constructor(r) for r in await request]
 
     async def filter_m2m(self, m2m_filter):
         m2m_filter.update({'select': '*', 'action': 'db__m2m'})
-        if self.model_ordering:
-            m2m_filter.update({'ordering': self.model_ordering})
+        if self.model._ordering:
+            m2m_filter.update({'ordering': self.model._ordering})
 
         results = await self.db_manager.request(m2m_filter)
         if results.__class__.__name__ == 'Record':
@@ -239,13 +203,13 @@ class Queryset(object):
 
         db_request = {
             'select': '*',
-            'table_name': self.model_tablename,
+            'table_name': self.model.table_name,
             'action': 'db__select',
             'condition': condition
         }
 
-        if self.model_ordering:
-            db_request.update({'ordering': self.model_ordering})
+        if self.model._ordering:
+            db_request.update({'ordering': self.model._ordering})
 
         request = await self.db_manager.request(db_request)
         return [self._model_constructor(r) for r in request]
@@ -261,8 +225,8 @@ class Queryset(object):
             )
         }
 
-        if self.model_ordering:
-            db_request.update({'ordering': self.model_ordering})
+        if self.model._ordering:
+            db_request.update({'ordering': self.model._ordering})
 
         request = await self.db_manager.request(db_request)
         return [self._model_constructor(r) for r in request]
@@ -283,7 +247,7 @@ class ModelManager(Queryset):
             field_data.append(data)
 
         db_request = {
-            'table_name': self.model_tablename,
+            'table_name': self.model.table_name,
             'action': (
                 getattr(
                     instanced_model, instanced_model._orm_pk
@@ -342,7 +306,7 @@ class ModelManager(Queryset):
     async def delete(self, instanced_model):
         db_request = {
             'select': '*',
-            'table_name': self.model_tablename,
+            'table_name': self.model.table_name,
             'action': 'db__delete',
             'id_data': '{}={}'.format(
                 instanced_model._db_pk,
