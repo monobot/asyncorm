@@ -17,7 +17,7 @@ class PostgresManager(GeneralManager):
 
     @property
     def db__count(self):
-        return 'SELECT COUNT({select}) FROM {table_name} ;'
+        return 'SELECT COUNT(*) FROM {table_name} ;'
 
     @property
     def db__select_all(self):
@@ -32,8 +32,7 @@ class PostgresManager(GeneralManager):
         return '''
             SELECT {select} FROM {other_tablename}
             WHERE {other_db_pk} = ANY (
-                SELECT {other_tablename} FROM {m2m_tablename} WHERE
-                    {model_tablename} = {model_db_pk_id}
+                SELECT {other_tablename} FROM {m2m_tablename} WHERE {id_data}
             ) ;
         '''
 
@@ -42,7 +41,7 @@ class PostgresManager(GeneralManager):
         return '''
             UPDATE ONLY {table_name}
             SET ({field_names}) = ({field_values})
-            WHERE {_db_pk}={model_id}
+            WHERE {id_data}
             RETURNING * ;
         '''
 

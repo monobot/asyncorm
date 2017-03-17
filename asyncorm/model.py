@@ -138,8 +138,8 @@ class BaseModel(object, metaclass=ModelMeta):
                 'm2m_tablename': table_name,
                 'other_tablename': other_column,
                 'other_db_pk': other_model._db_pk,
-                'model_tablename': my_column,
-                'model_db_pk_id': getattr(self, self._orm_pk),
+                'id_data':
+                    '{}={}'.format(my_column, getattr(self, self._orm_pk)),
             }
             return await queryset.filter_m2m(m2m_filter)
 

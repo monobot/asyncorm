@@ -16,7 +16,7 @@ MIDDLE_OPERATOR = {
 class Queryset(object):
     model = None
     db_manager = None
-    queryset = ''
+    query_string = ''
     orm = None
 
     @classmethod
@@ -248,8 +248,10 @@ class ModelManager(Queryset):
                     instanced_model, instanced_model._orm_pk
                 ) and 'db__update' or 'db__create'
             ),
-            '_db_pk': instanced_model._db_pk,
-            'model_id': getattr(instanced_model, instanced_model._orm_pk),
+            'id_data': '{}={}'.format(
+                instanced_model._db_pk,
+                getattr(instanced_model, instanced_model._orm_pk),
+            ),
             'field_names': ', '.join(fields),
             'field_values': ', '.join(field_data),
             'condition': '{}={}'.format(
