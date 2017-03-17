@@ -124,14 +124,24 @@ class BaseModel(object, metaclass=ModelMeta):
     def _set_manytomany(cls, table_name, my_column, other_column):
         from .manager import Queryset
 
+        # SELECT {select} FROM {other_tablename}
+        #             WHERE {other_db_pk} = ANY (
+        #                 SELECT {other_tablename} FROM {m2m_tablename} WHERE
+        #                     {model_tablename} = {model_db_pk_id}
+
         queryset = Queryset()
         queryset._set_orm(cls.objects.orm)
-        queryset._model_tablename = table_name
-        queryset._return_modelname = other_column
+        queryset.model = other_model = cls.objects.orm.get_model(other_column)
 
         async def m2m_set(self):
-            m2m_filter = {my_column: getattr(self, self._orm_pk)}
-            return await queryset.filter(**m2m_filter)
+            m2m_filter = {
+                'm2m_tablename': table_name,
+                'other_tablename': other_column,
+                'other_db_pk': other_model._db_pk,
+                'model_tablename': my_column,
+                'model_db_pk_id': getattr(self, self._orm_pk),
+            }
+            return await queryset.filter_m2m(m2m_filter)
 
         setattr(cls, '{}_set'.format(other_column.lower()), m2m_set)
 
@@ -150,6 +160,7 @@ class BaseModel(object, metaclass=ModelMeta):
 
             has_pk = self._orm_pk == orm
             many2many = isinstance(class__orm, ManyToMany)
+
             if not has_pk and not many2many:
                 d[db] = self__orm
 

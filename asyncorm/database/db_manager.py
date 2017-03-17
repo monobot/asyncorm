@@ -28,6 +28,16 @@ class PostgresManager(GeneralManager):
         return 'SELECT {select} FROM {table_name} WHERE {condition} ;'
 
     @property
+    def db__m2m(self):
+        return '''
+            SELECT {select} FROM {other_tablename}
+            WHERE {other_db_pk} = ANY (
+                SELECT {other_tablename} FROM {m2m_tablename} WHERE
+                    {model_tablename} = {model_db_pk_id}
+            ) ;
+        '''
+
+    @property
     def db__update(self):
         return '''
             UPDATE ONLY {table_name}

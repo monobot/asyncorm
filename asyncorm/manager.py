@@ -23,17 +23,13 @@ class Queryset(object):
     _model_tablename = ''
     _model_ordering = ''
     _model_fields = []
-    _return_modelname = None
 
     @property
     def model_name(self):
         '''
         properties to be requested all the time and used for meta querysets
         '''
-        if self._model_name:
-            return self._model_name
-
-        if self.model:
+        if not self._model_name:
             self._model_name = self.model.__name__
         return self._model_name
 
@@ -42,10 +38,7 @@ class Queryset(object):
         '''
         properties to be requested all the time and used for meta querysets
         '''
-        if self._model_tablename:
-            return self._model_tablename
-
-        if self.model:
+        if not self._model_tablename:
             self._model_tablename = self.model.table_name
         return self._model_tablename
 
@@ -54,10 +47,7 @@ class Queryset(object):
         '''
         properties to be requested all the time and used for meta querysets
         '''
-        if self._model_fields:
-            return self._model_fields
-
-        if self.model:
+        if not self._model_fields:
             self._model_fields = self.model.fields
         return self._model_fields
 
@@ -66,10 +56,7 @@ class Queryset(object):
         '''
         properties to be requested all the time and used for meta querysets
         '''
-        if self._model_ordering:
-            return self._model_ordering
-
-        if self.model:
+        if not self._model_ordering:
             self._model_ordering = self.model._ordering
         return self._model_ordering
 
@@ -130,10 +117,7 @@ class Queryset(object):
 
     def _model_constructor(self, record, instance=None):
         if not instance:
-            if self._return_modelname:
-                instance = self.orm.get_model(self._return_modelname)()
-            else:
-                instance = self.model()
+            instance = self.model()
 
         data = {}
         for k, v in record.items():
@@ -237,6 +221,17 @@ class Queryset(object):
 
         request = self.db_manager.request(db_request)
         return [self._model_constructor(r) for r in await request]
+
+    async def filter_m2m(self, m2m_filter):
+        m2m_filter.update({'select': '*', 'action': 'db__m2m'})
+        if self.model_ordering:
+            m2m_filter.update({'ordering': self.model_ordering})
+
+        results = await self.db_manager.request(m2m_filter)
+        if results.__class__.__name__ == 'Record':
+            results = [results, ]
+
+        return [self._model_constructor(r) for r in results]
 
     async def exclude(self, **kwargs):
         filters = self.calc_filters(kwargs, exclude=True)

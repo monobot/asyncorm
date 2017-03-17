@@ -165,8 +165,6 @@ class ModelTests(AioTestCase):
         devs_returned = await org.developer_set()
         orgs_returned = await dev.organization_set()
 
-        # and is correct
-        print('devs_returned: ', devs_returned[0])
-        print('dev.id:', dev.id)
-        print('orgs_returned: ', orgs_returned[0])
-        print('org.id:', org.id)
+        # and they are correct
+        self.assertEqual(devs_returned[0].id, dev.id)
+        self.assertEqual(orgs_returned[0].id, org.id)
