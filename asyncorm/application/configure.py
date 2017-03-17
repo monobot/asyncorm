@@ -84,15 +84,16 @@ class OrmApp(object):
 
             for f in model.fields.values():
                 if isinstance(f, ManyToMany):
+                    m2m_tablename = '{}_{}'.format(name, f.foreign_key).lower()
                     other_model = self.get_model(f.foreign_key)
                     other_model._set_manytomany(
-                        '{}_{}'.format(name, f.foreign_key).lower(),
+                        m2m_tablename,
                         f.foreign_key,
                         name,
                     )
 
                     model._set_manytomany(
-                        '{}_{}'.format(name, f.foreign_key).lower(),
+                        m2m_tablename,
                         name,
                         f.foreign_key,
                     )

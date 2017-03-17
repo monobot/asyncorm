@@ -156,6 +156,7 @@ class ModelTests(AioTestCase):
         # new organization
         org = Organization(name='ong molona')
         await org.save()
+
         # create a developer
         dev = Developer(name='developer', age=55, org=org.id)
         await dev.save()
