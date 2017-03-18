@@ -19,8 +19,11 @@ class Queryset(object):
 
     def __init__(self, model):
         self.model = model
-        self.query_chain = []
+
         self.table_name = self.model.table_name
+        self.select = '*'
+
+        self.query_chain = []
 
     @classmethod
     def _set_orm(cls, orm):
@@ -95,23 +98,15 @@ class Queryset(object):
         return await self.all()
 
     async def all(self):
-        db_request = {
-            'select': '*',
-            'table_name': self.model.table_name,
-            'action': 'db__select_all',
-        }
+        db_request = {'action': 'db__select_all'}
 
-        request = await self.db_manager.request(db_request)
+        request = await self.db_request(db_request)
         return [self._model_constructor(r) for r in request]
 
     async def count(self):
-        db_request = {
-            'select': '*',
-            'table_name': self.model.table_name,
-            'action': 'db__count',
-        }
+        db_request = {'action': 'db__count'}
 
-        return await self.db_manager.request(db_request)
+        return await self.db_request(db_request)
 
     async def get(self, **kwargs):
         data = await self.filter(**kwargs)
@@ -174,17 +169,12 @@ class Queryset(object):
 
         condition = ' AND '.join(filters)
 
-        db_request = {
-            'select': '*',
-            'table_name': self.model.table_name,
-            'action': 'db__select',
-            'condition': condition
-        }
+        db_request = {'action': 'db__select', 'condition': condition}
 
         if self.model._ordering:
             db_request.update({'ordering': self.model._ordering})
 
-        request = self.db_manager.request(db_request)
+        request = self.db_request(db_request)
         return [self._model_constructor(r) for r in await request]
 
     async def filter_m2m(self, m2m_filter):
@@ -202,17 +192,12 @@ class Queryset(object):
         filters = self.calc_filters(kwargs, exclude=True)
         condition = ' AND '.join(filters)
 
-        db_request = {
-            'select': '*',
-            'table_name': self.model.table_name,
-            'action': 'db__select',
-            'condition': condition
-        }
+        db_request = {'action': 'db__select', 'condition': condition}
 
         if self.model._ordering:
             db_request.update({'ordering': self.model._ordering})
 
-        request = await self.db_manager.request(db_request)
+        request = await self.db_request(db_request)
         return [self._model_constructor(r) for r in request]
 
     async def m2m(self, table_name, my_column, other_column, my_id):
@@ -229,7 +214,7 @@ class Queryset(object):
         if self.model._ordering:
             db_request.update({'ordering': self.model._ordering})
 
-        request = await self.db_manager.request(db_request)
+        request = await self.db_request(db_request)
         return [self._model_constructor(r) for r in request]
 
 
@@ -251,7 +236,6 @@ class ModelManager(Queryset):
             field_data.append(data)
 
         db_request = {
-            'table_name': self.model.table_name,
             'action': (
                 getattr(
                     instanced_model, instanced_model._orm_pk
@@ -269,7 +253,7 @@ class ModelManager(Queryset):
             )
         }
         try:
-            response = await self.db_manager.request(db_request)
+            response = await self.db_request(db_request)
         except UniqueViolationError:
             raise ModelError('The model violates a unique constraint')
 
@@ -301,23 +285,28 @@ class ModelManager(Queryset):
 
             if isinstance(data, list):
                 for d in data:
-                    await self.db_manager.request(db_request)
+                    await self.db_request(db_request)
                     db_request.update({
                         'field_values': ', '.join([str(model_id), str(d)])
                     })
-                    await self.db_manager.request(db_request)
+                    await self.db_request(db_request)
             else:
-                await self.db_manager.request(db_request)
+                await self.db_request(db_request)
 
     async def delete(self, instanced_model):
         db_request = {
-            'select': '*',
-            'table_name': self.model.table_name,
             'action': 'db__delete',
             'id_data': '{}={}'.format(
                 instanced_model._db_pk,
                 getattr(instanced_model, instanced_model._db_pk)
             )
         }
+        return await self.db_request(db_request)
+
+    async def db_request(self, db_request):
+        db_request.update({
+            'select': db_request.get('select', self.select),
+            'table_name': db_request.get('table_name', self.model.table_name),
+        })
         response = await self.db_manager.request(db_request)
         return response
