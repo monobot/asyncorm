@@ -1,7 +1,7 @@
 from asyncpg.exceptions import UniqueViolationError
 
 from .exceptions import QuerysetError, ModelError
-from .fields import ManyToMany
+from .fields import ManyToMany, ForeignKey
 
 __all__ = ['ModelManager', ]
 
@@ -35,30 +35,69 @@ class Queryset(object):
     #     queryset.model = self.model
     #     return queryset
 
-    def _creation_query(self):
+    async def _create_table(self):
+        '''
+        This is the creation query without the m2m_fields and fks
+        '''
+        db_request = {
+            'table_name': self.model.table_name,
+            'action': 'db__create_table',
+            'field_queries': self._get_field_queries(),
+        }
+
+        await self.db_request(db_request)
+
+    async def _unique_together(self):
         '''
         This is the creation query without the m2m_fields
         '''
-        constraints = self._get_field_constraints()
         unique_together = self._get_unique_together()
 
-        query = (
-            'CREATE TABLE IF NOT EXISTS {table_name} '
-            '({field_queries}{unique_together}); '
-            '{constraints}'
-        ).format(
-            table_name=self.model.table_name,
-            field_queries=self._get_field_queries(),
-            unique_together=unique_together,
-            constraints=constraints and constraints + ';' or '',
-        )
-        return query
+        if unique_together:
+            db_request = {
+                'table_name': self.model.table_name,
+                'action': 'db__constrain_table',
+                'constrain': unique_together,
+            }
+
+            await self.db_request(db_request)
+
+    async def _add_fk_columns(self):
+        '''
+        This is the creation query without the m2m_fields
+        '''
+        for n, f in self.model.fields.items():
+            if isinstance(f, ForeignKey):
+
+                db_request = {
+                    'table_name': self.model.table_name,
+                    'action': 'db__table_add_column',
+                    'field_creation_string': f._creation_query(),
+                }
+
+                await self.db_request(db_request)
+
+    async def _add_m2m_columns(self):
+        '''
+        This is the creation query without the m2m_fields
+        '''
+        for n, f in self.model.fields.items():
+            if isinstance(f, ManyToMany):
+
+                db_request = {
+                    'table_name': f.table_name,
+                    'action': 'db__create_table',
+                    'field_queries': f._creation_query(),
+                }
+
+                await self.db_request(db_request)
 
     def _get_field_queries(self):
         # builds the table with all its fields definition
         return ', '.join(
             [f._creation_query() for f in self.model.fields.values()
-             if not isinstance(f, ManyToMany)
+             if not isinstance(f, ManyToMany) and
+             not isinstance(f, ForeignKey)
              ]
         )
 
@@ -70,18 +109,10 @@ class Queryset(object):
 
     def _get_unique_together(self):
         # builds the table with all its fields definition
-        unique_string = ', UNIQUE ({}) '.format(
+        unique_string = ' UNIQUE ({}) '.format(
             ','.join(self.model._unique_together)
         )
         return self.model._unique_together and unique_string or ''
-
-    def _get_m2m_field_queries(self):
-        # builds the relational many to many table
-        return '; '.join(
-            [f._creation_query() for f in self.model.fields.values()
-             if isinstance(f, ManyToMany)
-             ]
-        )
 
     def _model_constructor(self, record, instance=None):
         if not instance:
@@ -104,6 +135,7 @@ class Queryset(object):
         return [self._model_constructor(r) for r in request]
 
     async def count(self):
+        self.select = 'COUNT(*)'
         db_request = {'action': 'db__count'}
 
         return await self.db_request(db_request)
@@ -239,7 +271,7 @@ class ModelManager(Queryset):
             'action': (
                 getattr(
                     instanced_model, instanced_model._orm_pk
-                ) and 'db__update' or 'db__create'
+                ) and 'db__update' or 'db_insert'
             ),
             'id_data': '{}={}'.format(
                 instanced_model._db_pk,
@@ -277,7 +309,7 @@ class ModelManager(Queryset):
 
             db_request = {
                 'table_name': table_name,
-                'action': 'db__create',
+                'action': 'db_insert',
                 'field_names': ', '.join([model_column, foreign_column]),
                 'field_values': ', '.join([str(model_id), str(data)]),
                 # 'ordering': 'id',

@@ -235,10 +235,9 @@ class ManyToMany(Field):
     internal_type = list, int
     required_kwargs = ['foreign_key', ]
     creation_string = '''
-        CREATE TABLE IF NOT EXISTS {table_name} (
         {foreign_model} INTEGER REFERENCES {foreign_model} NOT NULL,
         {foreign_key} INTEGER REFERENCES {foreign_key} NOT NULL
-        );'''
+    '''
 
     def __init__(self, field_name='', foreign_key=None, default=None,
                  unique=False):

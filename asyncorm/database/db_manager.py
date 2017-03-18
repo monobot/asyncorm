@@ -9,15 +9,46 @@ class GeneralManager(object):
 class PostgresManager(GeneralManager):
 
     @property
-    def db__create(self):
+    def db__create_table(self):
+        return '''
+            CREATE TABLE IF NOT EXISTS {table_name}
+            ({field_queries});
+        '''
+
+    @property
+    def db__alter_table(self):
+        return '''
+            ALTER TABLE {table_name} ({field_queries});
+        '''
+
+    @property
+    def db__constrain_table(self):
+        return '''
+            ALTER TABLE {table_name} ADD {constrain};
+        '''
+
+    @property
+    def db__table_add_column(self):
+        return '''
+            ALTER TABLE {table_name}
+            ADD COLUMN {field_creation_string};
+        '''
+
+    @property
+    def db__table_alter_column(self):
+        return self.db__table_add_column.replace(
+            'ADD COLUMN ', 'ALTER COLUMN '
+        )
+    # @property
+    # def db__count(self):
+    #     return 'SELECT COUNT(*) FROM {table_name} ;'
+
+    @property
+    def db_insert(self):
         return '''
             INSERT INTO {table_name} ({field_names}) VALUES ({field_values})
             RETURNING * ;
         '''
-
-    @property
-    def db__count(self):
-        return 'SELECT COUNT(*) FROM {table_name} ;'
 
     @property
     def db__select_all(self):
@@ -65,14 +96,16 @@ class PostgresManager(GeneralManager):
                 ';', 'ORDER BY {};'.format(','.join(request_dict['ordering']))
             )
 
-        # print(query)
+        no_result = ['db__delete', 'db__create_table', 'db__alter_table',
+                     'db__constrain_table', 'db__table_add_column',
+                     'db__table_alter_column',
+                     ]
         async with conn.transaction():
             result = await conn.fetch(query)
             if '__select' not in request_dict['action']:
-                if request_dict['action'] != 'db__delete':
+                if request_dict['action'] not in no_result:
                     return result[0]
-                else:
-                    return None
+                return None
             else:
                 return result
 

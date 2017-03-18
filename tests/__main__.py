@@ -19,6 +19,23 @@ orm_app = configure_orm({
 dm = orm_app.db_manager
 loop = orm_app.loop
 
+drop_tables = ['Publisher', 'Author', 'library', 'Organization', 'Developer',
+               'Client', 'Developer_Organization', 'Author_Publisher',
+               ]
+
+
+async def clear_table(table_name):
+    query = [
+        'DROP TABLE IF EXISTS {table_name} CASCADE;'.format(
+            table_name=table_name
+        ),
+    ]
+    await orm_app.db_manager.transaction_insert(query)
+
+for table_name in drop_tables:
+    task = loop.create_task(clear_table(table_name))
+    loop.run_until_complete(asyncio.gather(task))
+
 orm_app.sync_db()
 
 

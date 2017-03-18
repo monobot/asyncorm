@@ -56,7 +56,7 @@ class OrmApp(object):
     def get_declared_models(self, modules):
         if modules is None:
             return None
-        # find classes, save them in a {'name':object} dict
+
         from asyncorm.model import Model
         for m in modules:
             module = importlib.import_module('{}.models'.format(m))
@@ -110,22 +110,18 @@ class OrmApp(object):
         """
         We  create all tables for each of the declared models
         """
-        queries = []
-        delayed = []
 
         for model in self.models.values():
-            queries.append(
-                'DROP TABLE IF EXISTS {table} CASCADE'.format(
-                    table=model().table_name
-                )
-            )
-            queries.append(model.objects._creation_query())
+            await model().objects._create_table()
 
-            m2m_queries = model.objects._get_m2m_field_queries()
-            if m2m_queries:
-                delayed.append(m2m_queries)
+        for model in self.models.values():
+            await model().objects._add_fk_columns()
 
-        await self.db_manager.transaction_insert(queries + delayed)
+        for model in self.models.values():
+            await model().objects._add_m2m_columns()
+
+        for model in self.models.values():
+            await model().objects._unique_together()
 
     def sync_db(self):
         self.loop.run_until_complete(
