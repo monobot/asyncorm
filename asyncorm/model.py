@@ -16,7 +16,7 @@ class ModelMeta(type):
             "{}Manager".format(base_class.__name__),
             (ModelManager, ),
             {"model": base_class}
-        )()
+        )(base_class)
 
         defined_meta = clsdict.pop('Meta', None)
 
@@ -129,9 +129,9 @@ class BaseModel(object, metaclass=ModelMeta):
         #                 SELECT {other_tablename} FROM {m2m_tablename} WHERE
         #                     {model_tablename} = {model_db_pk_id}
 
-        queryset = Queryset()
+        other_model = cls.objects.orm.get_model(other_column)
+        queryset = Queryset(other_model)
         queryset._set_orm(cls.objects.orm)
-        queryset.model = other_model = cls.objects.orm.get_model(other_column)
 
         async def m2m_set(self):
             m2m_filter = {

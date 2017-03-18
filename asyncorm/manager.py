@@ -14,10 +14,13 @@ MIDDLE_OPERATOR = {
 
 
 class Queryset(object):
-    model = None
     db_manager = None
-    query_string = ''
     orm = None
+
+    def __init__(self, model):
+        self.model = model
+        self.query_chain = []
+        self.table_name = self.model.table_name
 
     @classmethod
     def _set_orm(cls, orm):
@@ -30,6 +33,9 @@ class Queryset(object):
     #     return queryset
 
     def _creation_query(self):
+        '''
+        This is the creation query without the m2m_fields
+        '''
         constraints = self._get_field_constraints()
         unique_together = self._get_unique_together()
 
@@ -228,6 +234,9 @@ class Queryset(object):
 
 
 class ModelManager(Queryset):
+    def __init__(self, model):
+        self.model = model
+        super().__init__(model)
 
     async def save(self, instanced_model):
         # performs the database save
