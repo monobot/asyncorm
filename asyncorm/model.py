@@ -20,6 +20,21 @@ class ModelMeta(type):
 
         defined_meta = clsdict.pop('Meta', None)
 
+        base_class.ordering = None
+        base_class.unique_together = []
+        base_class.table_name = base_class.__name__
+        if defined_meta:
+            if hasattr(defined_meta, 'ordering'):
+                base_class.ordering = base_class.check_ordering(
+                    getattr(defined_meta, 'ordering')
+                )
+            if hasattr(defined_meta, 'unique_together'):
+                base_class.unique_together = getattr(
+                    defined_meta, 'unique_together'
+                )
+            if hasattr(defined_meta, 'table_name'):
+                base_class.table_name = getattr(defined_meta, 'table_name')
+
         base_class.fields = base_class._get_fields()
 
         pk_needed = False
@@ -40,23 +55,12 @@ class ModelMeta(type):
             base_class._orm_pk = pk_fields[0].orm_field_name
 
         for f in base_class.fields.values():
-            if f.choices:
+            if hasattr(f, 'choices'):
+            # if f.choices:
                 setattr(
                     base_class,
                     '{}_display'.format(f.orm_field_name),
                     'choices_placeholder'
-                )
-
-        base_class._ordering = None
-        base_class._unique_together = []
-        if defined_meta:
-            if hasattr(defined_meta, 'ordering'):
-                base_class._ordering = base_class.check_ordering(
-                    getattr(defined_meta, 'ordering')
-                )
-            if hasattr(defined_meta, 'unique_together'):
-                base_class._unique_together = getattr(
-                    defined_meta, 'unique_together'
                 )
 
         return base_class
@@ -98,14 +102,17 @@ class BaseModel(object, metaclass=ModelMeta):
         self._validate_kwargs(kwargs)
 
         for field_name in self.fields.keys():
-            setattr(
-                self,
-                field_name,
-                kwargs.get(
+            if hasattr(getattr(self.__class__, field_name), 'default'):
+                setattr(
+                    self,
                     field_name,
-                    getattr(self.__class__, field_name).default
+                    kwargs.get(
+                        field_name,
+                        getattr(self.__class__, field_name).default
+                    )
                 )
-            )
+            else:
+                setattr(self, field_name, None)
 
         logger.debug('... initiated')
 

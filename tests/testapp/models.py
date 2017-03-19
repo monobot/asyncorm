@@ -22,12 +22,12 @@ class Author(Model):
 
 
 class Book(Model):
-    table_name = 'library'
     name = CharField(max_length=50)
     content = CharField(max_length=255, choices=BOOK_CHOICES)
     date_created = DateField(auto_now=True)
     author = ForeignKey(foreign_key='Author', null=True)
 
     class Meta():
+        table_name = 'library'
         ordering = ['-id']
         unique_together = ['name', 'content']
