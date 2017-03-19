@@ -22,19 +22,6 @@ class ModelMeta(type):
 
         base_class.ordering = None
         base_class.unique_together = []
-        base_class.table_name = base_class.__name__
-        if defined_meta:
-            if hasattr(defined_meta, 'ordering'):
-                base_class.ordering = base_class.check_ordering(
-                    getattr(defined_meta, 'ordering')
-                )
-            if hasattr(defined_meta, 'unique_together'):
-                base_class.unique_together = getattr(
-                    defined_meta, 'unique_together'
-                )
-            if hasattr(defined_meta, 'table_name'):
-                base_class.table_name = getattr(defined_meta, 'table_name')
-
         base_class.fields = base_class._get_fields()
 
         if PkField not in [f.__class__ for f in base_class.fields.values()]:
@@ -45,13 +32,27 @@ class ModelMeta(type):
             base_class._orm_pk = 'id'
         else:
             pk_fields = [
-                n, f for n, f in base_class.fields.items() if isinstance(f, PkField)
+                f for f in base_class.fields.values() if isinstance(f, PkField)
             ]
             base_class._db_pk = pk_fields[0].field_name
             base_class._orm_pk = pk_fields[0].orm_field_name
 
+        if defined_meta:
+            if hasattr(defined_meta, 'ordering'):
+                base_class.ordering = base_class.check_ordering(
+                    getattr(defined_meta, 'ordering')
+                )
+            if hasattr(defined_meta, 'unique_together'):
+                base_class.unique_together = getattr(
+                    defined_meta, 'unique_together'
+                )
+            if hasattr(defined_meta, 'table_name'):
+                base_class.table_name = getattr(
+                    defined_meta, 'table_name'
+                )
+
         for f in base_class.fields.values():
-            if hasattr(f, 'choices'):
+            if f.choices:
                 setattr(
                     base_class,
                     '{}_display'.format(f.orm_field_name),

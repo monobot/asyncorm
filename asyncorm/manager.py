@@ -111,9 +111,9 @@ class Queryset(object):
     def _get_unique_together(self):
         # builds the table with all its fields definition
         unique_string = ' UNIQUE ({}) '.format(
-            ','.join(self.model._unique_together)
+            ','.join(self.model.unique_together)
         )
-        return self.model._unique_together and unique_string or ''
+        return self.model.unique_together and unique_string or ''
 
     def _model_constructor(self, record, instance=None):
         if not instance:
@@ -204,16 +204,16 @@ class Queryset(object):
 
         db_request = {'action': 'db__select', 'condition': condition}
 
-        if self.model._ordering:
-            db_request.update({'ordering': self.model._ordering})
+        if self.model.ordering:
+            db_request.update({'ordering': self.model.ordering})
 
         request = self.db_request(db_request)
         return [self._model_constructor(r) for r in await request]
 
     async def filter_m2m(self, m2m_filter):
         m2m_filter.update({'action': 'db__m2m'})
-        if self.model._ordering:
-            m2m_filter.update({'ordering': self.model._ordering})
+        if self.model.ordering:
+            m2m_filter.update({'ordering': self.model.ordering})
 
         results = await self.db_request(m2m_filter)
         if results.__class__.__name__ == 'Record':
@@ -227,8 +227,8 @@ class Queryset(object):
 
         db_request = {'action': 'db__select', 'condition': condition}
 
-        if self.model._ordering:
-            db_request.update({'ordering': self.model._ordering})
+        if self.model.ordering:
+            db_request.update({'ordering': self.model.ordering})
 
         request = await self.db_request(db_request)
         return [self._model_constructor(r) for r in request]
