@@ -37,11 +37,7 @@ class ModelMeta(type):
 
         base_class.fields = base_class._get_fields()
 
-        pk_needed = False
         if PkField not in [f.__class__ for f in base_class.fields.values()]:
-            pk_needed = True
-
-        if pk_needed:
             base_class.id = PkField()
             base_class.fields['id'] = base_class.id
 
@@ -49,14 +45,13 @@ class ModelMeta(type):
             base_class._orm_pk = 'id'
         else:
             pk_fields = [
-                f for f in base_class.fields.values() if isinstance(f, PkField)
+                n, f for n, f in base_class.fields.items() if isinstance(f, PkField)
             ]
             base_class._db_pk = pk_fields[0].field_name
             base_class._orm_pk = pk_fields[0].orm_field_name
 
         for f in base_class.fields.values():
             if hasattr(f, 'choices'):
-            # if f.choices:
                 setattr(
                     base_class,
                     '{}_display'.format(f.orm_field_name),
