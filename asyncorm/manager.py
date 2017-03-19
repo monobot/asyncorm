@@ -42,9 +42,18 @@ class Queryset(object):
     #     queryset.model = self.model
     #     return queryset
 
+    def _get_field_queries(self):
+        # Builds the creationquery for each of the non fk or m2m fields
+        return ', '.join(
+            [f._creation_query() for f in self.model.fields.values()
+             if not isinstance(f, ManyToMany) and
+             not isinstance(f, ForeignKey)
+             ]
+        )
+
     async def _create_table(self):
         '''
-        This is the creation query without the m2m_fields and fks
+        Builds the table without the m2m_fields and fks
         '''
         db_request = {
             'table_name': self.model.table_name,
@@ -56,7 +65,7 @@ class Queryset(object):
 
     async def _unique_together(self):
         '''
-        This is the creation query without the m2m_fields
+        Builds the unique together constraint
         '''
         unique_together = self._get_unique_together()
 
@@ -71,7 +80,7 @@ class Queryset(object):
 
     async def _add_fk_columns(self):
         '''
-        This is the creation query without the m2m_fields
+        Builds the fk fields
         '''
         for n, f in self.model.fields.items():
             if isinstance(f, ForeignKey):
@@ -86,7 +95,7 @@ class Queryset(object):
 
     async def _add_m2m_columns(self):
         '''
-        This is the creation query without the m2m_fields
+        Builds the m2m_fields
         '''
         for n, f in self.model.fields.items():
             if isinstance(f, ManyToMany):
@@ -98,21 +107,6 @@ class Queryset(object):
                 }
 
                 await self.db_request(db_request)
-
-    def _get_field_queries(self):
-        # builds the table with all its fields definition
-        return ', '.join(
-            [f._creation_query() for f in self.model.fields.values()
-             if not isinstance(f, ManyToMany) and
-             not isinstance(f, ForeignKey)
-             ]
-        )
-
-    def _get_field_constraints(self):
-        # builds the table with all its fields definition
-        return '; '.join(
-            [f._field_constraints() for f in self.model.fields.values()]
-        )
 
     def _get_unique_together(self):
         # builds the table with all its fields definition
