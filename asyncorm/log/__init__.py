@@ -5,7 +5,7 @@ from os import path
 
 LOG_DIR = path.join(path.abspath(path.abspath(path.dirname(__file__))))
 
-LOGLEVEL = 'INFO'
+LOGLEVEL = 'DEBUG'
 
 
 logging_config = {
@@ -14,33 +14,33 @@ logging_config = {
     'formatters': {
         'normal': {
             'format': '%(asctime)s %(name)s - %(levelname)s: %(message)s'
-            },
         },
+    },
     'handlers': {
         'main_logger': {
-            'level': LOGLEVEL,
+            'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': path.join(
                 LOG_DIR,
                 'asyncorm.log',
-                ),
+            ),
             'formatter': 'normal'
-            },
+        },
         'stream': {
             'level': LOGLEVEL,
             'class': 'logging.StreamHandler',
             'formatter': 'normal'
-            },
         },
+    },
     'loggers': {
         'asyncorm': {
             # 'handlers': ['stream', ],
             'handlers': ['stream', 'main_logger'],
             'propagate': True,
             'level': LOGLEVEL,
-            },
-        }
+        },
     }
+}
 
 dictConfig(logging_config)
 
