@@ -13,6 +13,13 @@ MIDDLE_OPERATOR = {
 }
 
 
+# this is a decorator for future lazy queryset
+def queryset_checker(func):
+    def checker(self, *args, **kargs):
+        return func(self, *args, **kargs)
+    return checker
+
+
 class Queryset(object):
     db_manager = None
     orm = None
@@ -210,11 +217,11 @@ class Queryset(object):
         return [self._model_constructor(r) for r in await request]
 
     async def filter_m2m(self, m2m_filter):
-        m2m_filter.update({'select': '*', 'action': 'db__m2m'})
+        m2m_filter.update({'action': 'db__m2m'})
         if self.model._ordering:
             m2m_filter.update({'ordering': self.model._ordering})
 
-        results = await self.db_manager.request(m2m_filter)
+        results = await self.db_request(m2m_filter)
         if results.__class__.__name__ == 'Record':
             results = [results, ]
 
@@ -232,22 +239,13 @@ class Queryset(object):
         request = await self.db_request(db_request)
         return [self._model_constructor(r) for r in request]
 
-    async def m2m(self, table_name, my_column, other_column, my_id):
-        db_request = {
-            'select': other_column,
-            'table_name': table_name,
-            'action': 'db__select',
-            'condition': '{my_column}={my_id}'.format(
-                my_column=my_column,
-                my_id=my_id,
-            )
-        }
-
-        if self.model._ordering:
-            db_request.update({'ordering': self.model._ordering})
-
-        request = await self.db_request(db_request)
-        return [self._model_constructor(r) for r in request]
+    async def db_request(self, db_request):
+        db_request.update({
+            'select': db_request.get('select', self.select),
+            'table_name': db_request.get('table_name', self.model.table_name),
+        })
+        response = await self.db_manager.request(db_request)
+        return response
 
 
 class ModelManager(Queryset):
@@ -334,11 +332,3 @@ class ModelManager(Queryset):
             )
         }
         return await self.db_request(db_request)
-
-    async def db_request(self, db_request):
-        db_request.update({
-            'select': db_request.get('select', self.select),
-            'table_name': db_request.get('table_name', self.model.table_name),
-        })
-        response = await self.db_manager.request(db_request)
-        return response
