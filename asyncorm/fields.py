@@ -230,7 +230,7 @@ class ManyToMany(Field):
     internal_type = list, int
     required_kwargs = ['foreign_key', ]
     creation_string = '''
-        {foreign_model} INTEGER REFERENCES {foreign_model} NOT NULL,
+        {own_model} INTEGER REFERENCES {own_model} NOT NULL,
         {foreign_key} INTEGER REFERENCES {foreign_key} NOT NULL
     '''
 

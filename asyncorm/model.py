@@ -79,6 +79,8 @@ class BaseModel(object, metaclass=ModelMeta):
         manager = getattr(self, 'objects')
         manager.model = self.__class__
 
+        # its necesary to call it also here, because its only when is a defined
+        # model when we know the model name
         self.__class__.fields = self.__class__._get_fields()
 
         # resolve method for posible display methods
@@ -188,32 +190,27 @@ class BaseModel(object, metaclass=ModelMeta):
         fields = {}
 
         cls._attr_names = []
-        for f in cls.__dict__.keys():
-            field = getattr(cls, f)
+        for f_n, field in cls.__dict__.items():
             if isinstance(field, Field):
-                field.orm_field_name = f
+                field.orm_field_name = f_n
 
                 if not field.field_name:
-                    field._set_field_name(f)
+                    field._set_field_name(f_n)
 
                 if not field.table_name:
                     field.table_name = cls.table_name
 
                 if isinstance(field, ManyToMany):
-                    setattr(field, 'foreign_model', cls.table_name)
-                    setattr(
-                        field,
-                        'table_name',
-                        '{my_model}_{foreign_key}'.format(
-                            my_model=cls.table_name,
-                            foreign_key=field.foreign_key,
-                        )
+                    field.own_model = cls.table_name
+                    field.table_name = '{my_model}_{foreign_key}'.format(
+                        my_model=cls.table_name,
+                        foreign_key=field.foreign_key,
                     )
 
                 if not isinstance(field.__class__, PkField):
-                    cls._attr_names.append((f, field.field_name))
+                    cls._attr_names.append((f_n, field.field_name))
 
-                fields[f] = field
+                fields[f_n] = field
 
         if len(cls._attr_names) != len(set(cls._attr_names)):
             raise ModelError(
@@ -275,7 +272,7 @@ class Model(BaseModel):
             )
 
     async def delete(self):
-        # external delete method
+        # object delete method
         self.deleted = True
         return await self.objects.delete(self)
 

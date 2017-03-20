@@ -102,6 +102,9 @@ class PostgresManager(GeneralManager):
                 'ORDER BY {};'.format(','.join(request_dict['ordering']))
             )
 
+        # if request_dict['action'] == 'db__create_table':
+        #     print(query)
+
         no_result = ['db__delete', 'db__create_table', 'db__alter_table',
                      'db__constrain_table', 'db__table_add_column',
                      'db__table_alter_column',
