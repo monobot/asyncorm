@@ -212,11 +212,12 @@ class Queryset(object):
         return [self._model_constructor(r) for r in await request]
 
     async def filter_m2m(self, m2m_filter):
-        m2m_filter.update({'action': 'db__m2m'})
+        m2m_filter.update({'action': 'db__select_m2m'})
         if self.model.ordering:
             m2m_filter.update({'ordering': self.model.ordering})
 
         results = await self.db_request(m2m_filter)
+        print(results)
         if results.__class__.__name__ == 'Record':
             results = [results, ]
 
@@ -290,9 +291,6 @@ class ModelManager(Queryset):
             # for each of the m2m fields in the model, we have to check
             # if the table register already exists in the table otherwise
             # and delete the ones that are not in the list
-            logger.debug('############################################')
-            logger.debug('data')
-            logger.debug('############################################')
             # first get the table_name
             cls_field = getattr(instanced_model.__class__, k)
             table_name = cls_field.table_name
@@ -310,10 +308,8 @@ class ModelManager(Queryset):
                 # 'ordering': 'id',
             }
 
-            print(data)
             if isinstance(data, list):
                 for d in data:
-                    await self.db_request(db_request)
                     db_request.update({
                         'field_values': ', '.join([str(model_id), str(d)])
                     })

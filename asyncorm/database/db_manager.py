@@ -51,10 +51,10 @@ class PostgresManager(GeneralManager):
 
     @property
     def db__select(self):
-        return 'SELECT {select} FROM {table_name} WHERE {condition}'
+        return 'SELECT {select} FROM {table_name} WHERE {condition} '
 
     @property
-    def db__m2m(self):
+    def db__select_m2m(self):
         return '''
             SELECT {select} FROM {other_tablename}
             WHERE {other_db_pk} = ANY (

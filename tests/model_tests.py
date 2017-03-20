@@ -171,4 +171,7 @@ class ModelTests(AioTestCase):
 
         # and they are correct
         self.assertEqual(devs_returned[0].id, dev.id)
-        self.assertEqual(orgs_returned[0].id, org.id)
+        print(orgs_returned)
+        print(devs_returned)
+        self.assertEqual(orgs_returned[0].id, 1)
+        self.assertEqual(orgs_returned[-1].id, org.id)

@@ -5,7 +5,7 @@ from os import path
 
 LOG_DIR = path.join(path.abspath(path.abspath(path.dirname(__file__))))
 
-LOGLEVEL = 'DEBUG'
+LOGLEVEL = 'INFO'
 
 
 logging_config = {

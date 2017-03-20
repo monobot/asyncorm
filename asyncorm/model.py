@@ -127,11 +127,6 @@ class BaseModel(object, metaclass=ModelMeta):
     def _set_manytomany(cls, table_name, my_column, other_column):
         from .manager import Queryset
 
-        # SELECT {select} FROM {other_tablename}
-        #             WHERE {other_db_pk} = ANY (
-        #                 SELECT {other_tablename} FROM {m2m_tablename} WHERE
-        #                     {model_tablename} = {model_db_pk_id}
-
         other_model = cls.objects.orm.get_model(other_column)
         queryset = Queryset(other_model)
         queryset._set_orm(cls.objects.orm)
@@ -186,7 +181,6 @@ class BaseModel(object, metaclass=ModelMeta):
                 default = self__orm == class__orm.default
                 if bool(self._orm_pk) and default:
                     d.pop(db)
-
         return d
 
     @classmethod
