@@ -126,7 +126,7 @@ class BaseModel(object, metaclass=ModelMeta):
         setattr(cls, '{}_set'.format(model_name.lower()), fk_set)
 
     @classmethod
-    def _set_manytomany(cls, table_name, my_column, other_column):
+    def _set_manytomany(cls, table_name, my_column, other_column, f_name=''):
         from .manager import Queryset
 
         other_model = cls.objects.orm.get_model(other_column)
@@ -143,7 +143,8 @@ class BaseModel(object, metaclass=ModelMeta):
             }
             return await queryset.filter_m2m(m2m_filter)
 
-        setattr(cls, '{}_set'.format(other_column.lower()), m2m_set)
+        method_name = f_name or '{}_set'.format(other_column.lower())
+        setattr(cls, method_name, m2m_set)
 
     @classmethod
     def _set_orm(cls, orm):
