@@ -217,7 +217,6 @@ class Queryset(object):
             m2m_filter.update({'ordering': self.model.ordering})
 
         results = await self.db_request(m2m_filter)
-        print(results)
         if results.__class__.__name__ == 'Record':
             results = [results, ]
 

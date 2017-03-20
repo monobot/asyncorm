@@ -171,7 +171,8 @@ class ModelTests(AioTestCase):
 
         # and they are correct
         self.assertEqual(devs_returned[0].id, dev.id)
-        print(orgs_returned)
-        print(devs_returned)
+
+        # the first is 1
         self.assertEqual(orgs_returned[0].id, 1)
+        # the last corresponds to the last added
         self.assertEqual(orgs_returned[-1].id, org.id)
