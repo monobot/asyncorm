@@ -1,7 +1,7 @@
 from asyncpg.exceptions import UniqueViolationError
 
 from .exceptions import QuerysetError, ModelError
-from .fields import ManyToMany, ForeignKey
+from .fields import ManyToMany, ForeignKey, ManyToMany
 # from .log import logger
 
 __all__ = ['ModelManager', ]
@@ -241,6 +241,12 @@ class Queryset(object):
         })
         response = await self.db_manager.request(db_request)
         return response
+
+
+class FieldQueryset(Queryset):
+    def __init__(self, field, *args):
+        self.field = field
+        super().__init__(*args)
 
 
 class ModelManager(Queryset):

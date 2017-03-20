@@ -86,9 +86,11 @@ class OrmApp(object):
                 if isinstance(f, ManyToMany):
                     m2m_tablename = '{}_{}'.format(name, f.foreign_key).lower()
                     other = self.get_model(f.foreign_key)
-                    other._set_manytomany(m2m_tablename, f.foreign_key, name)
+                    other._set_many2many(f, m2m_tablename, f.foreign_key, name)
 
-                    model._set_manytomany(m2m_tablename, name, f.foreign_key)
+                    model._set_many2many(f, m2m_tablename, name, f.foreign_key,
+                                         # direct=True
+                                         )
 
                 elif isinstance(f, ForeignKey):
                     other_model = self.get_model(f.foreign_key)

@@ -1,6 +1,6 @@
 from .log import logger
 from .fields import Field, PkField, ManyToMany  # , ForeignKey
-from .manager import ModelManager
+from .manager import ModelManager, FieldQueryset
 from .exceptions import ModelError, FieldError
 from .application import get_model
 
@@ -126,11 +126,12 @@ class BaseModel(object, metaclass=ModelMeta):
         setattr(cls, '{}_set'.format(model_name.lower()), fk_set)
 
     @classmethod
-    def _set_manytomany(cls, table_name, my_column, other_column, f_name=''):
-        from .manager import Queryset
+    def _set_many2many(cls, field, table_name, my_column, other_column,
+                       direct=False):
+        from .manager import FieldQueryset
 
         other_model = cls.objects.orm.get_model(other_column)
-        queryset = Queryset(other_model)
+        queryset = FieldQueryset(field, other_model)
         queryset._set_orm(cls.objects.orm)
 
         async def m2m_set(self):
@@ -143,7 +144,10 @@ class BaseModel(object, metaclass=ModelMeta):
             }
             return await queryset.filter_m2m(m2m_filter)
 
-        method_name = f_name or '{}_set'.format(other_column.lower())
+        method_name = (
+            direct and field.field_name or
+            '{}_set'.format(other_column.lower())
+        )
         setattr(cls, method_name, m2m_set)
 
     @classmethod
@@ -212,6 +216,8 @@ class BaseModel(object, metaclass=ModelMeta):
                     cls._attr_names.append((f_n, field.field_name))
 
                 fields[f_n] = field
+            # elif callable(field):
+            #     print('##############', f_n, field.__class__)
 
         if len(cls._attr_names) != len(set(cls._attr_names)):
             raise ModelError(
