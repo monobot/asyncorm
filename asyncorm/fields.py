@@ -153,11 +153,6 @@ class CharField(Field):
                          unique=unique
                          )
 
-    # def _validate(self, value):
-    #     self.__class__._validate(value)
-    #     return value
-    #     value = self._validate(value)
-
     def _sanitize_data(self, value):
         if value is None:
             return 'NULL'
@@ -253,5 +248,5 @@ class ManyToMany(Field):
         if isinstance(value, list):
             for i in value:
                 super()._validate(value)
-            return
-        super()._validate(value)
+        else:
+            super()._validate(value)

@@ -154,11 +154,14 @@ class ModelTests(AioTestCase):
         self.assertTrue(hasattr(Organization, 'developer_set'))
 
         # new organization
-        org = Organization(name='ong molona')
-        await org.save()
+        org_list = []
+        for x in range(1, 6):
+            org = Organization(name='ong molona')
+            await org.save()
+            org_list.append(org.id)
 
         # create a developer
-        dev = Developer(name='developer', age=55, org=org.id)
+        dev = Developer(name='developer', age=55, org=org_list)
         await dev.save()
 
         # and the relation comes back

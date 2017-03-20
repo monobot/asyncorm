@@ -2,6 +2,7 @@ from asyncpg.exceptions import UniqueViolationError
 
 from .exceptions import QuerysetError, ModelError
 from .fields import ManyToMany, ForeignKey
+from .log import logger
 
 __all__ = ['ModelManager', ]
 
@@ -289,7 +290,9 @@ class ModelManager(Queryset):
             # for each of the m2m fields in the model, we have to check
             # if the table register already exists in the table otherwise
             # and delete the ones that are not in the list
-
+            logger.debug('############################################')
+            logger.debug('data')
+            logger.debug('############################################')
             # first get the table_name
             cls_field = getattr(instanced_model.__class__, k)
             table_name = cls_field.table_name
@@ -307,6 +310,7 @@ class ModelManager(Queryset):
                 # 'ordering': 'id',
             }
 
+            print(data)
             if isinstance(data, list):
                 for d in data:
                     await self.db_request(db_request)
