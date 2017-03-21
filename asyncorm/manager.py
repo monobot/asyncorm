@@ -1,10 +1,10 @@
 from asyncpg.exceptions import UniqueViolationError
 
 from .exceptions import QuerysetError, ModelError
-from .fields import ManyToMany, ForeignKey, ManyToMany
+from .fields import ManyToMany, ForeignKey  # , ManyToMany
 # from .log import logger
 
-__all__ = ['ModelManager', ]
+__all__ = ['FieldQueryset', 'ModelManager', 'Queryset']
 
 MIDDLE_OPERATOR = {
     'gt': '>',
@@ -244,12 +244,14 @@ class Queryset(object):
 
 
 class FieldQueryset(Queryset):
+
     def __init__(self, field, *args):
         self.field = field
         super().__init__(*args)
 
 
 class ModelManager(Queryset):
+
     def __init__(self, model):
         self.model = model
         super().__init__(model)
@@ -315,9 +317,9 @@ class ModelManager(Queryset):
 
             if isinstance(data, list):
                 for d in data:
-                    db_request.update({
-                        'field_values': ', '.join([str(model_id), str(d)])
-                    })
+                    db_request.update(
+                        {'field_values': ', '.join([str(model_id), str(d)])}
+                    )
                     await self.db_request(db_request)
             else:
                 await self.db_request(db_request)
