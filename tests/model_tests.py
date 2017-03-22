@@ -44,8 +44,8 @@ class ModelTests(AioTestCase):
         self.assertTrue(Author is Author2)
         self.assertTrue(Book is Book2)
 
-        self.assertEqual(Book().table_name, 'library')
-        self.assertEqual(Author().table_name, 'Author')
+        self.assertEqual(Book().table_name(), 'library')
+        self.assertEqual(Author().table_name(), 'Author')
 
         fields = Book._get_fields()
 

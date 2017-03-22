@@ -28,7 +28,7 @@ class Queryset(object):
     def __init__(self, model):
         self.model = model
 
-        self.table_name = self.model.table_name
+        self.table_name = self.model.table_name()
         self.select = '*'
 
         self.query_chain = []
@@ -57,7 +57,7 @@ class Queryset(object):
         Builds the table without the m2m_fields and fks
         '''
         db_request = {
-            'table_name': self.model.table_name,
+            'table_name': self.model.table_name(),
             'action': 'db__create_table',
             'field_queries': self._get_field_queries(),
         }
@@ -72,7 +72,7 @@ class Queryset(object):
 
         if unique_together:
             db_request = {
-                'table_name': self.model.table_name,
+                'table_name': self.model.table_name(),
                 'action': 'db__constrain_table',
                 'constrain': unique_together,
             }
@@ -87,7 +87,7 @@ class Queryset(object):
             if isinstance(f, ForeignKey):
 
                 db_request = {
-                    'table_name': self.model.table_name,
+                    'table_name': self.model.table_name(),
                     'action': 'db__table_add_column',
                     'field_creation_string': f._creation_query(),
                 }
@@ -237,7 +237,9 @@ class Queryset(object):
     async def db_request(self, db_request):
         db_request.update({
             'select': db_request.get('select', self.select),
-            'table_name': db_request.get('table_name', self.model.table_name),
+            'table_name': db_request.get(
+                'table_name', self.model.table_name()
+            ),
         })
         response = await self.db_manager.request(db_request)
         return response
@@ -303,7 +305,7 @@ class ModelManager(Queryset):
             table_name = cls_field.table_name
             foreign_column = cls_field.foreign_key
 
-            model_column = instanced_model.table_name
+            model_column = instanced_model.table_name()
 
             model_id = getattr(instanced_model, instanced_model._orm_pk)
 

@@ -22,6 +22,22 @@ class ModelMeta(type):
 
         base_class.ordering = None
         base_class.unique_together = []
+        base_class._table_name = ''
+
+        if defined_meta:
+            if hasattr(defined_meta, 'ordering'):
+                base_class.ordering = base_class.check_ordering(
+                    getattr(defined_meta, 'ordering')
+                )
+            if hasattr(defined_meta, 'unique_together'):
+                base_class.unique_together = getattr(
+                    defined_meta, 'unique_together'
+                )
+            if hasattr(defined_meta, 'table_name'):
+                base_class._table_name = getattr(
+                    defined_meta, 'table_name'
+                )
+
         base_class.fields = base_class._get_fields()
 
         if PkField not in [f.__class__ for f in base_class.fields.values()]:
@@ -37,20 +53,6 @@ class ModelMeta(type):
             base_class._db_pk = pk_fields[0].field_name
             base_class._orm_pk = pk_fields[0].orm_field_name
 
-        if defined_meta:
-            if hasattr(defined_meta, 'ordering'):
-                base_class.ordering = base_class.check_ordering(
-                    getattr(defined_meta, 'ordering')
-                )
-            if hasattr(defined_meta, 'unique_together'):
-                base_class.unique_together = getattr(
-                    defined_meta, 'unique_together'
-                )
-            if hasattr(defined_meta, 'table_name'):
-                base_class.table_name = getattr(
-                    defined_meta, 'table_name'
-                )
-
         for f in base_class.fields.values():
             if f.choices:
                 setattr(
@@ -61,27 +63,28 @@ class ModelMeta(type):
 
         return base_class
 
+    # @property
+    # def var(cls):
+    #     return cls._var
+
+    # @var.setter
+    # def var(cls, value):
+    #     cls._var = value
 
 class BaseModel(object, metaclass=ModelMeta):
-    table_name = ''
+    _table_name = ''
 
     objects = None
     deleted = False
 
     def __init__(self, **kwargs):
+        self._table_name = ''
+
         logger.debug('initiating model {}'.format(self.__class__.__name__))
         self.objects.model = self.__class__
 
-        if not self.table_name:
-            self.table_name = self.__class__.__name__
-            self.__class__.table_name = self.table_name
-
         manager = getattr(self, 'objects')
         manager.model = self.__class__
-
-        # its necesary to call it also here, because its only when is a defined
-        # model when we know the model name
-        self.__class__.fields = self.__class__._get_fields()
 
         # resolve method for posible display methods
         for k, v in self.__class__.__dict__.items():
@@ -113,6 +116,10 @@ class BaseModel(object, metaclass=ModelMeta):
                 setattr(self, field_name, None)
 
         logger.debug('... initiated')
+
+    @classmethod
+    def table_name(cls):
+        return cls._table_name or cls.__name__
 
     @classmethod
     def _set_reverse_foreignkey(cls, model_name, field_name):
@@ -202,12 +209,12 @@ class BaseModel(object, metaclass=ModelMeta):
                     field._set_field_name(f_n)
 
                 if not field.table_name:
-                    field.table_name = cls.table_name
+                    field.table_name = cls.table_name()
 
                 if isinstance(field, ManyToMany):
-                    field.own_model = cls.table_name
+                    field.own_model = cls.table_name()
                     field.table_name = '{my_model}_{foreign_key}'.format(
-                        my_model=cls.table_name,
+                        my_model=cls.table_name(),
                         foreign_key=field.foreign_key,
                     )
 
@@ -259,6 +266,9 @@ class BaseModel(object, metaclass=ModelMeta):
 
 
 class Model(BaseModel):
+
+    # def __init__(self):
+    #     self.table_name = self.__class__._table_name or self.__class__.__name__
 
     def _construct(self, data, deleted=False):
         # poblates the model with the data

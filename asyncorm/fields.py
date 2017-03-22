@@ -79,9 +79,9 @@ class Field(object):
                 CHECK ({field_name} IN ({key_list}) );
             '''
             return return_query.format(
-                table_name=self.table_name,
+                table_name=self.table_name(),
                 const_name='{}_{}_const'.format(
-                    self.table_name,
+                    self.table_name(),
                     self.field_name
                 ),
                 field_name=self.field_name,
