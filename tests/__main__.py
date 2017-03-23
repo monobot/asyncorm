@@ -16,7 +16,6 @@ orm_app = configure_orm({
     'modules': ['tests.testapp', 'tests.testapp2'],
 })
 
-dm = orm_app.db_manager
 loop = orm_app.loop
 
 drop_tables = ['Publisher', 'Author', 'library', 'Organization', 'Developer',
@@ -50,7 +49,7 @@ async def create_book(x):
 
 async def create_author(x):
     book = Author(**{
-        'name': 'pedrito {}'.format(str(x)),
+        'name': 'foo_boy {}'.format(str(x)),
         'age': 23,
     })
 

@@ -117,18 +117,14 @@ class ManageTestMethods(AioTestCase):
             await Book.objects.get(id=(280, 234, 23))
         self.assertTrue(
             ('Not a correct tuple definition, filter '
-            'only allows tuples of size 2') in
-            exc.exception.args[0]
-        )
+             'only allows tuples of size 2') in exc.exception.args[0])
 
         # incorrect fitler tuple definition error catched
         with self.assertRaises(QuerysetError) as exc:
             await Book.objects.get(id=(280, ))
         self.assertTrue(
             ('Not a correct tuple definition, filter '
-            'only allows tuples of size 2') in
-            exc.exception.args[0]
-        )
+             'only allows tuples of size 2') in exc.exception.args[0])
 
         # empty queryset
         queryset = await Book.objects.filter(id__gt=2800)
