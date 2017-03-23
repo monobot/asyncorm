@@ -6,7 +6,10 @@ include HISTORY.rst
 include LICENSE
 include README.rst
 
+recursive-include asyncorm/application *
+recursive-include asyncorm/database *
 recursive-include asyncorm/log *
+recursive-include asyncorm/migrations *
 recursive-include tests *
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
