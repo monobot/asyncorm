@@ -17,3 +17,8 @@ History
 
 * config implemented
 
+0.0.4 (2017-03-23)
+------------------
+
+* wrong manifest corrected
+
