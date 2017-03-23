@@ -12,3 +12,8 @@ History
 
 * Small update, include log
 
+0.0.3 (2017-03-23)
+------------------
+
+* config implemented
+

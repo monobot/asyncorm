@@ -1,3 +1,1 @@
-asyncorm==0.0.2
 asyncpg==0.8.4
-sanic==0.4.1
