@@ -22,3 +22,8 @@ History
 
 * wrong manifest corrected
 
+0.0.5 (2017-03-24)
+------------------
+
+* sanic example working, get, post, delete working, missing patch, and put
+
