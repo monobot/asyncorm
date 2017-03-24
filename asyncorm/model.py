@@ -63,13 +63,6 @@ class ModelMeta(type):
 
         return base_class
 
-    # @property
-    # def var(cls):
-    #     return cls._var
-
-    # @var.setter
-    # def var(cls, value):
-    #     cls._var = value
 
 class BaseModel(object, metaclass=ModelMeta):
     _table_name = ''
@@ -222,9 +215,6 @@ class BaseModel(object, metaclass=ModelMeta):
                     cls._attr_names.append((f_n, field.field_name))
 
                 fields[f_n] = field
-            # elif callable(field):
-            #     if hasattr(field, 'field'):
-            #         print('##############', f_n, field.__class__)
 
         if len(cls._attr_names) != len(set(cls._attr_names)):
             raise ModelError(
@@ -254,6 +244,7 @@ class BaseModel(object, metaclass=ModelMeta):
 
     @classmethod
     def check_ordering(cls, ordering):
+        print(ordering)
         for f in ordering:
             if f.startswith('-'):
                 f = f[1:]
@@ -266,9 +257,6 @@ class BaseModel(object, metaclass=ModelMeta):
 
 
 class Model(BaseModel):
-
-    # def __init__(self):
-    #     self.table_name = self.__class__._table_name or self.__class__.__name__
 
     def _construct(self, data, deleted=False):
         # poblates the model with the data
