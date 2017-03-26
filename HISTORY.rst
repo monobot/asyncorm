@@ -27,3 +27,8 @@ History
 
 * sanic example working, get, post, delete working, missing patch, and put
 
+0.0.6 (2017-03-26)
+------------------
+
+* sanic example working
+
