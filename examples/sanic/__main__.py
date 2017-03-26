@@ -38,7 +38,6 @@ class BooksView(HTTPMethodView):
 
     async def get(self, request):
         books = await Book.objects.all()
-        print(books)
         return json({'method': request.method,
                      'status': 200,
                      'results': [book.asDict() for book in books] or None,
@@ -51,7 +50,6 @@ class BooksView(HTTPMethodView):
 
         # and await on save
         await book.save()
-        print(book.asDict())
 
         return json({'method': request.method,
                      'status': 201,
@@ -72,38 +70,50 @@ class BookView(HTTPMethodView):
         book = await self.get_object(request, book_id)
 
         if isinstance(book, Exception):
+            return json({'status': 400,
+                         'method': request.method,
+                         'error_msg': book.args[0]
+                         })
+        return json({'method': request.method,
+                     'status': 200,
+                     'results': book.asDict(),
+                     })
+
+    async def put(self, request, book_id):
+        book = await self.get_object(request, book_id)
+
+        if isinstance(book, Exception):
             return json(
                 {'status': 400,
                  'method': request.method,
                  'error_msg': book.args[0]
                  }
             )
+
+        await book.save(**request.json)
+
         return json({'method': request.method,
                      'status': 200,
                      'results': book.asDict(),
                      })
 
-    # async def put(self, request, book_id):
-    #     book = await self.get_object(request, book_id)
+    async def patch(self, request, book_id):
+        book = await self.get_object(request, book_id)
 
-    #     if isinstance(book, Exception):
-    #         return json(
-    #             {'status': 400,
-    #              'method': request.method,
-    #              'error_msg': book.args[0]
-    #              }
-    #         )
+        if isinstance(book, Exception):
+            return json(
+                {'status': 400,
+                 'method': request.method,
+                 'error_msg': book.args[0]
+                 }
+            )
 
-    # async def patch(self, request, book_id):
-    #     book = await self.get_object(request, book_id)
+        await book.save(**request.json)
 
-    #     if isinstance(book, Exception):
-    #         return json(
-    #             {'status': 400,
-    #              'method': request.method,
-    #              'error_msg': book.args[0]
-    #              }
-    #         )
+        return json({'method': request.method,
+                     'status': 200,
+                     'results': book.asDict(),
+                     })
 
     async def delete(self, request, book_id):
         book = await self.get_object(request, book_id)
@@ -118,9 +128,7 @@ class BookView(HTTPMethodView):
 
         # await on its deletion
         await book.delete()
-        return json(
-            {'status': 200, 'method': request.method}
-        )
+        return json({'status': 200, 'method': request.method})
 
 
 app.add_route(BooksView.as_view(), '/books/')

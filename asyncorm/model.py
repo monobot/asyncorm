@@ -244,7 +244,6 @@ class BaseModel(object, metaclass=ModelMeta):
 
     @classmethod
     def check_ordering(cls, ordering):
-        print(ordering)
         for f in ordering:
             if f.startswith('-'):
                 f = f[1:]
@@ -265,16 +264,16 @@ class Model(BaseModel):
         self.deleted = deleted
         return self
 
-    async def save(self):
+    async def save(self, **kwargs):
         # external save method
-        if not self.deleted:
-            await self.objects.save(self)
-        else:
+        if self.deleted:
             raise ModelError(
                 'That {model_name} has already been deleted!'.format(
                     model_name=self.__class__.__name__
                 )
             )
+        self._construct(kwargs)
+        await self.objects.save(self)
 
     async def delete(self):
         # object delete method
