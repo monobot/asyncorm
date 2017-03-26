@@ -1,6 +1,5 @@
 __all__ = ('FieldError', 'ManagerError', 'ModelError', 'ModuleError',
-    'QuerysetError'
-)
+           'QuerysetError', 'SerializerError')
 
 
 class FieldError(Exception):
@@ -14,6 +13,11 @@ class ManagerError(Exception):
 
 
 class ModelError(Exception):
+    '''to be raised when there are model errors detected'''
+    pass
+
+
+class SerializerError(Exception):
     '''to be raised when there are model errors detected'''
     pass
 

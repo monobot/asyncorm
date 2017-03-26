@@ -1,10 +1,12 @@
-from .log import logger
-from .fields import Field, PkField, ManyToMany  # , ForeignKey
-from .manager import ModelManager, FieldQueryset
-from .exceptions import ModelError, FieldError
-from .application import get_model
+from ..log import logger
+from ..fields import Field, PkField, ManyToMany  # , ForeignKey
+from ..manager import ModelManager, FieldQueryset
+from ..exceptions import ModelError, FieldError
+from ..application import get_model
 
-__all__ = ['Model', ]
+from .serializer import ModelSerializer
+
+__all__ = ['Model', 'ModelSerializer']
 
 
 class ModelMeta(type):
@@ -256,6 +258,15 @@ class BaseModel(object, metaclass=ModelMeta):
 
 
 class Model(BaseModel):
+
+    def serialize(self):
+        return_dict = {}
+
+        for f, v in self.fields.items():
+            print(f, f.__class__)
+            print(v, v.__class__)
+
+        return return_dict
 
     def _construct(self, data, deleted=False):
         # poblates the model with the data

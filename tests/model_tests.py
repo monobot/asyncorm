@@ -4,6 +4,7 @@ import unittest
 from asyncorm.application import get_model
 from asyncorm.exceptions import *
 from asyncorm.fields import *
+from asyncorm.model import ModelSerializer
 
 from .testapp.models import Book, Author
 from .testapp2.models import Developer, Client, Organization
@@ -176,3 +177,35 @@ class ModelTests(AioTestCase):
         self.assertEqual(orgs_returned[0].id, 1)
         # the last corresponds to the last added
         self.assertEqual(orgs_returned[-1].id, org.id)
+
+    async def test_serialize(self):
+        # the inverse relation is correctly set
+        q_book = await Book.objects.all()
+        book = q_book[0]
+
+        class BookSerializer(ModelSerializer):
+            class Meta:
+                model = Book
+                fields = ['name', 'content', 'kks']
+
+        # meta fields definition is not correct
+        with self.assertRaises(SerializerError) as exc:
+            BookSerializer().serialize(book)
+        self.assertTrue(
+            'is not a correct argument for model' in exc.exception.args[0]
+        )
+
+        class BookSerializer(ModelSerializer):
+            class Meta:
+                model = Book
+                fields = ['name', 'content', ]
+
+        # complains i we try to serialize an incorrect model
+        with self.assertRaises(SerializerError) as exc:
+            author = Author()
+            BookSerializer().serialize(author)
+        self.assertTrue(
+            'That model is not an instance of' in exc.exception.args[0]
+        )
+
+        print(BookSerializer().serialize(book))
