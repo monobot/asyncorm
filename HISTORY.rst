@@ -32,3 +32,8 @@ History
 
 * sanic example working
 
+0.0.7 (2017-03-27)
+------------------
+
+* ordering on all db requests, sanic example updated
+
