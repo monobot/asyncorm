@@ -34,6 +34,16 @@ def orm_configure(sanic, loop):
     # orm_app.sync_db()
 
 
+# for all the 404 lets handle the exceptions
+@app.exception(NotFound)
+def ignore_404s(request, exception):
+    return json({'method': request.method,
+                 'status': exception.status_code,
+                 'error': exception.args[0],
+                 'results': None,
+                 })
+
+
 # now the propper sanic workflow
 class BooksView(HTTPMethodView):
 
@@ -58,14 +68,6 @@ class BooksView(HTTPMethodView):
                      'status': 201,
                      'results': BookSerializer.serialize(book),
                      })
-
-
-@app.exception(NotFound)
-def ignore_404s(request, exception):
-    return json({'method': request.method,
-                 'status': exception.status_code,
-                 'results': exception.args[0],
-                 })
 
 
 class BookView(HTTPMethodView):
