@@ -92,13 +92,11 @@ class PostgresManager(GeneralManager):
 
     def ordering_syntax(self, ordering):
         result = []
-        print(ordering)
         for f in ordering:
             if f.startswith('-'):
                 result.append(' {} DESC '.format(f[1:]))
             else:
                 result.append(f)
-            print(result)
         return result
 
     async def request(self, request_dict):
@@ -107,10 +105,6 @@ class PostgresManager(GeneralManager):
 
         conn = await self.get_conn()
 
-        ordering = request_dict.get('ordering', None)
-        print('###################################################33')
-        print(ordering, ordering.__class__)
-        print('###################################################33')
         if request_dict.get('ordering', None):
             query = query.replace(
                 ';',
