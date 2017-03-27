@@ -259,14 +259,8 @@ class BaseModel(object, metaclass=ModelMeta):
 
 class Model(BaseModel):
 
-    def serialize(self):
-        return_dict = {}
-
-        for f, v in self.fields.items():
-            print(f, f.__class__)
-            print(v, v.__class__)
-
-        return return_dict
+    def serialize(self, serializer):
+        return serializer.serialize(self)
 
     def _construct(self, data, deleted=False):
         # poblates the model with the data

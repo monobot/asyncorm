@@ -16,15 +16,15 @@ class Book(Model):
     pages = IntegerField(null=True)
     date_created = DateField(auto_now=True)
 
-    def asDict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'synopsis': self.synopsis,
-            'book_type': self.book_type,
-            'pages': self.pages,
-            'date_created': self.date_created,
-        }
+    # def asDict(self):
+    #     return {
+    #         'id': self.id,
+    #         'name': self.name,
+    #         'synopsis': self.synopsis,
+    #         'book_type': self.book_type,
+    #         'pages': self.pages,
+    #         'date_created': self.date_created,
+    #     }
 
     class Meta():
         # ordering = ['name', ]

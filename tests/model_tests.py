@@ -208,4 +208,5 @@ class ModelTests(AioTestCase):
             'That model is not an instance of' in exc.exception.args[0]
         )
 
-        print(BookSerializer().serialize(book))
+        serialized_book = BookSerializer().serialize(book)
+        self.assertEqual(serialized_book.get('name'), 'book name 1')

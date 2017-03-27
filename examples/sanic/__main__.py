@@ -5,7 +5,8 @@ from sanic.response import json
 from sanic.views import HTTPMethodView
 
 from asyncorm import configure_orm
-from asyncorm. exceptions import QuerysetError
+from asyncorm.exceptions import QuerysetError
+from asyncorm.model import ModelSerializer
 from library.models import Book
 
 app = Sanic(name=__name__)
@@ -19,16 +20,17 @@ def orm_configure(sanic, loop):
                  'password': 'sanicDbPass',
                  }
 
-    loop = asyncio.get_event_loop()
-    # configure_orm receives a dictionary with:
-    # the database configuration
-    # the application/s where the models are defined
+    loop = asyncio.get_event_loop()  # get current loop (The one sanic uses)
+
+    # configure_orm needs a dictionary with:
+    #    * the database configuration
+    #    * the application/s where the models are defined
     orm_app = configure_orm({'loop': loop,  # always use the sanic loop!
                              'db_config': db_config,
                              'modules': ['library', ],  # list of apps
                              })
 
-    # this should be run only once, recomend to do that as external command
+    # this should be run only once, do that as external command
     # it creates the tables in the database!!!!
     # orm_app.sync_db()
 
@@ -40,7 +42,7 @@ class BooksView(HTTPMethodView):
         books = await Book.objects.all()
         return json({'method': request.method,
                      'status': 200,
-                     'results': [book.asDict() for book in books] or None,
+                     'results': [BookSerializer.serialize(book) for book in books] or None,
                      'count': len(books),
                      })
 
@@ -53,8 +55,14 @@ class BooksView(HTTPMethodView):
 
         return json({'method': request.method,
                      'status': 201,
-                     'results': book.asDict(),
+                     'results': BookSerializer.serialize(book),
                      })
+
+
+class BookSerializer(ModelSerializer):
+    class Meta():
+        model = Book
+        fields = ['id', 'name', 'synopsis', 'book_type', 'pages']
 
 
 class BookView(HTTPMethodView):
@@ -76,7 +84,7 @@ class BookView(HTTPMethodView):
                          })
         return json({'method': request.method,
                      'status': 200,
-                     'results': book.asDict(),
+                     'results': BookSerializer.serialize(book),
                      })
 
     async def put(self, request, book_id):
@@ -94,7 +102,7 @@ class BookView(HTTPMethodView):
 
         return json({'method': request.method,
                      'status': 200,
-                     'results': book.asDict(),
+                     'results': BookSerializer.serialize(book),
                      })
 
     async def patch(self, request, book_id):
@@ -112,7 +120,7 @@ class BookView(HTTPMethodView):
 
         return json({'method': request.method,
                      'status': 200,
-                     'results': book.asDict(),
+                     'results': BookSerializer.serialize(book),
                      })
 
     async def delete(self, request, book_id):

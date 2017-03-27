@@ -39,15 +39,16 @@ class ModelSerializer(object, metaclass=SerializerMeta):
                     )
                 )
 
-    def serialize(self, instanced_model):
+    @classmethod
+    def serialize(cls, instanced_model):
         return_dict = {}
 
-        if not isinstance(instanced_model, self.model):
+        if not isinstance(instanced_model, cls.model):
             raise SerializerError(
-                'That model is not an instance of {}'.format(self.model)
+                'That model is not an instance of {}'.format(cls.model)
             )
 
-        for f in self._fields:
+        for f in cls._fields:
             return_dict[f] = getattr(instanced_model, f)
 
         return return_dict
