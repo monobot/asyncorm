@@ -46,9 +46,20 @@ def ignore_404s(request, exception):
 
 # now the propper sanic workflow
 class BooksView(HTTPMethodView):
+    def arg_parser(self, request):
+        parsed_args = {}
+        for k, v in request.args.items():
+            parsed_args[k] = v[0]
+        return parsed_args
 
     async def get(self, request):
-        q_books = await Book.objects.all()
+        filtered_by = self.arg_parser(request)
+
+        if filtered_by:
+            q_books = await Book.objects.filter(**filtered_by)
+        else:
+            q_books = await Book.objects.all()
+
         books = [BookSerializer.serialize(book) for book in q_books]
 
         return json({'method': request.method,
