@@ -1,5 +1,3 @@
-import asyncio
-
 from sanic import Sanic
 from sanic.response import json
 from sanic.views import HTTPMethodView
@@ -21,17 +19,15 @@ def orm_configure(sanic, loop):
                  'password': 'sanicDbPass',
                  }
 
-    loop = asyncio.get_event_loop()  # get current loop (The one sanic uses)
-
     # configure_orm needs a dictionary with:
     #    * the database configuration
     #    * the application/s where the models are defined
     orm_app = configure_orm({'loop': loop,  # always use the sanic loop!
-                   'db_config': db_config,
-                   'modules': ['library', ],  # list of apps
-                   })
+                             'db_config': db_config,
+                             'modules': ['library', ],  # list of apps
+                             })
 
-    # orm_app is the object that orhestrates the whole ORM
+    # orm_app is the object that orchestrates the whole ORM
     # sync_db should be run only once, better do that as external command
     # it creates the tables in the database!!!!
     # orm_app.sync_db()
