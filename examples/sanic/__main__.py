@@ -1,4 +1,5 @@
 from sanic import Sanic
+from sanic.exceptions import NotFound
 from sanic.response import json
 from sanic.views import HTTPMethodView
 
@@ -59,23 +60,26 @@ class BooksView(HTTPMethodView):
                      })
 
 
+@app.exception(NotFound)
+def ignore_404s(request, exception):
+    return json({'method': request.method,
+                 'status': exception.status_code,
+                 'results': exception.args[0],
+                 })
+
+
 class BookView(HTTPMethodView):
     async def get_object(self, request, book_id):
-        # we have to await on getting the book info
         try:
+            # await on database consults
             book = await Book.objects.get(**{'id': book_id})
         except QuerysetError as e:
-            return e
+            raise NotFound(e.args[0])
         return book
 
     async def get(self, request, book_id):
+        # await on database consults
         book = await self.get_object(request, book_id)
-
-        if isinstance(book, QuerysetError):
-            return json({'status': 400,
-                         'method': request.method,
-                         'error_msg': book.args[0]
-                         })
 
         return json({'method': request.method,
                      'status': 200,
@@ -83,16 +87,9 @@ class BookView(HTTPMethodView):
                      })
 
     async def put(self, request, book_id):
+        # await on database consults
         book = await self.get_object(request, book_id)
-
-        if isinstance(book, QuerysetError):
-            return json(
-                {'status': 400,
-                 'method': request.method,
-                 'error_msg': book.args[0]
-                 }
-            )
-
+        # await on save
         await book.save(**request.json)
 
         return json({'method': request.method,
@@ -101,16 +98,9 @@ class BookView(HTTPMethodView):
                      })
 
     async def patch(self, request, book_id):
+        # await on database consults
         book = await self.get_object(request, book_id)
-
-        if isinstance(book, QuerysetError):
-            return json(
-                {'status': 400,
-                 'method': request.method,
-                 'error_msg': book.args[0]
-                 }
-            )
-
+        # await on save
         await book.save(**request.json)
 
         return json({'method': request.method,
@@ -119,19 +109,15 @@ class BookView(HTTPMethodView):
                      })
 
     async def delete(self, request, book_id):
+        # await on database consults
         book = await self.get_object(request, book_id)
-
-        if isinstance(book, QuerysetError):
-            return json(
-                {'status': 400,
-                 'method': request.method,
-                 'error_msg': book.args[0]
-                 }
-            )
-
         # await on its deletion
         await book.delete()
-        return json({'status': 200, 'method': request.method})
+
+        return json({'method': request.method,
+                     'status': 200,
+                     'results': None
+                     })
 
 
 app.add_route(BooksView.as_view(), '/books/')
