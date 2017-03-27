@@ -18,6 +18,7 @@ KWARGS_TYPES = {
     'reverse_field': str,
     'choices': (dict, tuple),
     'unique': bool,
+    'strftime': str,
 }
 
 
@@ -38,6 +39,7 @@ class Field(object):
         self.max_length = kwargs.get('max_length', 0)
 
         self.foreign_key = kwargs.get('foreign_key', '')
+        self.strftime = kwargs.get('strftime', '')
 
         self.auto_now = kwargs.get('auto_now', False)
         self.reverse_field = kwargs.get('reverse_field', '')
@@ -122,6 +124,9 @@ class Field(object):
         self.__class__._validate(value)
         return value
 
+    def _serialize_data(self, value):
+        return value
+
     def _set_field_name(self, field_name):
         if '__' in field_name:
             raise FieldError('field_name can not contain "__"')
@@ -193,11 +198,11 @@ class DateField(Field):
     creation_string = 'timestamp'
 
     def __init__(self, field_name='', default=None, auto_now=False, null=False,
-                 choices={}, unique=False
+                 choices={}, unique=False, strftime='date %Y-%m-%d'
                  ):
         super().__init__(field_name=field_name, default=default,
                          auto_now=auto_now, null=null, choices=choices,
-                         unique=unique
+                         unique=unique, strftime=strftime
                          )
 
     def _sanitize_data(self, value):
@@ -206,6 +211,9 @@ class DateField(Field):
         value = super()._sanitize_data(value)
 
         return "'{}'".format(value)
+
+    def _serialize_data(self, value):
+        return value.strftime(self.strftime)
 
 
 class ForeignKey(Field):

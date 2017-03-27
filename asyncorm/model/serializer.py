@@ -71,6 +71,9 @@ class ModelSerializer(Serializer, metaclass=ModelSerializerMeta):
                              'for attribute {}').format(f)
                         )
             else:
-                return_dict[f] = getattr(instanced_model, f)
+                field_class = getattr(instanced_model.__class__, f)
+                return_dict[f] = field_class._serialize_data(
+                    getattr(instanced_model, f)
+                )
 
         return return_dict
