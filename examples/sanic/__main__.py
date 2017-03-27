@@ -40,7 +40,7 @@ def orm_configure(sanic, loop):
 class BooksView(HTTPMethodView):
 
     async def get(self, request):
-        q_books = await Book.objects.filter(id__gte=1)
+        q_books = await Book.objects.all()
         books = [BookSerializer.serialize(book) for book in q_books]
 
         return json({'method': request.method,
@@ -74,11 +74,12 @@ class BookView(HTTPMethodView):
     async def get(self, request, book_id):
         book = await self.get_object(request, book_id)
 
-        if isinstance(book, Exception):
+        if isinstance(book, QuerysetError):
             return json({'status': 400,
                          'method': request.method,
                          'error_msg': book.args[0]
                          })
+
         return json({'method': request.method,
                      'status': 200,
                      'results': BookSerializer.serialize(book),
@@ -87,7 +88,7 @@ class BookView(HTTPMethodView):
     async def put(self, request, book_id):
         book = await self.get_object(request, book_id)
 
-        if isinstance(book, Exception):
+        if isinstance(book, QuerysetError):
             return json(
                 {'status': 400,
                  'method': request.method,
@@ -105,7 +106,7 @@ class BookView(HTTPMethodView):
     async def patch(self, request, book_id):
         book = await self.get_object(request, book_id)
 
-        if isinstance(book, Exception):
+        if isinstance(book, QuerysetError):
             return json(
                 {'status': 400,
                  'method': request.method,
@@ -123,7 +124,7 @@ class BookView(HTTPMethodView):
     async def delete(self, request, book_id):
         book = await self.get_object(request, book_id)
 
-        if isinstance(book, Exception):
+        if isinstance(book, QuerysetError):
             return json(
                 {'status': 400,
                  'method': request.method,
