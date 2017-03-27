@@ -209,4 +209,4 @@ class ModelTests(AioTestCase):
         )
 
         serialized_book = BookSerializer().serialize(book)
-        self.assertEqual(serialized_book.get('name'), 'book name 1')
+        self.assertEqual(serialized_book.get('name'), 'this is a new name')

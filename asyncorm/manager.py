@@ -133,6 +133,9 @@ class Queryset(object):
     async def all(self):
         db_request = {'action': 'db__select_all'}
 
+        if self.model.ordering:
+            db_request.update({'ordering': self.model.ordering})
+
         request = await self.db_request(db_request)
         return [self._model_constructor(r) for r in request]
 

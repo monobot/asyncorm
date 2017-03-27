@@ -40,7 +40,7 @@ def orm_configure(sanic, loop):
 class BooksView(HTTPMethodView):
 
     async def get(self, request):
-        q_books = await Book.objects.all()
+        q_books = await Book.objects.filter(id__gte=1)
         books = [BookSerializer.serialize(book) for book in q_books]
 
         return json({'method': request.method,

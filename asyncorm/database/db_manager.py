@@ -47,7 +47,7 @@ class PostgresManager(GeneralManager):
 
     @property
     def db__select_all(self):
-        return 'SELECT {select} FROM {table_name}'
+        return 'SELECT {select} FROM {table_name} '
 
     @property
     def db__select(self):
@@ -90,20 +90,37 @@ class PostgresManager(GeneralManager):
             query.replace(';;', ';')
         return query
 
+    def ordering_syntax(self, ordering):
+        result = []
+        print(ordering)
+        for f in ordering:
+            if f.startswith('-'):
+                result.append(' {} DESC '.format(f[1:]))
+            else:
+                result.append(f)
+            print(result)
+        return result
+
     async def request(self, request_dict):
         query = getattr(self, request_dict['action']).format(**request_dict)
         query = self.query_clean(query)
 
         conn = await self.get_conn()
 
+        ordering = request_dict.get('ordering', None)
+        print('###################################################33')
+        print(ordering, ordering.__class__)
+        print('###################################################33')
         if request_dict.get('ordering', None):
             query = query.replace(
                 ';',
-                'ORDER BY {};'.format(','.join(request_dict['ordering']))
+                'ORDER BY {};'.format(','.join(
+                    self.ordering_syntax(request_dict['ordering'])
+                ))
             )
 
         # if request_dict['action'] == 'db__create_table':
-        #     print(query)
+            # print(query)
 
         no_result = ['db__delete', 'db__create_table', 'db__alter_table',
                      'db__constrain_table', 'db__table_add_column',

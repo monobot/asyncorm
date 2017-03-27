@@ -100,7 +100,7 @@ class ManageTestMethods(AioTestCase):
         self.assertTrue(isinstance(queryset[0], Book))
 
     async def test_filter(self):
-        queryset = await Book.objects.filter(id__gt=280)
+        queryset = await Book.objects.filter(id__gte=280)
 
         self.assertTrue(len(queryset) >= 20)
         self.assertTrue(isinstance(queryset[0], Book))

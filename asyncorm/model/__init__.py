@@ -28,9 +28,7 @@ class ModelMeta(type):
 
         if defined_meta:
             if hasattr(defined_meta, 'ordering'):
-                base_class.ordering = base_class.check_ordering(
-                    getattr(defined_meta, 'ordering')
-                )
+                base_class.ordering = getattr(defined_meta, 'ordering')
             if hasattr(defined_meta, 'unique_together'):
                 base_class.unique_together = getattr(
                     defined_meta, 'unique_together'
@@ -243,18 +241,6 @@ class BaseModel(object, metaclass=ModelMeta):
             att_class._validate(v)
             if att_class is PkField and v:
                 raise FieldError('Models can not be generated with forced id')
-
-    @classmethod
-    def check_ordering(cls, ordering):
-        for f in ordering:
-            if f.startswith('-'):
-                f = f[1:]
-            if f not in cls.fields.keys():
-                raise ModelError(
-                    'Meta\'s ordering refers to a field '
-                    '{} not defined in the model'.format(f)
-                )
-        return ordering
 
 
 class Model(BaseModel):

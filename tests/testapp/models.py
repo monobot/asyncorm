@@ -30,5 +30,5 @@ class Book(Model):
 
     class Meta():
         table_name = 'library'
-        ordering = ['-id']
+        ordering = ['-id', ]
         unique_together = ['name', 'content']
