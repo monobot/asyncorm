@@ -6,8 +6,9 @@ from sanic.views import HTTPMethodView
 
 from asyncorm import configure_orm
 from asyncorm.exceptions import QuerysetError
-from asyncorm.model import ModelSerializer
+
 from library.models import Book
+from library.serializer import BookSerializer
 
 app = Sanic(name=__name__)
 
@@ -25,10 +26,10 @@ def orm_configure(sanic, loop):
     # configure_orm needs a dictionary with:
     #    * the database configuration
     #    * the application/s where the models are defined
-    orm_app = configure_orm({'loop': loop,  # always use the sanic loop!
-                             'db_config': db_config,
-                             'modules': ['library', ],  # list of apps
-                             })
+    configure_orm({'loop': loop,  # always use the sanic loop!
+                   'db_config': db_config,
+                   'modules': ['library', ],  # list of apps
+                   })
 
     # this should be run only once, do that as external command
     # it creates the tables in the database!!!!
@@ -39,15 +40,17 @@ def orm_configure(sanic, loop):
 class BooksView(HTTPMethodView):
 
     async def get(self, request):
-        books = await Book.objects.all()
+        q_books = await Book.objects.all()
+        books = [BookSerializer.serialize(book) for book in q_books]
+
         return json({'method': request.method,
                      'status': 200,
-                     'results': [BookSerializer.serialize(book) for book in books] or None,
+                     'results': books or None,
                      'count': len(books),
                      })
 
     async def post(self, request):
-        # populate the book with the data in te request
+        # populate the book with the data in the request
         book = Book(**request.json)
 
         # and await on save
@@ -57,12 +60,6 @@ class BooksView(HTTPMethodView):
                      'status': 201,
                      'results': BookSerializer.serialize(book),
                      })
-
-
-class BookSerializer(ModelSerializer):
-    class Meta():
-        model = Book
-        fields = ['id', 'name', 'synopsis', 'book_type', 'pages']
 
 
 class BookView(HTTPMethodView):

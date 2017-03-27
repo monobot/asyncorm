@@ -4,9 +4,9 @@ from ..manager import ModelManager, FieldQueryset
 from ..exceptions import ModelError, FieldError
 from ..application import get_model
 
-from .serializer import ModelSerializer
+from .serializer import ModelSerializer, SerializerMethod
 
-__all__ = ['Model', 'ModelSerializer']
+__all__ = ['Model', 'ModelSerializer', 'SerializerMethod']
 
 
 class ModelMeta(type):

@@ -1,7 +1,11 @@
 from ..exceptions import SerializerError
 
 
-class SerializerMeta(type):
+class Serializer():
+    pass
+
+
+class ModelSerializerMeta(type):
 
     def __new__(cls, clsname, bases, clsdict):
         base_class = super().__new__(cls, clsname, bases, clsdict)
@@ -25,7 +29,11 @@ class SerializerMeta(type):
         return base_class
 
 
-class ModelSerializer(object, metaclass=SerializerMeta):
+class SerializerMethod(Serializer):
+    pass
+
+
+class ModelSerializer(Serializer, metaclass=ModelSerializerMeta):
 
     def __init__(self):
         self.validate_fields()
@@ -49,6 +57,20 @@ class ModelSerializer(object, metaclass=SerializerMeta):
             )
 
         for f in cls._fields:
-            return_dict[f] = getattr(instanced_model, f)
+            if hasattr(cls, f):
+                serializer = getattr(cls, f)
+                if isinstance(serializer, SerializerMethod):
+                    try:
+                        serializer_method = getattr(cls, 'get_{}'.format(f))
+                        return_dict[f] = serializer_method(
+                            serializer, instanced_model
+                        )
+                    except AttributeError:
+                        raise SerializerError(
+                            ('The serializer does not defines the method '
+                             'for attribute {}').format(f)
+                        )
+            else:
+                return_dict[f] = getattr(instanced_model, f)
 
         return return_dict
