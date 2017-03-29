@@ -56,10 +56,7 @@ def ignore_urlbuilderrors(request, exception):
 # now the propper sanic workflow
 class BooksView(HTTPMethodView):
     def arg_parser(self, request):
-        parsed_args = {}
-        for k, v in request.args.items():
-            parsed_args[k] = v[0]
-        return parsed_args
+        return {k: v[0] for k, v in request.args.items()}
 
     async def get(self, request):
         filtered_by = self.arg_parser(request)

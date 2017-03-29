@@ -34,7 +34,10 @@ class MigrationTests(AioTestCase):
     def test_class__init__(self):
         dict_book = Inspector.jsonify(Book)
 
+        # the inspector correctly retrieves the data
         self.assertEqual(dict_book['_table_name'], 'library')
-
-        self.assertEqual(dict_book['unique_together'], ['name', 'content'])
         self.assertEqual(dict_book['_db_pk'], 'id')
+
+        # even the data that comes from the metaclass
+        self.assertEqual(dict_book['ordering'], ['-id'])
+        self.assertEqual(dict_book['unique_together'], ['name', 'content'])

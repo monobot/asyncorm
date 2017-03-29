@@ -52,17 +52,18 @@ class Queryset(object):
              ]
         )
 
-    async def _create_table(self):
-        '''
-        Builds the table without the m2m_fields and fks
-        '''
-        db_request = {
+    def _create_table_builder(self):
+        return {
             'table_name': self.model.table_name(),
             'action': 'db__create_table',
             'field_queries': self._get_field_queries(),
         }
 
-        await self.db_request(db_request)
+    async def _create_table(self):
+        '''
+        Builds the table without the m2m_fields and fks
+        '''
+        await self.db_request(self._create_table_builder())
 
     async def _unique_together(self):
         '''
@@ -79,20 +80,27 @@ class Queryset(object):
 
             await self.db_request(db_request)
 
+    def _add_fk_field_builder(self, field):
+        return {
+            'table_name': self.model.table_name(),
+            'action': 'db__table_add_column',
+            'field_creation_string': field._creation_query(),
+        }
+
     async def _add_fk_columns(self):
         '''
         Builds the fk fields
         '''
         for n, f in self.model.fields.items():
             if isinstance(f, ForeignKey):
+                await self.db_request(self._add_fk_field_builder(f))
 
-                db_request = {
-                    'table_name': self.model.table_name(),
-                    'action': 'db__table_add_column',
-                    'field_creation_string': f._creation_query(),
-                }
-
-                await self.db_request(db_request)
+    def _add_m2m_columns_builder(self, field):
+        return {
+            'table_name': field.table_name,
+            'action': 'db__create_table',
+            'field_queries': field._creation_query(),
+        }
 
     async def _add_m2m_columns(self):
         '''
@@ -100,14 +108,7 @@ class Queryset(object):
         '''
         for n, f in self.model.fields.items():
             if isinstance(f, ManyToMany):
-
-                db_request = {
-                    'table_name': f.table_name,
-                    'action': 'db__create_table',
-                    'field_queries': f._creation_query(),
-                }
-
-                await self.db_request(db_request)
+                await self.db_request(self._add_m2m_columns_builder(f))
 
     def _get_unique_together(self):
         # builds the table with all its fields definition
