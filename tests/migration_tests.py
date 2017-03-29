@@ -35,3 +35,6 @@ class MigrationTests(AioTestCase):
         dict_book = Inspector.jsonify(Book)
 
         self.assertEqual(dict_book['_table_name'], 'library')
+
+        self.assertEqual(dict_book['unique_together'], ['name', 'content'])
+        self.assertEqual(dict_book['_db_pk'], 'id')
