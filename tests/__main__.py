@@ -68,5 +68,6 @@ if __name__ == '__main__':
     from .manage_tests import ManageTestMethods
     from .model_tests import ModelTests
     from .field_tests import FieldTests
+    from .migration_tests import MigrationTests
 
     unittest.main()

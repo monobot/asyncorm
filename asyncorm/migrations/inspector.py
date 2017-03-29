@@ -1,8 +1,10 @@
 from ..fields import Field
 
+
 class Inspector():
 
-    def jsonify(self, model):
+    @classmethod
+    def jsonify(cls, model):
         inspected_model = {}
         for n, f in model.__dict__.items():
             if not n == 'Meta':
@@ -10,4 +12,4 @@ class Inspector():
                 if isinstance(f, Field):
                     inspected_model[n] = f.__dict__
 
-        print(inspected_model)
+        return inspected_model
