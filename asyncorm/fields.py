@@ -120,6 +120,10 @@ class Field(object):
                 )
             )
 
+    @classmethod
+    def _recompose(cls, value):
+        return value
+
     def _sanitize_data(self, value):
         '''method used to convert to SQL data'''
         if value is None:
@@ -185,12 +189,19 @@ class JsonField(CharField):
                          unique=unique
                          )
 
+    @classmethod
+    def _recompose(cls, value):
+        return json.loads(value)
+
     def _sanitize_data(self, value):
-        value = super()._sanitize_data(value)
+        if value is None:
+            return 'NULL'
+        self.__class__._validate(value)
 
         if value != 'NULL':
             try:
                 value = json.dumps(value)
+
             except SyntaxError:
                 raise FieldError(
                     'The data entered can not be converted to json'
@@ -201,8 +212,6 @@ class JsonField(CharField):
                  'the "max_length" defined ({})'
                  ).format(self.max_length)
             )
-        if value != 'NULL':
-            return value
         return '\'{}\''.format(value)
 
 

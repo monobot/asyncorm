@@ -112,7 +112,8 @@ class FieldTests(AioTestCase):
         book = Book(content='paperback')
         self.assertEqual(book.content_display(), 'paperback book')
 
-    # async def test_jsonfield(self):
-    #     publisher = Publisher(name='Oliver', json={'last_name': 'Gregory'})
-    #     await publisher.save()
-    #     print(publisher.json)
+    async def test_jsonfield(self):
+        publisher = Publisher(name='Oliver', json={'last_name': 'Gregory'})
+        await publisher.save()
+
+        self.assertEqual(publisher.json.__class__, dict)

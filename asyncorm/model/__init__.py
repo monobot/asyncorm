@@ -158,7 +158,7 @@ class BaseModel(object, metaclass=ModelMeta):
         d = {}
         created = bool(self._orm_pk)
 
-        for orm, db in self.__class__._attr_names:
+        for orm, db in self.__class__._attr_names.items():
             class__orm = getattr(self.__class__, orm)
             self__orm = getattr(self, orm)
 
@@ -178,7 +178,7 @@ class BaseModel(object, metaclass=ModelMeta):
     def m2m_data(self):
         d = {}
 
-        for orm, db in self.__class__._attr_names:
+        for orm, db in self.__class__._attr_names.items():
             class__orm = getattr(self.__class__, orm)
             if isinstance(class__orm, ManyToMany):
                 self__orm = getattr(self, orm)
@@ -193,7 +193,7 @@ class BaseModel(object, metaclass=ModelMeta):
     def _get_fields(cls):
         fields = {}
 
-        cls._attr_names = []
+        cls._attr_names = {}
         for f_n, field in cls.__dict__.items():
             if isinstance(field, Field):
                 field.orm_field_name = f_n
@@ -212,7 +212,7 @@ class BaseModel(object, metaclass=ModelMeta):
                     )
 
                 if not isinstance(field.__class__, PkField):
-                    cls._attr_names.append((f_n, field.field_name))
+                    cls._attr_names.update({f_n: field.field_name})
 
                 fields[f_n] = field
 
@@ -251,6 +251,15 @@ class Model(BaseModel):
     def _construct(self, data, deleted=False):
         # poblates the model with the data
         for k, v in data.items():
+            # check if its named different in the database than the orm
+            if k not in self.__class__._attr_names.keys():
+                for orm, db in self.__class__._attr_names.items():
+                    if k == db:
+                        k = orm
+                        break
+            # get the recomposed value
+            v = getattr(self.__class__, k)._recompose(v)
+
             setattr(self, k, v)
         self.deleted = deleted
         return self
@@ -275,4 +284,4 @@ class Model(BaseModel):
         return '< {} object >'.format(self.__class__.__name__)
 
     def __repr__(self):
-        return '< {} object >'.format(self.__class__.__name__)
+        return self.__str__
