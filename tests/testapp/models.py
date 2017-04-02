@@ -9,6 +9,7 @@ BOOK_CHOICES = (
 
 class Publisher(Model):
     name = CharField(max_length=50)
+    json = JsonField(max_length=250, null=True)
 
 
 class Author(Model):

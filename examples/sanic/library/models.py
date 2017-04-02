@@ -17,5 +17,5 @@ class Book(Model):
     date_created = DateField(auto_now=True)
 
     class Meta():
-        ordering = ['name', ]
+        ordering = ['-name', ]
         unique_together = ['name', 'synopsis']

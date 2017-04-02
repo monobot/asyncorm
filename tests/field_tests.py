@@ -3,7 +3,7 @@ import unittest
 
 from asyncorm.exceptions import *
 from asyncorm.fields import *
-from .testapp.models import Book
+from .testapp.models import Book, Publisher
 
 
 class AioTestCase(unittest.TestCase):
@@ -111,3 +111,8 @@ class FieldTests(AioTestCase):
 
         book = Book(content='paperback')
         self.assertEqual(book.content_display(), 'paperback book')
+
+    # async def test_jsonfield(self):
+    #     publisher = Publisher(name='Oliver', json={'last_name': 'Gregory'})
+    #     await publisher.save()
+    #     print(publisher.json)

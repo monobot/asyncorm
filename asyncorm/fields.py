@@ -1,9 +1,11 @@
+import json
+
 from datetime import datetime
 
 from .exceptions import FieldError  # , ModuleError
 
 __all__ = ('Field', 'PkField', 'CharField', 'IntegerField', 'DateField',
-           'ForeignKey', 'ManyToMany', 'DecimalField'
+           'ForeignKey', 'ManyToMany', 'DecimalField', 'JsonField'
            )
 
 DATE_FIELDS = ['DateField', ]
@@ -119,12 +121,14 @@ class Field(object):
             )
 
     def _sanitize_data(self, value):
+        '''method used to convert to SQL data'''
         if value is None:
             return 'NULL'
         self.__class__._validate(value)
         return value
 
     def _serialize_data(self, value):
+        '''to directly serialize the data field based'''
         return value
 
     def _set_field_name(self, field_name):
@@ -153,14 +157,13 @@ class CharField(Field):
     def __init__(self, field_name='', default=None, max_length=0,
                  null=False, choices={}, unique=False
                  ):
+        self.max_length = max_length
         super().__init__(field_name=field_name, default=default,
                          max_length=max_length, null=null, choices=choices,
                          unique=unique
                          )
 
     def _sanitize_data(self, value):
-        if value is None:
-            return 'NULL'
         value = super()._sanitize_data(value)
         if len(value) > self.max_length:
             raise FieldError(
@@ -168,6 +171,38 @@ class CharField(Field):
                  'the "max_length" defined ({})'
                  ).format(self.max_length)
             )
+        return '\'{}\''.format(value)
+
+
+class JsonField(CharField):
+    internal_type = dict, list, str
+
+    def __init__(self, field_name='', default=None, max_length=0,
+                 null=False, choices={}, unique=False
+                 ):
+        super().__init__(field_name=field_name, default=default,
+                         max_length=max_length, null=null, choices=choices,
+                         unique=unique
+                         )
+
+    def _sanitize_data(self, value):
+        value = super()._sanitize_data(value)
+
+        if value != 'NULL':
+            try:
+                value = json.dumps(value)
+            except SyntaxError:
+                raise FieldError(
+                    'The data entered can not be converted to json'
+                )
+        if len(value) > self.max_length:
+            raise FieldError(
+                ('The string entered is bigger than '
+                 'the "max_length" defined ({})'
+                 ).format(self.max_length)
+            )
+        if value != 'NULL':
+            return value
         return '\'{}\''.format(value)
 
 
@@ -181,8 +216,6 @@ class IntegerField(Field):
                          choices=choices, unique=unique)
 
     def _sanitize_data(self, value):
-        if value is None:
-            return 'NULL'
         value = super()._sanitize_data(value)
 
         return '{}'.format(value)
@@ -206,8 +239,6 @@ class DateField(Field):
                          )
 
     def _sanitize_data(self, value):
-        if value is None:
-            return 'NULL'
         value = super()._sanitize_data(value)
 
         return "'{}'".format(value)
@@ -228,8 +259,6 @@ class ForeignKey(Field):
                          )
 
     def _sanitize_data(self, value):
-        if value is None:
-            return 'NULL'
         value = super()._sanitize_data(value)
         return str(value)
 

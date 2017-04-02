@@ -114,12 +114,13 @@ class PostgresManager(GeneralManager):
             )
 
         # if request_dict['action'] == 'db__create_table':
-            # print(query)
+        # print(query)
 
         no_result = ['db__delete', 'db__create_table', 'db__alter_table',
                      'db__constrain_table', 'db__table_add_column',
                      'db__table_alter_column',
                      ]
+
         async with conn.transaction():
             result = await conn.fetch(query)
             if '__select' not in request_dict['action']:
