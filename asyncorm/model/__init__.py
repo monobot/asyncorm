@@ -1,5 +1,5 @@
 from ..log import logger
-from ..fields import Field, PkField, ManyToMany  # , ForeignKey
+from ..fields import Field, PkField, ManyToMany, ForeignKey
 from ..manager import ModelManager, FieldQueryset
 from ..exceptions import ModelError, FieldError
 from ..application import get_model
@@ -258,8 +258,11 @@ class Model(BaseModel):
                         k = orm
                         break
             # get the recomposed value
-            v = getattr(self.__class__, k)._recompose(v)
+            field_class = getattr(self.__class__, k)
+            v = field_class._recompose(v)
 
+            if field_class in [ForeignKey, ManyToMany]:
+                print('biif')
             setattr(self, k, v)
         self.deleted = deleted
         return self
