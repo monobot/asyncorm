@@ -37,3 +37,8 @@ History
 
 * ordering on all db requests, sanic example updated
 
+0.0.8 (2017-04-03)
+------------------
+
+* everything more mature including jsonfield
+
