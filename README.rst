@@ -13,10 +13,6 @@ asyncorm
         :target: https://asyncorm.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-.. image:: https://pyup.io/repos/github/monobot/asyncorm/shield.svg
-     :target: https://pyup.io/repos/github/monobot/asyncorm/
-     :alt: Updates
-
 
 A fully asynchronous python ORM
 
