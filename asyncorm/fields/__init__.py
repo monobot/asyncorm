@@ -113,12 +113,13 @@ class Field(object):
         if kwargs.get('field_name', ''):
             self._set_field_name(kwargs['field_name'])
 
-    @classmethod
-    def _validate(cls, value):
-        if not isinstance(value, cls.internal_type):
+    def _validate(self, value):
+        if not value and not self.null:
+            raise FieldError('null value in NOT NULL field')
+        if not isinstance(value, self.internal_type):
             raise FieldError(
                 '{} is a wrong datatype for field {}'.format(
-                    value, cls.__name__
+                    value, self.__class__.__name__
                 )
             )
 
@@ -130,7 +131,7 @@ class Field(object):
         '''method used to convert to SQL data'''
         if value is None:
             return 'NULL'
-        self.__class__._validate(value)
+        self._validate(value)
         return value
 
     def _serialize_data(self, value):
@@ -198,7 +199,7 @@ class JsonField(CharField):
     def _sanitize_data(self, value):
         if value is None:
             return 'NULL'
-        self.__class__._validate(value)
+        self._validate(value)
 
         if value != 'NULL':
             try:
@@ -291,7 +292,6 @@ class ManyToMany(Field):
     def _creation_query(self):
         return self.creation_string.format(**self.__dict__)
 
-    @classmethod
     def _validate(self, value):
         if isinstance(value, list):
             for i in value:

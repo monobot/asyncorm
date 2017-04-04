@@ -237,9 +237,9 @@ class BaseModel(object, metaclass=ModelMeta):
             raise ModelError(error_list)
 
         for k, v in kwargs.items():
-            att_class = getattr(self.__class__, k).__class__
-            att_class._validate(v)
-            if att_class is PkField and v:
+            att_field = getattr(self.__class__, k)
+            att_field._validate(v)
+            if att_field.__class__ is PkField and v:
                 raise FieldError('Models can not be generated with forced id')
 
 
