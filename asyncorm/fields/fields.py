@@ -28,20 +28,10 @@ class Field(object):
         self._validate_kwargs(kwargs)
         self.field_type = self.__class__.__name__
 
-        self.field_name = kwargs.get('field_name', '')
-
-        self.default = kwargs.get('default', None)
-        self.unique = kwargs.get('unique', None)
-        self.null = kwargs.get('null', False)
-
-        self.max_length = kwargs.get('max_length', 0)
-
-        self.foreign_key = kwargs.get('foreign_key', '')
-        self.strftime = kwargs.get('strftime', '')
-
-        self.auto_now = kwargs.get('auto_now', False)
-        self.reverse_field = kwargs.get('reverse_field', '')
-        self.choices = {k: v for k, v in kwargs.get('choices', [])}
+        for kw in kwargs.keys():
+            setattr(self, kw, kwargs.get(kw))
+            if kw == 'choices':
+                self.choices = {k: v for k, v in kwargs.get(kw)}
 
     def _creation_query(self):
         creation_string = '{field_name} ' + self.creation_string
@@ -49,7 +39,10 @@ class Field(object):
 
         creation_string += self.null and ' NULL' or ' NOT NULL'
 
-        default_value = self.default
+        default_value = ''
+        if hasattr(self, 'default'):
+            default_value = self.default
+
         if default_value:
             creation_string += ' DEFAULT '
             if callable(self.default):
@@ -146,8 +139,8 @@ class PkField(Field):
     internal_type = object
     creation_string = 'serial primary key'
 
-    def __init__(self, field_name='id', unique=False):
-        super().__init__(field_name=field_name, unique=unique)
+    def __init__(self, field_name='id', unique=False, null=False):
+        super().__init__(field_name=field_name, unique=unique, null=null)
 
 
 class CharField(Field):
@@ -158,7 +151,6 @@ class CharField(Field):
     def __init__(self, field_name='', default=None, max_length=0,
                  null=False, choices={}, unique=False
                  ):
-        self.max_length = max_length
         super().__init__(field_name=field_name, default=default,
                          max_length=max_length, null=null, choices=choices,
                          unique=unique

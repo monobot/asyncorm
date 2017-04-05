@@ -54,12 +54,13 @@ class ModelMeta(type):
             base_class._orm_pk = pk_fields[0].orm_field_name
 
         for f in base_class.fields.values():
-            if f.choices:
-                setattr(
-                    base_class,
-                    '{}_display'.format(f.orm_field_name),
-                    'choices_placeholder'
-                )
+            if hasattr(f, 'choices'):
+                if f.choices:
+                    setattr(
+                        base_class,
+                        '{}_display'.format(f.orm_field_name),
+                        'choices_placeholder'
+                    )
 
         return base_class
 

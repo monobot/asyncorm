@@ -114,7 +114,7 @@ class PostgresManager(GeneralManager):
             )
 
         # if request_dict['action'] == 'db__create_table':
-        print(query)
+        # print(query)
 
         no_result = ['db__delete', 'db__create_table', 'db__alter_table',
                      'db__constrain_table', 'db__table_add_column',
