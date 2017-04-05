@@ -1,7 +1,7 @@
 from asyncpg.exceptions import UniqueViolationError
 
-from .exceptions import QuerysetError, ModelError
-from .fields import ManyToMany, ForeignKey  # , ManyToMany
+from ..exceptions import QuerysetError, ModelError
+from ..fields import ManyToMany, ForeignKey  # , ManyToMany
 # from .log import logger
 
 __all__ = ['FieldQueryset', 'ModelManager', 'Queryset']
