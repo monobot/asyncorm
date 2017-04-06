@@ -4,7 +4,7 @@ import asyncio
 
 from collections import OrderedDict
 
-from ..exceptions import ModuleError
+from ..exceptions import ModuleError, ModelError
 from ..fields import ForeignKey, ManyToMany
 
 DEFAULT_CONFIG = {
@@ -19,6 +19,7 @@ class OrmApp(object):
     db_manager = None
     loop = None
     models = OrderedDict()
+    modules = {}
 
     def configure(self, config):
         '''
@@ -59,20 +60,31 @@ class OrmApp(object):
 
         from asyncorm.model import Model
         for m in modules:
+            module_list = {}
             module = importlib.import_module('{}.models'.format(m))
             for k, v in inspect.getmembers(module):
                 try:
                     if issubclass(v, Model) and v is not Model:
                         self.models[k] = v
+                        module_list.update({k: v})
                 except TypeError:
                     pass
+            self.modules.update({m.split('.')[-1]: module_list})
 
     def get_model(self, model_name):
         if self.models is None:
             raise ModuleError('There are no modules declared in the orm')
 
         try:
-            return self.models[model_name]
+            model_split = model_name.split('.')
+            if len(model_split) == 2:
+                return self.modules[model_split[0]][model_split[1]]
+            elif len(model_split) == 1:
+                return self.models[model_name]
+            else:
+                raise ModelError(
+                    'The string declared doesn\'t return any valid Model'
+                )
         except KeyError:
             raise ModuleError('The model does not exists')
 

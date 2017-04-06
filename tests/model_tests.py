@@ -9,8 +9,10 @@ from asyncorm.model import ModelSerializer
 from .testapp.models import Book, Author
 from .testapp2.models import Developer, Client, Organization
 
+# You can get the book by model_name
 Book2 = get_model('Book')
-Author2 = get_model('Author')
+# And get the author by module.model_name
+Author2 = get_model('testapp.Author')
 
 
 class AioTestCase(unittest.TestCase):
