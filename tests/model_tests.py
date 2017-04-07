@@ -1,6 +1,3 @@
-import asyncio
-import unittest
-
 from asyncorm.application import get_model
 from asyncorm.exceptions import *
 from asyncorm.fields import *
@@ -8,35 +5,12 @@ from asyncorm.model import ModelSerializer
 
 from .testapp.models import Book, Author
 from .testapp2.models import Developer, Client, Organization
+from .test_helper import AioTestCase
 
 # You can get the book by model_name
 Book2 = get_model('Book')
 # And get the author by module.model_name
 Author2 = get_model('testapp.Author')
-
-
-class AioTestCase(unittest.TestCase):
-
-    # noinspection PyPep8Naming
-    def __init__(self, methodName='runTest', loop=None):
-        self.loop = loop or asyncio.get_event_loop()
-        self._function_cache = {}
-        super(AioTestCase, self).__init__(methodName=methodName)
-
-    def coroutine_function_decorator(self, func):
-        def wrapper(*args, **kw):
-            return self.loop.run_until_complete(func(*args, **kw))
-        return wrapper
-
-    def __getattribute__(self, item):
-        attr = object.__getattribute__(self, item)
-        if asyncio.iscoroutinefunction(attr):
-            if item not in self._function_cache:
-                self._function_cache[item] = self.coroutine_function_decorator(
-                    attr
-                )
-            return self._function_cache[item]
-        return attr
 
 
 class ModelTests(AioTestCase):

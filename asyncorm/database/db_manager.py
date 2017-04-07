@@ -82,8 +82,7 @@ class PostgresManager(GeneralManager):
 
     def query_clean(self, query):
         '''Here we clean the queryset'''
-        if query[-1] != ';':
-            query += ';'
+        query += ';'
         while '; ;' in query:
             query.replace('; ;', ';')
         while ';;' in query:
