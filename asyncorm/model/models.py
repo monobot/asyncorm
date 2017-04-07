@@ -56,11 +56,10 @@ class ModelMeta(type):
         for f in base_class.fields.values():
             if hasattr(f, 'choices'):
                 if f.choices:
-                    setattr(
-                        base_class,
-                        '{}_display'.format(f.orm_field_name),
-                        'choices_placeholder'
-                    )
+                    setattr(base_class,
+                            '{}_display'.format(f.orm_field_name),
+                            'choices_placeholder'
+                            )
 
         return base_class
 
