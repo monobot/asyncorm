@@ -12,23 +12,23 @@ class PostgresManager(GeneralManager):
     def db__create_table(self):
         return '''
             CREATE TABLE IF NOT EXISTS {table_name}
-            ({field_queries})'''
+            ({field_queries}) '''
 
     @property
     def db__alter_table(self):
         return '''
-            ALTER TABLE {table_name} ({field_queries})'''
+            ALTER TABLE {table_name} ({field_queries}) '''
 
     @property
     def db__constrain_table(self):
         return '''
-            ALTER TABLE {table_name} ADD {constrain}'''
+            ALTER TABLE {table_name} ADD {constrain} '''
 
     @property
     def db__table_add_column(self):
         return '''
             ALTER TABLE {table_name}
-            ADD COLUMN {field_creation_string}'''
+            ADD COLUMN {field_creation_string} '''
 
     @property
     def db__table_alter_column(self):
@@ -43,7 +43,7 @@ class PostgresManager(GeneralManager):
     def db_insert(self):
         return '''
             INSERT INTO {table_name} ({field_names}) VALUES ({field_values})
-            RETURNING *'''
+            RETURNING * '''
 
     @property
     def db__select_all(self):
@@ -54,12 +54,17 @@ class PostgresManager(GeneralManager):
         return 'SELECT {select} FROM {table_name} WHERE {condition} '
 
     @property
+    def db__filter(self):
+        '''chainable'''
+        return 'WHERE {condition} '
+
+    @property
     def db__select_m2m(self):
         return '''
             SELECT {select} FROM {other_tablename}
             WHERE {other_db_pk} = ANY (
                 SELECT {other_tablename} FROM {m2m_tablename} WHERE {id_data}
-            )'''
+            ) '''
 
     @property
     def db__update(self):
@@ -67,11 +72,11 @@ class PostgresManager(GeneralManager):
             UPDATE ONLY {table_name}
             SET ({field_names}) = ({field_values})
             WHERE {id_data}
-            RETURNING *'''
+            RETURNING * '''
 
     @property
     def db__delete(self):
-        return 'DELETE FROM {table_name} WHERE {id_data}'
+        return 'DELETE FROM {table_name} WHERE {id_data} '
 
     async def get_conn(self):
         import asyncpg
@@ -83,10 +88,6 @@ class PostgresManager(GeneralManager):
     def query_clean(self, query):
         '''Here we clean the queryset'''
         query += ';'
-        while '; ;' in query:
-            query.replace('; ;', ';')
-        while ';;' in query:
-            query.replace(';;', ';')
         return query
 
     def ordering_syntax(self, ordering):
@@ -107,7 +108,7 @@ class PostgresManager(GeneralManager):
         if request_dict.get('ordering', None):
             query = query.replace(
                 ';',
-                'ORDER BY {};'.format(','.join(
+                'ORDER BY {} ;'.format(','.join(
                     self.ordering_syntax(request_dict['ordering'])
                 ))
             )

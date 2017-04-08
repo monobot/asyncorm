@@ -48,12 +48,12 @@ async def create_book(x):
 
 
 async def create_author(x):
-    book = Author(**{
+    author = Author(**{
         'name': 'foo_boy {}'.format(str(x)),
         'age': 23,
     })
 
-    await book.save()
+    await author.save()
 
 # create some test models
 for x in range(3):

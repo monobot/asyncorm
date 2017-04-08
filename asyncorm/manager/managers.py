@@ -31,7 +31,7 @@ class Queryset(object):
         self.table_name = self.model.table_name()
         self.select = '*'
 
-        self.query_chain = []
+        self.query_chain = [{'action': 'db__select_all'}, ]
 
     @classmethod
     def _set_orm(cls, orm):
@@ -39,8 +39,9 @@ class Queryset(object):
         cls.db_manager = orm.db_manager
 
     # def _copy_me(self):
-    #     queryset = Queryset()
-    #     queryset.model = self.model
+    #     queryset = Queryset(self.model)
+
+    #     queryset.query_chain = self.query_chain[:]
     #     return queryset
 
     def _get_field_queries(self):
@@ -215,6 +216,16 @@ class Queryset(object):
         request = self.db_request(db_request)
         return [self._model_constructor(r) for r in await request]
 
+    # def new_filter(self, **kwargs):
+    #     filters = self.calc_filters(kwargs)
+    #     condition = ' AND '.join(filters)
+
+    #     self.query_chain.append(
+    #         {'action': 'db__filter', 'condition': condition}
+    #     )
+    #     print('after filter', self.query_chain)
+    #     return self._copy_me()
+
     async def filter_m2m(self, m2m_filter):
         m2m_filter.update({'action': 'db__select_m2m'})
         if self.model.ordering:
@@ -237,6 +248,16 @@ class Queryset(object):
 
         request = await self.db_request(db_request)
         return [self._model_constructor(r) for r in request]
+
+    # def new_exclude(self, **kwargs):
+    #     filters = self.calc_filters(kwargs, exclude=True)
+    #     condition = ' AND '.join(filters)
+
+    #     self.query_chain.append(
+    #         {'action': 'db__filter', 'condition': condition}
+    #     )
+    #     print('after exclude', self.query_chain)
+    #     return self._copy_me()
 
     async def db_request(self, db_request):
         db_request.update({
