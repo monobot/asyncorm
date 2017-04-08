@@ -55,6 +55,11 @@ async def create_author(x):
 
     await author.save()
 
+    bk = Book.objects.new_filter(name='hola').new_exclude(name='hola2').new_filter(name='hola').new_exclude(name='hola2')
+    print(bk.query_chain)
+    for i in bk:
+        print(i)
+
 # create some test models
 for x in range(3):
     task = loop.create_task(create_author(x))

@@ -31,18 +31,18 @@ class Queryset(object):
         self.table_name = self.model.table_name()
         self.select = '*'
 
-        self.query_chain = [{'action': 'db__select_all'}, ]
+        self.query_chain = None
 
     @classmethod
     def _set_orm(cls, orm):
         cls.orm = orm
         cls.db_manager = orm.db_manager
 
-    # def _copy_me(self):
-    #     queryset = Queryset(self.model)
+    def _copy_me(self):
+        queryset = Queryset(self.model)
 
-    #     queryset.query_chain = self.query_chain[:]
-    #     return queryset
+        queryset.query_chain = [{'action': 'db__select_all'}, ]
+        return queryset
 
     def _get_field_queries(self):
         # Builds the creationquery for each of the non fk or m2m fields
@@ -216,15 +216,18 @@ class Queryset(object):
         request = self.db_request(db_request)
         return [self._model_constructor(r) for r in await request]
 
-    # def new_filter(self, **kwargs):
-    #     filters = self.calc_filters(kwargs)
-    #     condition = ' AND '.join(filters)
+    def new_filter(self, **kwargs):
+        filters = self.calc_filters(kwargs)
+        condition = ' AND '.join(filters)
 
-    #     self.query_chain.append(
-    #         {'action': 'db__filter', 'condition': condition}
-    #     )
-    #     print('after filter', self.query_chain)
-    #     return self._copy_me()
+        queryset = self
+        if not self.query_chain:
+            queryset = self._copy_me()
+
+        queryset.query_chain.append(
+            {'action': 'db_where', 'condition': condition}
+        )
+        return queryset
 
     async def filter_m2m(self, m2m_filter):
         m2m_filter.update({'action': 'db__select_m2m'})
@@ -249,15 +252,18 @@ class Queryset(object):
         request = await self.db_request(db_request)
         return [self._model_constructor(r) for r in request]
 
-    # def new_exclude(self, **kwargs):
-    #     filters = self.calc_filters(kwargs, exclude=True)
-    #     condition = ' AND '.join(filters)
+    def new_exclude(self, **kwargs):
+        filters = self.calc_filters(kwargs, exclude=True)
+        condition = ' AND '.join(filters)
 
-    #     self.query_chain.append(
-    #         {'action': 'db__filter', 'condition': condition}
-    #     )
-    #     print('after exclude', self.query_chain)
-    #     return self._copy_me()
+        queryset = self
+        if not self.query_chain:
+            queryset = self._copy_me()
+
+        queryset.query_chain.append(
+            {'action': 'db_where', 'condition': condition}
+        )
+        return queryset
 
     async def db_request(self, db_request):
         db_request.update({
@@ -268,6 +274,19 @@ class Queryset(object):
         })
         response = await self.db_manager.request(db_request)
         return response
+
+    # iterator construction
+    def __iter__(self):
+        self.a = 0
+        self.b = 1
+        return self
+
+    def __next__(self):
+        fib = self.a
+        if fib > 15:
+            raise StopIteration
+        self.a, self.b = self.b, self.a + self.b
+        return fib
 
 
 class FieldQueryset(Queryset):

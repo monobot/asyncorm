@@ -54,7 +54,7 @@ class PostgresManager(GeneralManager):
         return 'SELECT {select} FROM {table_name} WHERE {condition} '
 
     @property
-    def db__filter(self):
+    def db_where(self):
         '''chainable'''
         return 'WHERE {condition} '
 
