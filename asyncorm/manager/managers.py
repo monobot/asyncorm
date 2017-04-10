@@ -31,7 +31,7 @@ class Queryset(object):
         self.table_name = self.model.table_name()
         self.select = '*'
 
-        self.query_chain = None
+        self.query = None
 
     @classmethod
     def _set_orm(cls, orm):
@@ -41,7 +41,13 @@ class Queryset(object):
     def _copy_me(self):
         queryset = Queryset(self.model)
 
-        queryset.query_chain = [{'action': 'db__select_all'}, ]
+        queryset.query = {'action': 'db__select',
+                          'select': '*',
+                          'table_name': self.model.table_name(),
+                          'condition': []
+                          }
+        queryset.db_manager = self.db_manager
+        queryset.orm = self.orm
         return queryset
 
     def _get_field_queries(self):
@@ -221,10 +227,10 @@ class Queryset(object):
         condition = ' AND '.join(filters)
 
         queryset = self
-        if not self.query_chain:
+        if not self.query:
             queryset = self._copy_me()
 
-        queryset.query_chain.append(
+        queryset.query['condition'].append(
             {'action': 'db_where', 'condition': condition}
         )
         return queryset
@@ -257,10 +263,10 @@ class Queryset(object):
         condition = ' AND '.join(filters)
 
         queryset = self
-        if not self.query_chain:
+        if not self.query:
             queryset = self._copy_me()
 
-        queryset.query_chain.append(
+        queryset.query['condition'].append(
             {'action': 'db_where', 'condition': condition}
         )
         return queryset
@@ -274,6 +280,9 @@ class Queryset(object):
         })
         response = await self.db_manager.request(db_request)
         return response
+
+    async def build_chained_query(self):
+        await self.db_manager.build_chained_query(self.query)
 
     # iterator construction
     def __iter__(self):

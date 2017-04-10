@@ -90,6 +90,39 @@ class PostgresManager(GeneralManager):
         query += ';'
         return query
 
+    async def build_chained_query(self, request_dict):
+        # async for record in con.cursor('SELECT generate_series(0, 100)'):
+        #     print(record)
+
+        conditions = request_dict['condition']
+
+        if conditions:
+            l_cond = []
+            for c in conditions:
+                l_cond.append(c['condition'])
+            request_dict['condition'] = ' AND '.join(l_cond)
+        query = getattr(self, request_dict['action']
+                        ).format(**request_dict)
+
+        if request_dict.get('ordering', None):
+            query = query.replace(
+                ';',
+                'ORDER BY {} ;'.format(','.join(
+                    self.ordering_syntax(request_dict['ordering'])
+                ))
+            )
+
+        if not conditions:
+            query.replace('WHERE', '')
+
+        query = self.query_clean(query)
+        print(query)
+
+        conn = await self.get_conn()
+
+        async with conn.transaction():
+            return await conn.fetch(query)
+
     def ordering_syntax(self, ordering):
         result = []
         for f in ordering:
