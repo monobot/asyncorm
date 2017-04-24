@@ -55,8 +55,7 @@ async def create_author(x):
 
     await author.save()
 
-    # bk = Book.objects.new_filter(name='hola').new_exclude(name='hola2').new_filter(name='hola').new_exclude(name='hola2')
-    # print(bk.query_chain)
+    bk = Book.objects.new_filter(name='hola').new_exclude(name='hola2').new_filter(name='hola').new_exclude(name='hola2')
     # for i in bk:
     #     print(i)
 

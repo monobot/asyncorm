@@ -41,7 +41,14 @@ class Queryset(object):
     def _copy_me(self):
         queryset = Queryset(self.model)
 
-        queryset.query_chain = [{'action': 'db__select_all'}, ]
+        queryset.query_chain = [
+            {'action': 'db__select_all',
+             'select': '*',
+             'table_name': self.table_name,
+             },
+        ]
+        queryset._set_orm(self.orm)
+
         return queryset
 
     def _get_field_queries(self):

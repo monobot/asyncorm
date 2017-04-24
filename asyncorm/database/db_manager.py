@@ -130,6 +130,24 @@ class PostgresManager(GeneralManager):
             else:
                 return result
 
+    def construct_query(self, query_chain):
+        request_dict = query_chain.pop(0)
+
+        query_type = request_dict['action']
+        for q in query_chain:
+            if q['action'] == 'db_where':
+                if query_type == 'db__select_all':
+                    query_type = 'db__select'
+                    request_dict.update({'action': query_type})
+                condition = request_dict.get('condition', '')
+                if condition:
+                    condition = ' AND '.join([condition, q['condition']])
+                else:
+                    condition = q['condition']
+
+                request_dict.update({'condition': condition})
+        return getattr(self, request_dict['action']).format(**request_dict)
+
     async def transaction_insert(self, queries):
         conn = await self.get_conn()
         async with conn.transaction():
