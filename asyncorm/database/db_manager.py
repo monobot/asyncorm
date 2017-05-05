@@ -1,3 +1,21 @@
+class Cursor(object):
+
+    def __init__(self, cursor, step=2):
+        self._cursor = cursor
+        self._step = step
+        self._results = []
+
+    async def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        if not self._results:
+            self._results = await self._cursor.fetch(self._step)
+            if not self._results:
+                raise StopAsyncIteration()
+        return self._results.pop()
+
+
 class GeneralManager(object):
     # things that belong to all the diff databases managers    @classmethod
 
@@ -90,38 +108,33 @@ class PostgresManager(GeneralManager):
         query += ';'
         return query
 
-    async def build_chained_query(self, request_dict):
-        # async for record in con.cursor('SELECT generate_series(0, 100)'):
-        #     print(record)
+    # async def build_chained_query(self, request_dict):
+    #     conditions = request_dict['condition']
 
-        conditions = request_dict['condition']
+    #     if conditions:
+    #         l_cond = []
+    #         for c in conditions:
+    #             l_cond.append(c['condition'])
+    #         request_dict['condition'] = ' AND '.join(l_cond)
+    #     query = getattr(self, request_dict['action']).format(**request_dict)
 
-        if conditions:
-            l_cond = []
-            for c in conditions:
-                l_cond.append(c['condition'])
-            request_dict['condition'] = ' AND '.join(l_cond)
-        query = getattr(self, request_dict['action']
-                        ).format(**request_dict)
+    #     if request_dict.get('ordering', None):
+    #         query = query.replace(
+    #             ';',
+    #             'ORDER BY {} ;'.format(','.join(
+    #                 self.ordering_syntax(request_dict['ordering'])
+    #             ))
+    #         )
 
-        if request_dict.get('ordering', None):
-            query = query.replace(
-                ';',
-                'ORDER BY {} ;'.format(','.join(
-                    self.ordering_syntax(request_dict['ordering'])
-                ))
-            )
+    #     if not conditions:
+    #         query.replace('WHERE', '')
 
-        if not conditions:
-            query.replace('WHERE', '')
+    #     query = self.query_clean(query)
 
-        query = self.query_clean(query)
-        print(query)
+    #     conn = await self.get_conn()
 
-        conn = await self.get_conn()
-
-        async with conn.transaction():
-            return await conn.fetch(query)
+    #     async with conn.transaction():
+    #         return await conn.fetch(query)
 
     def ordering_syntax(self, ordering):
         result = []
@@ -180,6 +193,13 @@ class PostgresManager(GeneralManager):
 
                 request_dict.update({'condition': condition})
         return getattr(self, request_dict['action']).format(**request_dict)
+
+    async def queryset_cursor(self, query_chain):
+        conn = await self.get_conn()
+
+        async with conn.transaction():
+            cur = await conn.cursor(self.construct_query(query_chain))
+            return Cursor(cur)
 
     async def transaction_insert(self, queries):
         conn = await self.get_conn()

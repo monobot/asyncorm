@@ -41,12 +41,12 @@ class Queryset(object):
     def _copy_me(self):
         queryset = Queryset(self.model)
 
-        queryset.query_chain = [
-            {'action': 'db__select_all',
-             'select': '*',
-             'table_name': self.table_name,
-             },
-        ]
+        queryset.query = [{
+            'action': 'db__select_all',
+            'select': '*',
+            'table_name': self.table_name,
+        }]
+
         queryset._set_orm(self.orm)
 
         return queryset
@@ -231,7 +231,7 @@ class Queryset(object):
         if not self.query:
             queryset = self._copy_me()
 
-        queryset.query['condition'].append(
+        queryset.query.append(
             {'action': 'db_where', 'condition': condition}
         )
         return queryset
@@ -267,7 +267,7 @@ class Queryset(object):
         if not self.query:
             queryset = self._copy_me()
 
-        queryset.query['condition'].append(
+        queryset.query.append(
             {'action': 'db_where', 'condition': condition}
         )
         return queryset
@@ -282,21 +282,9 @@ class Queryset(object):
         response = await self.db_manager.request(db_request)
         return response
 
-    async def build_chained_query(self):
-        await self.db_manager.build_chained_query(self.query)
-
     # iterator construction
-    def __iter__(self):
-        self.a = 0
-        self.b = 1
-        return self
-
-    def __next__(self):
-        fib = self.a
-        if fib > 15:
-            raise StopIteration
-        self.a, self.b = self.b, self.a + self.b
-        return fib
+    async def __aiter__(self):
+        return await self.db_manager.queryset_cursor(self.query)
 
 
 class FieldQueryset(Queryset):
