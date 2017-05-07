@@ -79,7 +79,6 @@ task = loop.create_task(test_chainedfilter())
 loop.run_until_complete(asyncio.gather(task))
 
 
-
 if __name__ == '__main__':
     from .module_tests import ModuleTests
     from .manage_tests import ManageTestMethods

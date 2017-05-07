@@ -108,34 +108,6 @@ class PostgresManager(GeneralManager):
         query += ';'
         return query
 
-    # async def build_chained_query(self, request_dict):
-    #     conditions = request_dict['condition']
-
-    #     if conditions:
-    #         l_cond = []
-    #         for c in conditions:
-    #             l_cond.append(c['condition'])
-    #         request_dict['condition'] = ' AND '.join(l_cond)
-    #     query = getattr(self, request_dict['action']).format(**request_dict)
-
-    #     if request_dict.get('ordering', None):
-    #         query = query.replace(
-    #             ';',
-    #             'ORDER BY {} ;'.format(','.join(
-    #                 self.ordering_syntax(request_dict['ordering'])
-    #             ))
-    #         )
-
-    #     if not conditions:
-    #         query.replace('WHERE', '')
-
-    #     query = self.query_clean(query)
-
-    #     conn = await self.get_conn()
-
-    #     async with conn.transaction():
-    #         return await conn.fetch(query)
-
     def ordering_syntax(self, ordering):
         result = []
         for f in ordering:
@@ -158,9 +130,6 @@ class PostgresManager(GeneralManager):
                     self.ordering_syntax(request_dict['ordering'])
                 ))
             )
-
-        # if request_dict['action'] == 'db__create_table':
-        #     print(query)
 
         no_result = ['db__delete', 'db__create_table', 'db__alter_table',
                      'db__constrain_table', 'db__table_add_column',
@@ -192,7 +161,9 @@ class PostgresManager(GeneralManager):
                     condition = q['condition']
 
                 request_dict.update({'condition': condition})
-        return getattr(self, request_dict['action']).format(**request_dict)
+        query = getattr(self, request_dict['action']).format(**request_dict)
+        # print(query)
+        return query
 
     async def queryset_cursor(self, query_chain):
         conn = await self.get_conn()
