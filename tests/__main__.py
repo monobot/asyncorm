@@ -64,7 +64,7 @@ async def test_chainedfilter():
     )
 
     async for b in bk:
-        print(b)
+        print(b.id)
 
 # create some test models
 for x in range(3):

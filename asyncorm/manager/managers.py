@@ -273,10 +273,24 @@ class Queryset(object):
         response = await self.db_manager.request(db_request)
         return response
 
+    # async def __aiter__(self):
+    #     conn = await self.db_manager.get_conn()
+    #     query = self.db_manager.construct_query(self.query)
+    #     return Cursor(conn, query)
+
     async def __aiter__(self):
-        conn = await self.db_manager.get_conn()
-        query = self.db_manager.construct_query(self.query)
-        return Cursor(conn, query)
+        return self
+
+    async def __anext__(self):
+        if not self._cursor:
+            conn = await self.db_manager.get_conn()
+            query = self.db_manager.construct_query(self.query)
+            self._cursor = Cursor(conn, query)
+
+        async for rec in self._cursor:
+            item = self._model_constructor(rec)
+            return item
+        raise StopAsyncIteration()
 
 
 class FieldQueryset(Queryset):

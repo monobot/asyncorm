@@ -22,6 +22,9 @@ class Cursor(object):
                 raise StopAsyncIteration()
         return results
 
+    async def __aiter__(self):
+        return self
+
     async def __anext__(self):
         if self._cursor is None:
             self._results = await self.get_results(self._step)
