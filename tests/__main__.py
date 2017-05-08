@@ -58,9 +58,9 @@ async def create_author(x):
 
 async def test_chainedfilter():
     bk = Book.objects.new_filter(
-        id__gte=296
-    # ).new_exclude(
-    #     name='hola2'
+        id__gte=290,
+    ).new_exclude(
+        id__lt=295,
     )
 
     async for b in bk:
