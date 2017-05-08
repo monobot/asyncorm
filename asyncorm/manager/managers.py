@@ -2,6 +2,7 @@ from asyncpg.exceptions import UniqueViolationError
 
 from ..exceptions import QuerysetError, ModelError
 from ..fields import ManyToMany, ForeignKey  # , ManyToMany
+from ..database import Cursor
 # from .log import logger
 
 __all__ = ['FieldQueryset', 'ModelManager', 'Queryset']
@@ -33,23 +34,13 @@ class Queryset(object):
 
         self.query = None
 
+        self._cursor = None
+        self._results = []
+
     @classmethod
     def _set_orm(cls, orm):
         cls.orm = orm
         cls.db_manager = orm.db_manager
-
-    def _copy_me(self):
-        queryset = Queryset(self.model)
-
-        queryset.query = [{
-            'action': 'db__select_all',
-            'select': '*',
-            'table_name': self.table_name,
-        }]
-
-        queryset._set_orm(self.orm)
-
-        return queryset
 
     def _get_field_queries(self):
         # Builds the creationquery for each of the non fk or m2m fields
@@ -282,9 +273,10 @@ class Queryset(object):
         response = await self.db_manager.request(db_request)
         return response
 
-    # iterator construction
     async def __aiter__(self):
-        return await self.db_manager.queryset_cursor(self.query)
+        conn = await self.db_manager.get_conn()
+        query = self.db_manager.construct_query(self.query)
+        return Cursor(conn, query, step=2)
 
 
 class FieldQueryset(Queryset):
@@ -299,6 +291,19 @@ class ModelManager(Queryset):
     def __init__(self, model):
         self.model = model
         super().__init__(model)
+
+    def _copy_me(self):
+        queryset = ModelManager(self.model)
+
+        queryset.query = [{
+            'action': 'db__select_all',
+            'select': '*',
+            'table_name': self.model.table_name(),
+        }]
+
+        queryset._set_orm(self.orm)
+
+        return queryset
 
     async def save(self, instanced_model):
         # performs the database save

@@ -1,30 +1,34 @@
 class Cursor(object):
 
-    def __init__(self, cursor, step=2):
-        self._cursor = cursor
-        self._step = step
+    def __init__(self, conn, query, step=20, forward=0):
+        self._conn = conn
+        self._query = query
+        self._cursor = None
         self._results = []
 
-    async def __aiter__(self):
-        return self
+        self._step = step
+        self._forward = forward
 
     async def __anext__(self):
+        if self._cursor is None:
+            async with self._conn.transaction():
+                self._cursor = await self._conn.cursor(self._query)
+
+                if self._forward:
+                    await self._cursor.forward(self._forward)
+
+                self._results = await self._cursor.fetch(self._step)
+
         if not self._results:
-            self._results = await self._cursor.fetch(self._step)
+            async with self._conn.transaction():
+                self._results = await self._cursor.fetch(self._step)
             if not self._results:
                 raise StopAsyncIteration()
-        return self._results.pop()
+        return self._results.pop(0)
 
 
 class GeneralManager(object):
     # things that belong to all the diff databases managers    @classmethod
-
-    def __init__(self, conn_data):
-        self.conn_data = conn_data
-        self.conn = None
-
-
-class PostgresManager(GeneralManager):
 
     @property
     def db__create_table(self):
@@ -96,6 +100,13 @@ class PostgresManager(GeneralManager):
     def db__delete(self):
         return 'DELETE FROM {table_name} WHERE {id_data} '
 
+    def __init__(self, conn_data):
+        self.conn_data = conn_data
+        self.conn = None
+
+
+class PostgresManager(GeneralManager):
+
     async def get_conn(self):
         import asyncpg
         if not self.conn:
@@ -161,16 +172,10 @@ class PostgresManager(GeneralManager):
                     condition = q['condition']
 
                 request_dict.update({'condition': condition})
-        query = getattr(self, request_dict['action']).format(**request_dict)
-        # print(query)
+        query = self.query_clean(
+            getattr(self, request_dict['action']).format(**request_dict)
+        )
         return query
-
-    async def queryset_cursor(self, query_chain):
-        conn = await self.get_conn()
-
-        async with conn.transaction():
-            cur = await conn.cursor(self.construct_query(query_chain))
-            return Cursor(cur)
 
     async def transaction_insert(self, queries):
         conn = await self.get_conn()

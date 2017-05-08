@@ -58,14 +58,13 @@ async def create_author(x):
 
 async def test_chainedfilter():
     bk = Book.objects.new_filter(
-        name='hola',
-        content='epep'
-    ).new_exclude(
-        name='hola2'
+        id__lt=12
+    # ).new_exclude(
+    #     name='hola2'
     )
 
-    async for i in bk:
-        print(i)
+    async for b in bk:
+        print(b)
 
 # create some test models
 for x in range(3):

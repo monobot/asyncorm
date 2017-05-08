@@ -1,3 +1,3 @@
-from .db_manager import PostgresManager
+from .db_manager import PostgresManager, Cursor
 
-__all__ = ['PostgresManager']
+__all__ = ['PostgresManager', 'Cursor']
