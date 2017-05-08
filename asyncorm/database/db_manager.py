@@ -9,21 +9,27 @@ class Cursor(object):
         self._step = step
         self._forward = forward
 
+    async def get_results(self, step):
+        async with self._conn.transaction():
+            self._cursor = await self._conn.cursor(self._query)
+
+            if self._forward:
+                await self._cursor.forward(self._forward)
+
+            results = await self._cursor.fetch(self._step)
+
+            if not results:
+                raise StopAsyncIteration()
+        return results
+
     async def __anext__(self):
         if self._cursor is None:
-            async with self._conn.transaction():
-                self._cursor = await self._conn.cursor(self._query)
-
-                if self._forward:
-                    await self._cursor.forward(self._forward)
-
-                self._results = await self._cursor.fetch(self._step)
+            self._results = await self.get_results(self._step)
 
         if not self._results:
-            async with self._conn.transaction():
-                self._results = await self._cursor.fetch(self._step)
-            if not self._results:
-                raise StopAsyncIteration()
+            self._forward = self._forward + self._step
+            self._results = await self.get_results(self._step)
+
         return self._results.pop(0)
 
 

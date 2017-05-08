@@ -276,7 +276,7 @@ class Queryset(object):
     async def __aiter__(self):
         conn = await self.db_manager.get_conn()
         query = self.db_manager.construct_query(self.query)
-        return Cursor(conn, query, step=2)
+        return Cursor(conn, query)
 
 
 class FieldQueryset(Queryset):
