@@ -140,10 +140,9 @@ class Queryset(object):
         return [self._model_constructor(r) for r in request]
 
     async def count(self):
-        self.select = 'COUNT(*)'
-        db_request = {'action': 'db__count'}
+        self.query[0]['select'] = 'COUNT(*)'
 
-        return await self.db_request(db_request)
+        return await self.new_db_request(self.query)
 
     async def get(self, **kwargs):
         data = await self.filter(**kwargs)
@@ -223,7 +222,7 @@ class Queryset(object):
             queryset = self._copy_me()
 
         queryset.query.append(
-            {'action': 'db_where', 'condition': condition}
+            {'action': 'db__where', 'condition': condition}
         )
         return queryset
 
@@ -259,7 +258,7 @@ class Queryset(object):
             queryset = self._copy_me()
 
         queryset.query.append(
-            {'action': 'db_where', 'condition': condition}
+            {'action': 'db__where', 'condition': condition}
         )
         return queryset
 
@@ -270,13 +269,12 @@ class Queryset(object):
                 'table_name', self.model.table_name()
             ),
         })
-        response = await self.db_manager.request(db_request)
-        return response
+        return await self.db_manager.request(db_request)
 
-    # async def __aiter__(self):
-    #     conn = await self.db_manager.get_conn()
-    #     query = self.db_manager.construct_query(self.query)
-    #     return Cursor(conn, query)
+    async def new_db_request(self, db_request):
+        query = self.db_manager.construct_query(db_request)
+        print(query)
+        return await self.db_manager.new_request(query)
 
     async def __aiter__(self):
         return self
@@ -335,7 +333,7 @@ class ModelManager(Queryset):
             'action': (
                 getattr(
                     instanced_model, instanced_model._orm_pk
-                ) and 'db__update' or 'db_insert'
+                ) and 'db__update' or 'db__insert'
             ),
             'id_data': '{}={}'.format(
                 instanced_model._db_pk,
@@ -372,7 +370,7 @@ class ModelManager(Queryset):
 
             db_request = {
                 'table_name': table_name,
-                'action': 'db_insert',
+                'action': 'db__insert',
                 'field_names': ', '.join([model_column, foreign_column]),
                 'field_values': ', '.join([str(model_id), str(data)]),
                 # 'ordering': 'id',

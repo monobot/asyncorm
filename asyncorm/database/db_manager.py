@@ -71,7 +71,7 @@ class GeneralManager(object):
     #     return 'SELECT COUNT(*) FROM {table_name}'
 
     @property
-    def db_insert(self):
+    def db__insert(self):
         return '''
             INSERT INTO {table_name} ({field_names}) VALUES ({field_values})
             RETURNING * '''
@@ -85,7 +85,7 @@ class GeneralManager(object):
         return 'SELECT {select} FROM {table_name} WHERE {condition} '
 
     @property
-    def db_where(self):
+    def db__where(self):
         '''chainable'''
         return 'WHERE {condition} '
 
@@ -165,12 +165,19 @@ class PostgresManager(GeneralManager):
             else:
                 return result
 
+    async def new_request(self, query):
+        conn = await self.get_conn()
+
+        async with conn.transaction():
+            result = await conn.fetch(query)
+            return result[0] or None
+
     def construct_query(self, query_chain):
         request_dict = query_chain.pop(0)
 
         query_type = request_dict['action']
         for q in query_chain:
-            if q['action'] == 'db_where':
+            if q['action'] == 'db__where':
                 if query_type == 'db__select_all':
                     query_type = 'db__select'
                     request_dict.update({'action': query_type})

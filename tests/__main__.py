@@ -63,6 +63,7 @@ async def test_chainedfilter():
         id__lt=295,
     )
 
+    # print(await bk.count())
     async for b in bk:
         print(b.id)
 
