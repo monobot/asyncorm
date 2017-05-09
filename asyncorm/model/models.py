@@ -1,6 +1,6 @@
 from ..log import logger
 from ..fields import Field, PkField, ManyToMany, ForeignKey
-from ..manager import ModelManager, FieldQueryset
+from ..manager import ModelManager
 from ..exceptions import ModelError, FieldError
 from ..application import get_model
 
@@ -129,19 +129,19 @@ class BaseModel(object, metaclass=ModelMeta):
     def _set_many2many(cls, field, table_name, my_column, other_column,
                        direct=False):
         other_model = cls.objects.orm.get_model(other_column)
-        queryset = FieldQueryset(field, other_model)
+        queryset = ModelManager(other_model, field=field)
         queryset._set_orm(cls.objects.orm)
 
         async def m2m_set(self):
-            m2m_filter = {
+            queryset.query = [{
                 'm2m_tablename': table_name,
                 'other_tablename': other_column,
                 'other_db_pk': other_model._db_pk,
                 'id_data': '{}={}'.format(
                     my_column, getattr(self, self._orm_pk)
                 ),
-            }
-            return await queryset.filter_m2m(m2m_filter)
+            }]
+            return queryset
 
         method_name = (
             direct and field.field_name or

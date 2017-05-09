@@ -126,12 +126,9 @@ class ModelTests(AioTestCase):
         self.assertTrue(dev.client_set())
         clients_returned = dev.client_set()
 
-        #################################################################
-        ############  pending to set reverse relation again  ############
-        #################################################################
         # and is correct
-        # async for client in clients_returned:
-        #     self.assertTrue(client.id == dev.id)
+        async for client in clients_returned:
+            self.assertTrue(client.id == dev.id)
 
     async def test_m2m(self):
         # the inverse relation is correctly set

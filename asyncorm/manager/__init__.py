@@ -1,3 +1,3 @@
-from .managers import Queryset, ModelManager, FieldQueryset
+from .managers import Queryset, ModelManager
 
-__all__ = ['Queryset', 'ModelManager', 'FieldQueryset']
+__all__ = ['Queryset', 'ModelManager']

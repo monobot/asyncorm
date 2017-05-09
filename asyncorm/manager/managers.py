@@ -5,7 +5,7 @@ from ..fields import ManyToMany, ForeignKey  # , ManyToMany
 from ..database import Cursor
 # from .log import logger
 
-__all__ = ['FieldQueryset', 'ModelManager', 'Queryset']
+__all__ = ['ModelManager', 'Queryset']
 
 MIDDLE_OPERATOR = {
     'gt': '>',
@@ -273,17 +273,11 @@ class Queryset(object):
         raise StopAsyncIteration()
 
 
-class FieldQueryset(Queryset):
-
-    def __init__(self, field, *args):
-        self.field = field
-        super().__init__(*args)
-
-
 class ModelManager(Queryset):
 
-    def __init__(self, model):
+    def __init__(self, model, field=None):
         self.model = model
+        self.field = field
         super().__init__(model)
 
     def _copy_me(self):
