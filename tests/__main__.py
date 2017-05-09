@@ -56,13 +56,19 @@ async def create_author(x):
     await author.save()
 
 
-async def test_chainedfilter():
-    bk = Book.objects.new_filter(id__gte=290).new_exclude(id__lte=295)
-    async for b in bk:
-        print('id:', b.id)
+# async def test_chainedfilter():
+#     bk = Book.objects.filter(id__gte=290).exclude(id__lte=295)
+#     async for b in bk:
+#         print('id:', b.id)
 
-    bk = Book.objects.new_filter(id__gte=290).new_exclude(id__lte=295)
-    print(await bk.count())
+#     bk = Book.objects.filter(id__gte=290).exclude(id__lte=295)
+#     print(await bk.count())
+
+#     bk = Book.objects.all()
+#     print(await bk.count())
+
+#     bk = Book.objects
+#     print(await bk.count())
 
 # create some test models
 for x in range(3):
@@ -71,9 +77,6 @@ for x in range(3):
 for x in range(300):
     task = loop.create_task(create_book(x))
     loop.run_until_complete(asyncio.gather(task))
-
-task = loop.create_task(test_chainedfilter())
-loop.run_until_complete(asyncio.gather(task))
 
 
 if __name__ == '__main__':

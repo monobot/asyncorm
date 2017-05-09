@@ -55,8 +55,9 @@ class ManageTestMethods(AioTestCase):
         await author2.save()
 
     async def test_delete(self):
-        books = await Book.objects.all()
-        book = books[0]
+        books = Book.objects.all()
+        async for book in books:
+            break
 
         await book.delete()
         with self.assertRaises(ModelError) as exc:
@@ -68,23 +69,33 @@ class ManageTestMethods(AioTestCase):
         self.assertTrue('does not exist' in exc.exception.args[0])
 
     async def test_all(self):
-        queryset = await Book.objects.all()
+        queryset = Book.objects.all()
+        ammount = await queryset.count()
+        self.assertTrue(ammount >= 250)
 
-        self.assertTrue(len(queryset) >= 250)
-        self.assertTrue(isinstance(queryset[0], Book))
+        queryset = Book.objects.all()
+        async for book in queryset:
+            self.assertTrue(isinstance(book, Book))
+            break
 
     async def test_filter(self):
-        queryset = await Book.objects.filter(id__gte=280)
+        queryset = Book.objects.filter(id__gte=280)
+        ammount = await queryset.count()
+        self.assertTrue(ammount >= 20)
 
-        self.assertTrue(len(queryset) >= 20)
-        self.assertTrue(isinstance(queryset[0], Book))
+        queryset = Book.objects.filter(id__gte=280)
+        async for itm in queryset:
+            self.assertTrue(isinstance(itm, Book))
+            break
 
-        queryset = await Book.objects.filter(id=(280, 282))
-        self.assertEqual(len(queryset), 1)
+        queryset = Book.objects.filter(id=(280, 282))
+        ammount = await queryset.count()
+        self.assertEqual(ammount, 1)
 
         # upside doesnt really makes sense but als works
-        queryset = await Book.objects.filter(id=(282, 280))
-        self.assertEqual(len(queryset), 0)
+        queryset = Book.objects.filter(id=(282, 280))
+        ammount = await queryset.count()
+        self.assertEqual(ammount, 0)
 
         # incorrect fitler tuple definition error catched
         with self.assertRaises(QuerysetError) as exc:
@@ -101,21 +112,29 @@ class ManageTestMethods(AioTestCase):
              'only allows tuples of size 2') in exc.exception.args[0])
 
         # empty queryset
-        queryset = await Book.objects.filter(id__gt=2800)
-        self.assertEqual(len(queryset), 0)
+        queryset = Book.objects.filter(id__gt=2800)
+        ammount = await queryset.count()
+        self.assertEqual(ammount, 0)
 
     async def test_exclude(self):
-        queryset = await Book.objects.exclude(id__gt=280)
+        queryset = Book.objects.exclude(id__gt=280)
+        ammount = await queryset.count()
 
-        self.assertTrue(len(queryset) >= 20)
-        self.assertTrue(isinstance(queryset[0], Book))
+        self.assertTrue(ammount >= 20)
 
-        queryset = await Book.objects.exclude(id=(280, 282))
-        self.assertTrue(len(queryset) > 250)
+        queryset = Book.objects.exclude(id__gt=280)
+        async for book in queryset:
+            self.assertTrue(isinstance(book, Book))
+            break
+
+        queryset = Book.objects.exclude(id=(280, 282))
+        ammount = await queryset.count()
+        self.assertTrue(ammount > 250)
 
         # empty queryset
-        queryset = await Book.objects.exclude(id__lt=2800)
-        self.assertEqual(len(queryset), 0)
+        queryset = Book.objects.exclude(id__lt=2800)
+        ammount = await queryset.count()
+        self.assertEqual(ammount, 0)
 
     async def test_get(self):
         book = await Book.objects.get(id=280)

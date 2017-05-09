@@ -66,9 +66,6 @@ class GeneralManager(object):
         return self.db__table_add_column.replace(
             'ADD COLUMN ', 'ALTER COLUMN '
         )
-    # @property
-    # def db__count(self):
-    #     return 'SELECT COUNT(*) FROM {table_name}'
 
     @property
     def db__insert(self):
@@ -78,11 +75,14 @@ class GeneralManager(object):
 
     @property
     def db__select_all(self):
-        return 'SELECT {select} FROM {table_name} '
+        return 'SELECT {select} FROM {table_name} {ordering}'
 
     @property
     def db__select(self):
-        return 'SELECT {select} FROM {table_name} WHERE {condition} '
+        return self.db__select_all.replace(
+            '{ordering}',
+            'WHERE ( {condition} ) {ordering}'
+        )
 
     @property
     def db__where(self):
@@ -137,6 +137,16 @@ class PostgresManager(GeneralManager):
                 result.append(f)
         return result
 
+    def new_ordering_syntax(self, ordering):
+        result = []
+        for f in ordering:
+            if f.startswith('-'):
+                result.append(' {} DESC '.format(f[1:]))
+            else:
+                result.append(f)
+        result = 'ORDER BY {}'.format(','.join(result))
+        return result
+
     async def request(self, request_dict):
         query = getattr(self, request_dict['action']).format(**request_dict)
         query = self.query_clean(query)
@@ -187,6 +197,14 @@ class PostgresManager(GeneralManager):
                     condition = q['condition']
 
                 request_dict.update({'condition': condition})
+
+        if request_dict['select'] == '*':
+            request_dict['ordering'] = self.new_ordering_syntax(
+                request_dict['ordering']
+            )
+        else:
+            request_dict['ordering'] = ''
+
         query = self.query_clean(
             getattr(self, request_dict['action']).format(**request_dict)
         )

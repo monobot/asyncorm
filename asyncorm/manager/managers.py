@@ -37,6 +37,14 @@ class Queryset(object):
         self._cursor = None
         self._results = []
 
+    def basic_query(self):
+        return [{
+            'action': 'db__select_all',
+            'select': '*',
+            'table_name': self.model.table_name(),
+            'ordering': None
+        }]
+
     @classmethod
     def _set_orm(cls, orm):
         cls.orm = orm
@@ -130,16 +138,16 @@ class Queryset(object):
     async def queryset(self):
         return await self.all()
 
-    async def all(self):
-        db_request = {'action': 'db__select_all'}
+    def all(self):
+        queryset = self
+        if not self.query:
+            queryset = self._copy_me()
 
-        if self.model.ordering:
-            db_request.update({'ordering': self.model.ordering})
-
-        request = await self.db_request(db_request)
-        return [self._model_constructor(r) for r in request]
+        return queryset
 
     async def count(self):
+        if self.query is None:
+            self.query = self.basic_query()
         query = self.query[:]
         query[0]['select'] = 'COUNT(*)'
 
@@ -148,8 +156,8 @@ class Queryset(object):
             return v
 
     async def get(self, **kwargs):
-        data = await self.filter(**kwargs)
-        length = len(data)
+        data = self.filter(**kwargs)
+        length = await data.count()
         if length:
             if length > 1:
                 raise QuerysetError(
@@ -159,7 +167,8 @@ class Queryset(object):
                     )
                 )
 
-            return data[0]
+            async for itm in self.filter(**kwargs):
+                return itm
         raise QuerysetError(
             'That {} does not exist'.format(self.model.__name__)
         )
@@ -203,26 +212,11 @@ class Queryset(object):
                 filters.append('{}={}'.format(k, v))
         return filters
 
-    async def filter(self, **kwargs):
-        filters = self.calc_filters(kwargs)
-
-        condition = ' AND '.join(filters)
-
-        db_request = {'action': 'db__select', 'condition': condition}
-
-        if self.model.ordering:
-            db_request.update({'ordering': self.model.ordering})
-
-        request = self.db_request(db_request)
-        return [self._model_constructor(r) for r in await request]
-
-    def new_filter(self, **kwargs):
+    def filter(self, **kwargs):
         filters = self.calc_filters(kwargs)
         condition = ' AND '.join(filters)
 
-        queryset = self
-        if not self.query:
-            queryset = self._copy_me()
+        queryset = self.all()
 
         queryset.query.append(
             {'action': 'db__where', 'condition': condition}
@@ -240,25 +234,11 @@ class Queryset(object):
 
         return [self._model_constructor(r) for r in results]
 
-    async def exclude(self, **kwargs):
+    def exclude(self, **kwargs):
         filters = self.calc_filters(kwargs, exclude=True)
         condition = ' AND '.join(filters)
 
-        db_request = {'action': 'db__select', 'condition': condition}
-
-        if self.model.ordering:
-            db_request.update({'ordering': self.model.ordering})
-
-        request = await self.db_request(db_request)
-        return [self._model_constructor(r) for r in request]
-
-    def new_exclude(self, **kwargs):
-        filters = self.calc_filters(kwargs, exclude=True)
-        condition = ' AND '.join(filters)
-
-        queryset = self
-        if not self.query:
-            queryset = self._copy_me()
+        queryset = self.all()
 
         queryset.query.append(
             {'action': 'db__where', 'condition': condition}
@@ -276,7 +256,6 @@ class Queryset(object):
 
     async def new_db_request(self, db_request):
         query = self.db_manager.construct_query(db_request)
-        print(query)
         return await self.db_manager.new_request(query)
 
     async def __aiter__(self):
@@ -310,11 +289,12 @@ class ModelManager(Queryset):
     def _copy_me(self):
         queryset = ModelManager(self.model)
 
-        queryset.query = [{
-            'action': 'db__select_all',
-            'select': '*',
-            'table_name': self.model.table_name(),
-        }]
+        queryset.query = self.basic_query()
+
+        if self.model.ordering:
+            queryset.query[0].update(
+                {'ordering': self.model.ordering, }
+            )
 
         queryset._set_orm(self.orm)
 
