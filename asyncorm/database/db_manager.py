@@ -169,8 +169,7 @@ class PostgresManager(GeneralManager):
         conn = await self.get_conn()
 
         async with conn.transaction():
-            result = await conn.fetch(query)
-            return result[0] or None
+            return await conn.fetchrow(query)
 
     def construct_query(self, query_chain):
         request_dict = query_chain.pop(0)

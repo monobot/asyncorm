@@ -140,9 +140,12 @@ class Queryset(object):
         return [self._model_constructor(r) for r in request]
 
     async def count(self):
-        self.query[0]['select'] = 'COUNT(*)'
+        query = self.query[:]
+        query[0]['select'] = 'COUNT(*)'
 
-        return await self.new_db_request(self.query)
+        resp = await self.new_db_request(query)
+        for k, v in resp.items():
+            return v
 
     async def get(self, **kwargs):
         data = await self.filter(**kwargs)
