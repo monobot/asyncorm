@@ -22,7 +22,7 @@ class Cursor(object):
                 raise StopAsyncIteration()
         return results
 
-    async def __aiter__(self):
+    def __aiter__(self):
         return self
 
     async def __anext__(self):

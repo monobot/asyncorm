@@ -258,7 +258,7 @@ class Queryset(object):
         query = self.db_manager.construct_query(db_request)
         return await self.db_manager.new_request(query)
 
-    async def __aiter__(self):
+    def __aiter__(self):
         return self
 
     async def __anext__(self):
