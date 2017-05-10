@@ -55,21 +55,6 @@ async def create_author(x):
 
     await author.save()
 
-
-# async def test_chainedfilter():
-#     bk = Book.objects.filter(id__gte=290).exclude(id__lte=295)
-#     async for b in bk:
-#         print('id:', b.id)
-
-#     bk = Book.objects.filter(id__gte=290).exclude(id__lte=295)
-#     print(await bk.count())
-
-#     bk = Book.objects.all()
-#     print(await bk.count())
-
-#     bk = Book.objects
-#     print(await bk.count())
-
 # create some test models
 for x in range(3):
     task = loop.create_task(create_author(x))

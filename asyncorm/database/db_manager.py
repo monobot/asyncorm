@@ -182,31 +182,31 @@ class PostgresManager(GeneralManager):
             return await conn.fetchrow(query)
 
     def construct_query(self, query_chain):
-        request_dict = query_chain.pop(0)
+        res_dict = query_chain.pop(0)
 
-        query_type = request_dict['action']
+        query_type = res_dict['action']
         for q in query_chain:
             if q['action'] == 'db__where':
                 if query_type == 'db__select_all':
                     query_type = 'db__select'
-                    request_dict.update({'action': query_type})
-                condition = request_dict.get('condition', '')
+                    res_dict.update({'action': query_type})
+                condition = res_dict.get('condition', '')
                 if condition:
                     condition = ' AND '.join([condition, q['condition']])
                 else:
                     condition = q['condition']
 
-                request_dict.update({'condition': condition})
+                res_dict.update({'condition': condition})
 
-        if request_dict['select'] == '*':
-            request_dict['ordering'] = self.new_ordering_syntax(
-                request_dict['ordering']
+        # if we are not counting, then we can asign ordering
+        if res_dict['select'] == '*':
+            res_dict['ordering'] = self.new_ordering_syntax(
+                res_dict.get('ordering', '')
             )
         else:
-            request_dict['ordering'] = ''
-
+            res_dict['ordering'] = ''
         query = self.query_clean(
-            getattr(self, request_dict['action']).format(**request_dict)
+            getattr(self, res_dict['action']).format(**res_dict)
         )
         return query
 

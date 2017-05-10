@@ -116,10 +116,10 @@ class BaseModel(object, metaclass=ModelMeta):
 
     @classmethod
     def _set_reverse_foreignkey(cls, model_name, field_name):
-        async def fk_set(self):
+        def fk_set(self):
             model = get_model(model_name)
 
-            return await model.objects.filter(
+            return model.objects.filter(
                 **{field_name: getattr(self, self._orm_pk)}
             )
 
@@ -128,12 +128,14 @@ class BaseModel(object, metaclass=ModelMeta):
     @classmethod
     def _set_many2many(cls, field, table_name, my_column, other_column,
                        direct=False):
-        other_model = cls.objects.orm.get_model(other_column)
+        other_model = get_model(other_column)
         queryset = ModelManager(other_model, field=field)
         queryset._set_orm(cls.objects.orm)
 
-        async def m2m_set(self):
+        def m2m_set(self):
             queryset.query = [{
+                'action': 'db__select_m2m',
+                'select': '*',
                 'm2m_tablename': table_name,
                 'other_tablename': other_column,
                 'other_db_pk': other_model._db_pk,
@@ -262,7 +264,7 @@ class Model(BaseModel):
             v = field_class._recompose(v)
 
             if field_class in [ForeignKey, ManyToMany]:
-                print('biif')
+                pass
             setattr(self, k, v)
         self.deleted = deleted
         return self

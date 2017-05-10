@@ -123,7 +123,7 @@ class ModelTests(AioTestCase):
 
         # and the relation comes back
         # the method exists
-        self.assertTrue(dev.client_set())
+        self.assertTrue(hasattr(dev, 'client_set'))
         clients_returned = dev.client_set()
 
         # and is correct
@@ -147,16 +147,23 @@ class ModelTests(AioTestCase):
 
         # and the relation comes back
         # the method exists
-        devs_returned = await org.developer_set()
-        orgs_returned = await dev.organization_set()
+        devs_returned = org.developer_set()
+        orgs_returned = dev.organization_set()
 
         # and they are correct
-        self.assertEqual(devs_returned[0].id, dev.id)
+        async for dd in devs_returned:
+            self.assertEqual(dd.id, dev.id)
+            break
 
         # the first is 1
-        self.assertEqual(orgs_returned[0].id, 1)
-        # the last corresponds to the last added
-        self.assertEqual(orgs_returned[-1].id, org.id)
+        ind = 0
+        async for dd in orgs_returned:
+            if ind == 0:
+                self.assertEqual(dd.id, 1)
+            # the last corresponds to the last added
+            ind += 1
+
+        self.assertEqual(dd.id, org.id)
 
     async def test_serialize(self):
         # the inverse relation is correctly set
