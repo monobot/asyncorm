@@ -42,7 +42,7 @@ class Queryset(object):
             'action': 'db__select_all',
             'select': '*',
             'table_name': self.model.table_name(),
-            'ordering': None
+            'ordering': []
         }]
 
     @classmethod

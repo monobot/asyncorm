@@ -9,7 +9,7 @@ class Cursor(object):
         self._step = step
         self._forward = forward
 
-    async def get_results(self, step):
+    async def get_results(self):
         async with self._conn.transaction():
             self._cursor = await self._conn.cursor(self._query)
 
@@ -27,11 +27,11 @@ class Cursor(object):
 
     async def __anext__(self):
         if self._cursor is None:
-            self._results = await self.get_results(self._step)
+            self._results = await self.get_results()
 
         if not self._results:
             self._forward = self._forward + self._step
-            self._results = await self.get_results(self._step)
+            self._results = await self.get_results()
 
         return self._results.pop(0)
 
@@ -130,15 +130,8 @@ class PostgresManager(GeneralManager):
 
     def ordering_syntax(self, ordering):
         result = []
-        for f in ordering:
-            if f.startswith('-'):
-                result.append(' {} DESC '.format(f[1:]))
-            else:
-                result.append(f)
-        return result
-
-    def new_ordering_syntax(self, ordering):
-        result = []
+        if not ordering:
+            return ''
         for f in ordering:
             if f.startswith('-'):
                 result.append(' {} DESC '.format(f[1:]))
@@ -200,14 +193,15 @@ class PostgresManager(GeneralManager):
 
         # if we are not counting, then we can asign ordering
         if res_dict['select'] == '*':
-            res_dict['ordering'] = self.new_ordering_syntax(
-                res_dict.get('ordering', '')
+            res_dict['ordering'] = self.ordering_syntax(
+                res_dict.get('ordering', [])
             )
         else:
             res_dict['ordering'] = ''
         query = self.query_clean(
             getattr(self, res_dict['action']).format(**res_dict)
         )
+
         return query
 
     async def transaction_insert(self, queries):
