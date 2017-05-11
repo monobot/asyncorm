@@ -70,29 +70,28 @@ class ManageTestMethods(AioTestCase):
 
     async def test_count(self):
         queryset = Book.objects.all()
-        ammount = await queryset.count()
-        self.assertTrue(ammount >= 250)
 
-        queryset = Book.objects.all()
         async for book in queryset:
             self.assertTrue(isinstance(book, Book))
             break
 
+        ammount = await queryset.count()
+        self.assertTrue(ammount >= 250)
+
     async def test_filter(self):
         queryset = Book.objects.filter(id__gte=280)
-        ammount = await queryset.count()
-        self.assertTrue(ammount >= 20)
 
-        queryset = Book.objects.filter(id__gte=280)
         async for itm in queryset:
             self.assertTrue(isinstance(itm, Book))
             break
+        ammount = await queryset.count()
+        self.assertTrue(ammount >= 20)
 
         queryset = Book.objects.filter(id=(280, 282))
         ammount = await queryset.count()
         self.assertEqual(ammount, 1)
 
-        # upside doesnt really makes sense but als works
+        # upside doesnt really makes sense but also works
         queryset = Book.objects.filter(id=(282, 280))
         ammount = await queryset.count()
         self.assertEqual(ammount, 0)
@@ -118,14 +117,12 @@ class ManageTestMethods(AioTestCase):
 
     async def test_exclude(self):
         queryset = Book.objects.exclude(id__gt=280)
-        ammount = await queryset.count()
-
-        self.assertTrue(ammount >= 20)
-
-        queryset = Book.objects.exclude(id__gt=280)
         async for book in queryset:
             self.assertTrue(isinstance(book, Book))
             break
+
+        ammount = await queryset.count()
+        self.assertTrue(ammount >= 20)
 
         queryset = Book.objects.exclude(id=(280, 282))
         ammount = await queryset.count()
