@@ -71,7 +71,8 @@ class GeneralManager(object):
     def db__insert(self):
         return '''
             INSERT INTO {table_name} ({field_names}) VALUES ({field_values})
-            RETURNING * '''
+            RETURNING *
+        '''
 
     @property
     def db__select_all(self):
@@ -95,7 +96,8 @@ class GeneralManager(object):
             SELECT {select} FROM {other_tablename}
             WHERE {other_db_pk} = ANY (
                 SELECT {other_tablename} FROM {m2m_tablename} WHERE {id_data}
-            ) '''
+            )
+        '''
 
     @property
     def db__update(self):
@@ -103,7 +105,8 @@ class GeneralManager(object):
             UPDATE ONLY {table_name}
             SET ({field_names}) = ({field_values})
             WHERE {id_data}
-            RETURNING * '''
+            RETURNING *
+        '''
 
     @property
     def db__delete(self):

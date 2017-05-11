@@ -15,13 +15,6 @@ MIDDLE_OPERATOR = {
 }
 
 
-# this is a decorator for future lazy queryset
-def queryset_checker(func):
-    def checker(self, *args, **kargs):
-        return func(self, *args, **kargs)
-    return checker
-
-
 class Queryset(object):
     db_manager = None
     orm = None
@@ -37,6 +30,7 @@ class Queryset(object):
         self._cursor = None
         self._results = []
 
+    @property
     def basic_query(self):
         return [{
             'action': 'db__select_all',
@@ -147,7 +141,7 @@ class Queryset(object):
 
     async def count(self):
         if self.query is None:
-            self.query = self.basic_query()
+            self.query = self.basic_query
         query = self.query[:]
         query[0]['select'] = 'COUNT(*)'
 
@@ -229,9 +223,7 @@ class Queryset(object):
 
         queryset = self.all()
 
-        queryset.query.append(
-            {'action': 'db__where', 'condition': condition}
-        )
+        queryset.query.append({'action': 'db__where', 'condition': condition})
         return queryset
 
     async def db_request(self, db_request):
@@ -270,12 +262,10 @@ class ModelManager(Queryset):
     def _copy_me(self):
         queryset = ModelManager(self.model)
 
-        queryset.query = self.basic_query()
+        queryset.query = self.basic_query
 
         if self.model.ordering:
-            queryset.query[0].update(
-                {'ordering': self.model.ordering, }
-            )
+            queryset.query[0].update({'ordering': self.model.ordering})
 
         queryset._set_orm(self.orm)
 
