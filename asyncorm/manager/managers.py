@@ -60,11 +60,11 @@ class Queryset(object):
         )
 
     def _create_table_builder(self):
-        return {
+        return [{
             'table_name': self.model.table_name(),
             'action': 'db__create_table',
             'field_queries': self._get_field_queries(),
-        }
+        }]
 
     async def _create_table(self):
         '''
@@ -79,20 +79,20 @@ class Queryset(object):
         unique_together = self._get_unique_together()
 
         if unique_together:
-            db_request = {
+            db_request = [{
                 'table_name': self.model.table_name(),
                 'action': 'db__constrain_table',
                 'constrain': unique_together,
-            }
+            }]
 
             await self.db_request(db_request)
 
     def _add_fk_field_builder(self, field):
-        return {
+        return [{
             'table_name': self.model.table_name(),
             'action': 'db__table_add_column',
             'field_creation_string': field._creation_query(),
-        }
+        }]
 
     async def _add_fk_columns(self):
         '''
@@ -103,11 +103,11 @@ class Queryset(object):
                 await self.db_request(self._add_fk_field_builder(f))
 
     def _add_m2m_columns_builder(self, field):
-        return {
+        return [{
             'table_name': field.table_name,
             'action': 'db__create_table',
             'field_queries': field._creation_query(),
-        }
+        }]
 
     async def _add_m2m_columns(self):
         '''
@@ -151,7 +151,7 @@ class Queryset(object):
         query = self.query[:]
         query[0]['select'] = 'COUNT(*)'
 
-        resp = await self.new_db_request(query)
+        resp = await self.db_request(query)
         for k, v in resp.items():
             return v
 
@@ -223,17 +223,6 @@ class Queryset(object):
         )
         return queryset
 
-    async def filter_m2m(self, m2m_filter):
-        m2m_filter.update({'action': 'db__select_m2m'})
-        if self.model.ordering:
-            m2m_filter.update({'ordering': self.model.ordering})
-
-        results = await self.db_request(m2m_filter)
-        if results.__class__.__name__ == 'Record':
-            results = [results, ]
-
-        return [self._model_constructor(r) for r in results]
-
     def exclude(self, **kwargs):
         filters = self.calc_filters(kwargs, exclude=True)
         condition = ' AND '.join(filters)
@@ -246,17 +235,15 @@ class Queryset(object):
         return queryset
 
     async def db_request(self, db_request):
-        db_request.update({
-            'select': db_request.get('select', self.select),
-            'table_name': db_request.get(
+        db_request = db_request[:]
+        db_request[0].update({
+            'select': db_request[0].get('select', self.select),
+            'table_name': db_request[0].get(
                 'table_name', self.model.table_name()
             ),
         })
-        return await self.db_manager.request(db_request)
-
-    async def new_db_request(self, db_request):
         query = self.db_manager.construct_query(db_request)
-        return await self.db_manager.new_request(query)
+        return await self.db_manager.request(query)
 
     def __aiter__(self):
         return self
@@ -264,7 +251,7 @@ class Queryset(object):
     async def __anext__(self):
         if not self._cursor:
             conn = await self.db_manager.get_conn()
-            query = self.db_manager.construct_query(self.query)
+            query = self.db_manager.construct_query(self.query[:])
             self._cursor = Cursor(conn, query)
 
         async for rec in self._cursor:
@@ -306,7 +293,7 @@ class ModelManager(Queryset):
             fields.append(field_name)
             field_data.append(data)
 
-        db_request = {
+        db_request = [{
             'action': (
                 getattr(
                     instanced_model, instanced_model._orm_pk
@@ -322,7 +309,7 @@ class ModelManager(Queryset):
                 instanced_model._db_pk,
                 getattr(instanced_model, instanced_model._orm_pk)
             )
-        }
+        }]
         try:
             response = await self.db_request(db_request)
         except UniqueViolationError:
@@ -345,17 +332,16 @@ class ModelManager(Queryset):
 
             model_id = getattr(instanced_model, instanced_model._orm_pk)
 
-            db_request = {
+            db_request = [{
                 'table_name': table_name,
                 'action': 'db__insert',
                 'field_names': ', '.join([model_column, foreign_column]),
                 'field_values': ', '.join([str(model_id), str(data)]),
-                # 'ordering': 'id',
-            }
+            }]
 
             if isinstance(data, list):
                 for d in data:
-                    db_request.update(
+                    db_request[0].update(
                         {'field_values': ', '.join([str(model_id), str(d)])}
                     )
                     await self.db_request(db_request)
@@ -363,11 +349,11 @@ class ModelManager(Queryset):
                 await self.db_request(db_request)
 
     async def delete(self, instanced_model):
-        db_request = {
+        db_request = [{
             'action': 'db__delete',
             'id_data': '{}={}'.format(
                 instanced_model._db_pk,
                 getattr(instanced_model, instanced_model._db_pk)
             )
-        }
+        }]
         return await self.db_request(db_request)

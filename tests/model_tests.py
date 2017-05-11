@@ -171,6 +171,7 @@ class ModelTests(AioTestCase):
 
         async for book in q_book:
             class BookSerializer(ModelSerializer):
+
                 class Meta:
                     model = Book
                     fields = ['name', 'content', 'kks']
@@ -184,6 +185,7 @@ class ModelTests(AioTestCase):
             break
 
         class BookSerializer(ModelSerializer):
+
             class Meta:
                 model = Book
                 fields = ['name', 'content', ]

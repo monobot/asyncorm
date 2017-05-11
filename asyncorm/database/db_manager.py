@@ -109,20 +109,6 @@ class GeneralManager(object):
     def db__delete(self):
         return 'DELETE FROM {table_name} WHERE {id_data} '
 
-    def __init__(self, conn_data):
-        self.conn_data = conn_data
-        self.conn = None
-
-
-class PostgresManager(GeneralManager):
-
-    async def get_conn(self):
-        import asyncpg
-        if not self.conn:
-            pool = await asyncpg.create_pool(**self.conn_data)
-            self.conn = await pool.acquire()
-        return self.conn
-
     def query_clean(self, query):
         '''Here we clean the queryset'''
         query += ';'
@@ -140,41 +126,8 @@ class PostgresManager(GeneralManager):
         result = 'ORDER BY {}'.format(','.join(result))
         return result
 
-    async def request(self, request_dict):
-        query = getattr(self, request_dict['action']).format(**request_dict)
-        query = self.query_clean(query)
-
-        conn = await self.get_conn()
-
-        if request_dict.get('ordering', None):
-            query = query.replace(
-                ';',
-                'ORDER BY {} ;'.format(','.join(
-                    self.ordering_syntax(request_dict['ordering'])
-                ))
-            )
-
-        no_result = ['db__delete', 'db__create_table', 'db__alter_table',
-                     'db__constrain_table', 'db__table_add_column',
-                     'db__table_alter_column',
-                     ]
-
-        async with conn.transaction():
-            result = await conn.fetch(query)
-            if '__select' not in request_dict['action']:
-                if request_dict['action'] not in no_result:
-                    return result[0]
-                return None
-            else:
-                return result
-
-    async def new_request(self, query):
-        conn = await self.get_conn()
-
-        async with conn.transaction():
-            return await conn.fetchrow(query)
-
     def construct_query(self, query_chain):
+        # here we take the query_chain and convert to a real aql sentence
         res_dict = query_chain.pop(0)
 
         query_type = res_dict['action']
@@ -192,7 +145,7 @@ class PostgresManager(GeneralManager):
                 res_dict.update({'condition': condition})
 
         # if we are not counting, then we can asign ordering
-        if res_dict['select'] == '*':
+        if res_dict.get('select', '') == '*':
             res_dict['ordering'] = self.ordering_syntax(
                 res_dict.get('ordering', [])
             )
@@ -203,6 +156,26 @@ class PostgresManager(GeneralManager):
         )
 
         return query
+
+    def __init__(self, conn_data):
+        self.conn_data = conn_data
+        self.conn = None
+
+
+class PostgresManager(GeneralManager):
+
+    async def get_conn(self):
+        import asyncpg
+        if not self.conn:
+            pool = await asyncpg.create_pool(**self.conn_data)
+            self.conn = await pool.acquire()
+        return self.conn
+
+    async def request(self, query):
+        conn = await self.get_conn()
+
+        async with conn.transaction():
+            return await conn.fetchrow(query)
 
     async def transaction_insert(self, queries):
         conn = await self.get_conn()

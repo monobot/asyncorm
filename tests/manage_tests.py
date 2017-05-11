@@ -68,7 +68,7 @@ class ManageTestMethods(AioTestCase):
             await Book.objects.get(**{'id': book.id})
         self.assertTrue('does not exist' in exc.exception.args[0])
 
-    async def test_all(self):
+    async def test_count(self):
         queryset = Book.objects.all()
         ammount = await queryset.count()
         self.assertTrue(ammount >= 250)
