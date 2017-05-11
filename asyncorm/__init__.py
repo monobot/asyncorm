@@ -9,4 +9,4 @@ __doc__ = '''
 asyncorm is a fully asynchronous ORM library
 inspired by django's own ORM
 '''
-__version__ = '0.0.8'
+__version__ = '0.0.9'

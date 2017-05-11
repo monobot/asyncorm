@@ -55,21 +55,21 @@ def ignore_urlbuilderrors(request, exception):
 
 # now the propper sanic workflow
 class BooksView(HTTPMethodView):
-    def arg_parser(self, request):
-        return {k: v[0] for k, v in request.args.items()}
 
     async def get(self, request):
-        filtered_by = self.arg_parser(request)
+        filtered_by = request.raw_args
 
         if filtered_by:
             try:
-                q_books = await Book.objects.filter(**filtered_by)
+                q_books = Book.objects.filter(**filtered_by)
             except AttributeError as e:
                 raise URLBuildError(e.args[0])
         else:
-            q_books = await Book.objects.all()
+            q_books = Book.objects.all()
 
-        books = [BookSerializer.serialize(book) for book in q_books]
+        books = []
+        async for book in q_books:
+            books.append(BookSerializer.serialize(book))
 
         return json({'method': request.method,
                      'status': 200,
@@ -146,4 +146,4 @@ app.add_route(BooksView.as_view(), '/books/')
 app.add_route(BookView.as_view(), '/books/<book_id:int>/')
 
 if __name__ == '__main__':
-    app.run()
+    app.run(port=9000, debug=True)
