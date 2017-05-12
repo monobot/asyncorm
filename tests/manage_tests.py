@@ -69,32 +69,63 @@ class ManageTestMethods(AioTestCase):
         self.assertTrue('does not exist' in exc.exception.args[0])
 
     async def test_count(self):
-        queryset = Book.objects.all()
+        queryset = Book.objects.filter(id__lte=100)
 
         async for book in queryset:
             self.assertTrue(isinstance(book, Book))
             break
 
-        ammount = await queryset.count()
-        self.assertTrue(ammount >= 250)
+        self.assertTrue(await queryset.count() == 100)
+
+    async def test_slice(self):
+        book = Book.objects.filter(id__lt=25)[1]
+
+        queryset = Book.objects.filter(id__lt=25)[5:]
+        async for itm in queryset:
+            print('id:', itm.id)
+            self.assertTrue(isinstance(itm, Book))
+            # id__lt=25 is id=1 to id=24, sorted -id, sliced [5:]
+            self.assertEqual(itm.id, 24 - 5)
+            break
+
+        with self.assertRaises(QuerysetError) as exc:
+            Book.objects.filter(id__lte=30)[1: 2: 4]
+        self.assertTrue(
+            'step on Queryset is not allowed' == exc.exception.args[0]
+        )
+
+        with self.assertRaises(QuerysetError) as exc:
+            Book.objects.filter(id__lte=30)[-1]
+        self.assertTrue(
+            'Negative indices are not allowed' == exc.exception.args[0]
+        )
+
+        with self.assertRaises(QuerysetError) as exc:
+            Book.objects.filter(id__lte=30)[:-1]
+        self.assertTrue(
+            'Negative indices are not allowed' == exc.exception.args[0]
+        )
+
+        with self.assertRaises(QuerysetError) as exc:
+            Book.objects.filter(id__lte=30)[-3:]
+        self.assertTrue(
+            'Negative indices are not allowed' == exc.exception.args[0]
+        )
 
     async def test_filter(self):
-        queryset = Book.objects.filter(id__gte=280)
+        queryset = Book.objects.filter(id__lte=30)
 
         async for itm in queryset:
             self.assertTrue(isinstance(itm, Book))
             break
-        ammount = await queryset.count()
-        self.assertTrue(ammount >= 20)
+        self.assertTrue(await queryset.count() >= 20)
 
         queryset = Book.objects.filter(id=(280, 282))
-        ammount = await queryset.count()
-        self.assertEqual(ammount, 1)
+        self.assertEqual(await queryset.count(), 1)
 
         # upside doesnt really makes sense but also works
         queryset = Book.objects.filter(id=(282, 280))
-        ammount = await queryset.count()
-        self.assertEqual(ammount, 0)
+        self.assertEqual(await queryset.count(), 0)
 
         # incorrect fitler tuple definition error catched
         with self.assertRaises(QuerysetError) as exc:
@@ -112,8 +143,7 @@ class ManageTestMethods(AioTestCase):
 
         # empty queryset
         queryset = Book.objects.filter(id__gt=2800)
-        ammount = await queryset.count()
-        self.assertEqual(ammount, 0)
+        self.assertEqual(await queryset.count(), 0)
 
     async def test_exclude(self):
         queryset = Book.objects.exclude(id__gt=280)
@@ -121,17 +151,14 @@ class ManageTestMethods(AioTestCase):
             self.assertTrue(isinstance(book, Book))
             break
 
-        ammount = await queryset.count()
-        self.assertTrue(ammount >= 20)
+        self.assertTrue(await queryset.count() >= 20)
 
         queryset = Book.objects.exclude(id=(280, 282))
-        ammount = await queryset.count()
-        self.assertTrue(ammount > 250)
+        self.assertTrue(await queryset.count() > 250)
 
         # empty queryset
         queryset = Book.objects.exclude(id__lt=2800)
-        ammount = await queryset.count()
-        self.assertEqual(ammount, 0)
+        self.assertEqual(await queryset.count(), 0)
 
     async def test_get(self):
         book = await Book.objects.get(id=280)

@@ -24,12 +24,10 @@ drop_tables = ['Publisher', 'Author', 'library', 'Organization', 'Developer',
 
 
 async def clear_table(table_name):
-    query = [
-        'DROP TABLE IF EXISTS {table_name} CASCADE;'.format(
-            table_name=table_name
-        ),
-    ]
-    await orm_app.db_manager.transaction_insert(query)
+    query = orm_app.db_manager.construct_query(
+        [{'action': 'db__drop_table', 'table_name': table_name}]
+    )
+    await orm_app.db_manager.request(query)
 
 for table_name in drop_tables:
     task = loop.create_task(clear_table(table_name))

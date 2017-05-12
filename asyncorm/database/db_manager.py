@@ -1,6 +1,6 @@
 class Cursor(object):
 
-    def __init__(self, conn, query, step=20, forward=0):
+    def __init__(self, conn, query, step=20, forward=0, stop=None):
         self._conn = conn
         self._query = query
         self._cursor = None
@@ -8,6 +8,7 @@ class Cursor(object):
 
         self._step = step
         self._forward = forward
+        self._stop = stop
 
     async def get_results(self):
         async with self._conn.transaction():
@@ -15,6 +16,12 @@ class Cursor(object):
 
             if self._forward:
                 await self._cursor.forward(self._forward)
+
+            no_stop = self._stop is not None
+            if no_stop and self._forward >= self._stop:
+                raise StopAsyncIteration()
+            if no_stop and self._forward + self._step >= self._stop:
+                self._step = self._stop - self._forward
 
             results = await self._cursor.fetch(self._step)
 
@@ -31,19 +38,28 @@ class Cursor(object):
 
         if not self._results:
             self._forward = self._forward + self._step
+            if self._stop is not None and self._forward > self._stop:
+                self._forward = self._stop
             self._results = await self.get_results()
 
         return self._results.pop(0)
 
 
 class GeneralManager(object):
-    # things that belong to all the diff databases managers    @classmethod
+
+    def __init__(self, conn_data):
+        self.conn_data = conn_data
+        self.conn = None
 
     @property
     def db__create_table(self):
         return '''
             CREATE TABLE IF NOT EXISTS {table_name}
             ({field_queries}) '''
+
+    @property
+    def db__drop_table(self):
+        return 'DROP TABLE IF EXISTS {table_name} CASCADE'
 
     @property
     def db__alter_table(self):
@@ -160,10 +176,6 @@ class GeneralManager(object):
 
         return query
 
-    def __init__(self, conn_data):
-        self.conn_data = conn_data
-        self.conn = None
-
 
 class PostgresManager(GeneralManager):
 
@@ -179,9 +191,3 @@ class PostgresManager(GeneralManager):
 
         async with conn.transaction():
             return await conn.fetchrow(query)
-
-    async def transaction_insert(self, queries):
-        conn = await self.get_conn()
-        async with conn.transaction():
-            for query in queries:
-                await conn.execute(query)
