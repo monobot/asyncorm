@@ -75,19 +75,25 @@ class ManageTestMethods(AioTestCase):
         self.assertTrue(isinstance(book, Book))
         self.assertTrue(book.id, 23)
 
+        q_book = Book.objects.filter(id__lt=5)
         with self.assertRaises(IndexError) as exc:
-            book = await Book.objects.filter(id__lt=5)[7]
+            book = await q_book[7]
         self.assertTrue(
             'index does not exist' in exc.exception.args[0]
         )
 
         queryset = await Book.objects.filter(id__lt=25)[5:]
+
+        # you can iterate over the results
         async for itm in queryset:
             self.assertTrue(isinstance(itm, Book))
             # I check that the first one is 19, because:
             # id__lt=25 is id=1 to id=24, sorted -id, sliced [5:]
             self.assertEqual(itm.id, 24 - 5)
             break
+        # or slice again the retrieve the index object
+        book = await queryset[0]
+        self.assertFalse(book.id == 24 - 5)
 
         with self.assertRaises(QuerysetError) as exc:
             await Book.objects.filter(id__lte=30)[1: 2: 4]

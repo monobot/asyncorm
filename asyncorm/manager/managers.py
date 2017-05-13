@@ -2,7 +2,7 @@ from asyncpg.exceptions import UniqueViolationError
 
 from ..exceptions import QuerysetError, ModelError
 from ..fields import ManyToMany, ForeignKey  # , ManyToMany
-from ..database import Cursor
+from ..database import PostgresCursor
 # from .log import logger
 
 __all__ = ['ModelManager', 'Queryset']
@@ -242,27 +242,35 @@ class Queryset(object):
 
     async def __getitem__(self, key):
         if isinstance(key, slice):
-            self.forward = key.start
-            self.stop = key.stop
-            if self.forward is not None and self.forward < 0:
+            # control the keys values
+            if key.start is not None and key.start < 0:
                 raise QuerysetError('Negative indices are not allowed')
-            if self.stop is not None and self.stop < 0:
+            if key.stop is not None and key.stop < 0:
                 raise QuerysetError('Negative indices are not allowed')
             if key.step is not None:
                 raise QuerysetError('step on Queryset is not allowed')
-            return self  # Get the data from elsewhere
+
+            # asign forward and stop to the modelmanager and return it
+            self.forward = key.start
+            self.stop = key.stop
+            return self
 
         elif isinstance(key, int):
+            # if its an int, the developer wants the object directly
             if key < 0:
                 raise QuerysetError('Negative indices are not allowed')
 
             conn = await self.db_manager.get_conn()
-            query = self.db_manager.construct_query(self.query)
-            cursor = Cursor(
-                conn,
-                query,
-                forward=key,
-            )
+
+            cursor = self._cursor
+            if not cursor:
+                query = self.db_manager.construct_query(self.query[:])
+                cursor = PostgresCursor(
+                    conn,
+                    query,
+                    forward=key,
+                )
+
             async for res in cursor:
                 return self._model_constructor(res)
             raise IndexError(
@@ -279,12 +287,11 @@ class Queryset(object):
         if not self._cursor:
             conn = await self.db_manager.get_conn()
             query = self.db_manager.construct_query(self.query[:])
-            self._cursor = Cursor(
+            self._cursor = PostgresCursor(
                 conn,
                 query,
                 forward=self.forward,
                 stop=self.stop,
-                # self.step
             )
 
         async for rec in self._cursor:
