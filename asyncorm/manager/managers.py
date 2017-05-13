@@ -50,12 +50,11 @@ class Queryset(object):
 
     def _get_field_queries(self):
         # Builds the creationquery for each of the non fk or m2m fields
-        return ', '.join(
-            [f._creation_query() for f in self.model.fields.values()
-             if not isinstance(f, ManyToMany) and
-             not isinstance(f, ForeignKey)
-             ]
-        )
+        return ', '.join([
+            f._creation_query() for f in self.model.fields.values()
+            if not isinstance(f, ManyToMany) and
+            not isinstance(f, ForeignKey)
+        ])
 
     def _create_table_builder(self):
         return [{
@@ -266,6 +265,9 @@ class Queryset(object):
             )
             async for res in cursor:
                 return self._model_constructor(res)
+            raise IndexError(
+                'That {} index does not exist'.format(self.model.__name__)
+            )
 
         else:
             raise TypeError("Invalid argument type.")

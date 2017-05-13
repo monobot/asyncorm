@@ -73,6 +73,13 @@ class ManageTestMethods(AioTestCase):
     async def test_slice(self):
         book = await Book.objects.filter(id__lt=25)[1]
         self.assertTrue(isinstance(book, Book))
+        self.assertTrue(book.id, 23)
+
+        with self.assertRaises(IndexError) as exc:
+            book = await Book.objects.filter(id__lt=5)[7]
+        self.assertTrue(
+            'index does not exist' in exc.exception.args[0]
+        )
 
         queryset = await Book.objects.filter(id__lt=25)[5:]
         async for itm in queryset:
