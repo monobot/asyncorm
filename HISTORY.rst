@@ -2,6 +2,11 @@
 History
 =======
 
+0.0.10 (2017-05-13)
+------------------
+
+* querysets, slices and indices implemented
+
 0.0.9 (2017-05-11)
 ------------------
 
