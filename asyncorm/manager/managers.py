@@ -241,7 +241,7 @@ class Queryset(object):
         query = self.db_manager.construct_query(db_request)
         return await self.db_manager.request(query)
 
-    def __getitem__(self, key):
+    async def __getitem__(self, key):
         if isinstance(key, slice):
             self.forward = key.start
             self.stop = key.stop
@@ -251,20 +251,29 @@ class Queryset(object):
                 raise QuerysetError('Negative indices are not allowed')
             if key.step is not None:
                 raise QuerysetError('step on Queryset is not allowed')
+            return self  # Get the data from elsewhere
 
         elif isinstance(key, int):
             if key < 0:
                 raise QuerysetError('Negative indices are not allowed')
+
+            conn = await self.db_manager.get_conn()
+            query = self.db_manager.construct_query(self.query)
+            cursor = Cursor(
+                conn,
+                query,
+                forward=key,
+            )
+            async for res in cursor:
+                return self._model_constructor(res)
+
         else:
             raise TypeError("Invalid argument type.")
-        print(self.forward, self.stop)
-        return self  # Get the data from elsewhere
 
     def __aiter__(self):
         return self
 
     async def __anext__(self):
-        print(self.forward)
         if not self._cursor:
             conn = await self.db_manager.get_conn()
             query = self.db_manager.construct_query(self.query[:])

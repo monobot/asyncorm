@@ -55,9 +55,7 @@ class ManageTestMethods(AioTestCase):
         await author2.save()
 
     async def test_delete(self):
-        books = Book.objects.all()
-        async for book in books:
-            break
+        book = await Book.objects.all()[5]
 
         await book.delete()
         with self.assertRaises(ModelError) as exc:
@@ -70,54 +68,49 @@ class ManageTestMethods(AioTestCase):
 
     async def test_count(self):
         queryset = Book.objects.filter(id__lte=100)
-
-        async for book in queryset:
-            self.assertTrue(isinstance(book, Book))
-            break
-
         self.assertTrue(await queryset.count() == 100)
 
     async def test_slice(self):
-        book = Book.objects.filter(id__lt=25)[1]
+        book = await Book.objects.filter(id__lt=25)[1]
+        self.assertTrue(isinstance(book, Book))
 
-        queryset = Book.objects.filter(id__lt=25)[5:]
+        queryset = await Book.objects.filter(id__lt=25)[5:]
         async for itm in queryset:
-            print('id:', itm.id)
             self.assertTrue(isinstance(itm, Book))
+            # I check that the first one is 19, because:
             # id__lt=25 is id=1 to id=24, sorted -id, sliced [5:]
             self.assertEqual(itm.id, 24 - 5)
             break
 
         with self.assertRaises(QuerysetError) as exc:
-            Book.objects.filter(id__lte=30)[1: 2: 4]
+            await Book.objects.filter(id__lte=30)[1: 2: 4]
         self.assertTrue(
             'step on Queryset is not allowed' == exc.exception.args[0]
         )
 
         with self.assertRaises(QuerysetError) as exc:
-            Book.objects.filter(id__lte=30)[-1]
+            await Book.objects.filter(id__lte=30)[-1]
         self.assertTrue(
             'Negative indices are not allowed' == exc.exception.args[0]
         )
 
         with self.assertRaises(QuerysetError) as exc:
-            Book.objects.filter(id__lte=30)[:-1]
+            await Book.objects.filter(id__lte=30)[:-1]
         self.assertTrue(
             'Negative indices are not allowed' == exc.exception.args[0]
         )
 
         with self.assertRaises(QuerysetError) as exc:
-            Book.objects.filter(id__lte=30)[-3:]
+            await Book.objects.filter(id__lte=30)[-3:]
         self.assertTrue(
             'Negative indices are not allowed' == exc.exception.args[0]
         )
 
     async def test_filter(self):
         queryset = Book.objects.filter(id__lte=30)
+        book = await queryset[0]
 
-        async for itm in queryset:
-            self.assertTrue(isinstance(itm, Book))
-            break
+        self.assertTrue(isinstance(book, Book))
         self.assertTrue(await queryset.count() >= 20)
 
         queryset = Book.objects.filter(id=(280, 282))
@@ -147,9 +140,9 @@ class ManageTestMethods(AioTestCase):
 
     async def test_exclude(self):
         queryset = Book.objects.exclude(id__gt=280)
-        async for book in queryset:
-            self.assertTrue(isinstance(book, Book))
-            break
+
+        book = await queryset[0]
+        self.assertTrue(isinstance(book, Book))
 
         self.assertTrue(await queryset.count() >= 20)
 
