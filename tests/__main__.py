@@ -8,8 +8,8 @@ from asyncorm.application import configure_orm
 db_config = {
     'database': 'asyncorm',
     'host': 'localhost',
-    'user': 'sanicdbuser',
-    'password': 'sanicDbPass',
+    'user': 'postgres',
+    'password': '',
 }
 orm_app = configure_orm({
     'db_config': db_config,
