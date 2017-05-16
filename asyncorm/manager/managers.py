@@ -200,7 +200,9 @@ class Queryset(object):
                 )
             else:
                 v = field._sanitize_data(v)
-                filters.append(bool_string + '{}{}{}'.format(field.field_name, middle, v))
+                filters.append(
+                    bool_string + '{}{}{}'.format(field.field_name, middle, v)
+                )
 
         return filters
 
