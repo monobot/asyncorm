@@ -1,0 +1,2 @@
+[run]
+    omit = */python3.5/site-packages/asyncpg/*
