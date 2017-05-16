@@ -21,8 +21,8 @@ class ModelTests(AioTestCase):
         self.assertTrue(Author is Author2)
         self.assertTrue(Book is Book2)
 
-        self.assertEqual(Book().table_name(), 'library')
-        self.assertEqual(Author().table_name(), 'Author')
+        self.assertEqual(Book().cls_tablename(), 'library')
+        self.assertEqual(Author().cls_tablename(), 'Author')
 
         fields = Book.get_fields()
 
@@ -44,13 +44,13 @@ class ModelTests(AioTestCase):
         # classmethods tests
         book = Book()
 
-        self.assertEqual(book._db_pk, 'id')
-        self.assertEqual(book._orm_pk, 'id')
+        self.assertEqual(book.db_pk, 'id')
+        self.assertEqual(book.orm_pk, 'id')
 
         author = Author()
 
-        self.assertEqual(author._db_pk, 'uid')
-        self.assertEqual(author._orm_pk, 'na')
+        self.assertEqual(author.db_pk, 'uid')
+        self.assertEqual(author.orm_pk, 'na')
 
     def test_validate_kwargs(self):
         kwargs = {

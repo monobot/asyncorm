@@ -110,7 +110,7 @@ class GeneralManager(object):
     def db__select_m2m(self):
         return '''
             SELECT {select} FROM {other_tablename}
-            WHERE {other_db_pk} = ANY (
+            WHERE {otherdb_pk} = ANY (
                 SELECT {other_tablename} FROM {m2m_tablename} WHERE {id_data}
             )
         '''

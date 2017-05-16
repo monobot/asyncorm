@@ -24,7 +24,7 @@ class ModelMeta(type):
 
         base_class.ordering = None
         base_class.unique_together = []
-        base_class._table_name = ''
+        base_class.table_name = ''
 
         if defined_meta:
             if hasattr(defined_meta, 'ordering'):
@@ -34,7 +34,7 @@ class ModelMeta(type):
                     defined_meta, 'unique_together'
                 )
             if hasattr(defined_meta, 'table_name'):
-                base_class._table_name = getattr(
+                base_class.table_name = getattr(
                     defined_meta, 'table_name'
                 )
 
@@ -44,14 +44,14 @@ class ModelMeta(type):
             base_class.id = PkField()
             base_class.fields['id'] = base_class.id
 
-            base_class._db_pk = 'id'
-            base_class._orm_pk = 'id'
+            base_class.db_pk = 'id'
+            base_class.orm_pk = 'id'
         else:
             pk_fields = [
                 f for f in base_class.fields.values() if isinstance(f, PkField)
             ]
-            base_class._db_pk = pk_fields[0].field_name
-            base_class._orm_pk = pk_fields[0].orm_field_name
+            base_class.db_pk = pk_fields[0].field_name
+            base_class.orm_pk = pk_fields[0].orm_field_name
 
         for f in base_class.fields.values():
             if hasattr(f, 'choices'):
@@ -65,15 +65,16 @@ class ModelMeta(type):
 
 
 class BaseModel(object, metaclass=ModelMeta):
-    _table_name = ''
+    table_name = ''
 
     objects = None
     deleted = False
 
     def __init__(self, **kwargs):
-        self._table_name = ''
+        self.table_name = ''
 
-        logger.debug('initiating model {}'.format(self.__class__.__name__))
+        log_msg = 'initiating model {}'.format(self.__class__.__name__)
+        logger.debug(log_msg)
         self.objects.model = self.__class__
 
         manager = getattr(self, 'objects')
@@ -111,8 +112,8 @@ class BaseModel(object, metaclass=ModelMeta):
         logger.debug('... initiated')
 
     @classmethod
-    def table_name(cls):
-        return cls._table_name or cls.__name__
+    def cls_tablename(cls):
+        return cls.table_name or cls.__name__
 
     @classmethod
     def set_reverse_foreignkey(cls, model_name, field_name):
@@ -120,14 +121,14 @@ class BaseModel(object, metaclass=ModelMeta):
             model = get_model(model_name)
 
             return model.objects.filter(
-                **{field_name: getattr(self, self._orm_pk)}
+                **{field_name: getattr(self, self.orm_pk)}
             )
 
         setattr(cls, '{}_set'.format(model_name.lower()), fk_set)
 
     @classmethod
     def set_many2many(cls, field, table_name, my_column, other_column,
-                       direct=False):
+                      direct=False):
         other_model = get_model(other_column)
         queryset = ModelManager(other_model, field=field)
         queryset.set_orm(cls.objects.orm)
@@ -138,9 +139,9 @@ class BaseModel(object, metaclass=ModelMeta):
                 'select': '*',
                 'm2m_tablename': table_name,
                 'other_tablename': other_column,
-                'other_db_pk': other_model._db_pk,
+                'otherdb_pk': other_model.db_pk,
                 'id_data': '{}={}'.format(
-                    my_column, getattr(self, self._orm_pk)
+                    my_column, getattr(self, self.orm_pk)
                 ),
             }]
             return queryset
@@ -158,13 +159,13 @@ class BaseModel(object, metaclass=ModelMeta):
     @property
     def data(self):
         d = {}
-        created = bool(self._orm_pk)
+        created = bool(self.orm_pk)
 
-        for orm, db in self.__class__._attr_names.items():
+        for orm, db in self.__class__.attr_names.items():
             class__orm = getattr(self.__class__, orm)
             self__orm = getattr(self, orm)
 
-            has_pk = self._orm_pk == orm
+            has_pk = self.orm_pk == orm
             many2many = isinstance(class__orm, ManyToMany)
 
             if not has_pk and not many2many:
@@ -180,14 +181,14 @@ class BaseModel(object, metaclass=ModelMeta):
     def m2m_data(self):
         d = {}
 
-        for orm, db in self.__class__._attr_names.items():
+        for orm, db in self.__class__.attr_names.items():
             class__orm = getattr(self.__class__, orm)
             if isinstance(class__orm, ManyToMany):
                 self__orm = getattr(self, orm)
                 d[db] = self__orm
 
                 default = self__orm == class__orm.default
-                if bool(self._orm_pk) and default:
+                if bool(self.orm_pk) and default:
                     d.pop(db)
         return d
 
@@ -195,7 +196,7 @@ class BaseModel(object, metaclass=ModelMeta):
     def get_fields(cls):
         fields = {}
 
-        cls._attr_names = {}
+        cls.attr_names = {}
         for f_n, field in cls.__dict__.items():
             if isinstance(field, Field):
                 field.orm_field_name = f_n
@@ -204,21 +205,21 @@ class BaseModel(object, metaclass=ModelMeta):
                     field.set_field_name(f_n)
 
                 if not field.table_name:
-                    field.table_name = cls.table_name()
+                    field.table_name = cls.cls_tablename()
 
                 if isinstance(field, ManyToMany):
-                    field.own_model = cls.table_name()
+                    field.own_model = cls.cls_tablename()
                     field.table_name = '{my_model}_{foreign_key}'.format(
-                        my_model=cls.table_name(),
+                        my_model=cls.cls_tablename(),
                         foreign_key=field.foreign_key,
                     )
 
                 if not isinstance(field.__class__, PkField):
-                    cls._attr_names.update({f_n: field.field_name})
+                    cls.attr_names.update({f_n: field.field_name})
 
                 fields[f_n] = field
 
-        if len(cls._attr_names) != len(set(cls._attr_names)):
+        if len(cls.attr_names) != len(set(cls.attr_names)):
             raise ModelError(
                 'Models should have unique attribute names and '
                 'field_name if explicitly edited!'
@@ -254,8 +255,8 @@ class Model(BaseModel):
         # poblates the model with the data
         for k, v in data.items():
             # check if its named different in the database than the orm
-            if k not in self.__class__._attr_names.keys():
-                for orm, db in self.__class__._attr_names.items():
+            if k not in self.__class__.attr_names.keys():
+                for orm, db in self.__class__.attr_names.items():
                     if k == db:
                         k = orm
                         break

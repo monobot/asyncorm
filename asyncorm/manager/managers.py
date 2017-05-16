@@ -22,7 +22,7 @@ class Queryset(object):
     def __init__(self, model):
         self.model = model
 
-        self.table_name = self.model.table_name()
+        self.table_name = self.model.cls_tablename()
         self.select = '*'
 
         self.query = None
@@ -39,7 +39,7 @@ class Queryset(object):
         return [{
             'action': 'db__select_all',
             'select': '*',
-            'table_name': self.model.table_name(),
+            'table_name': self.model.cls_tablename(),
             'ordering': []
         }]
 
@@ -58,7 +58,7 @@ class Queryset(object):
 
     def create_table_builder(self):
         return [{
-            'table_name': self.model.table_name(),
+            'table_name': self.model.cls_tablename(),
             'action': 'db__create_table',
             'field_queries': self.get_field_queries(),
         }]
@@ -77,7 +77,7 @@ class Queryset(object):
 
         if unique_together:
             db_request = [{
-                'table_name': self.model.table_name(),
+                'table_name': self.model.cls_tablename(),
                 'action': 'db__constrain_table',
                 'constrain': unique_together,
             }]
@@ -86,7 +86,7 @@ class Queryset(object):
 
     def add_fk_field_builder(self, field):
         return [{
-            'table_name': self.model.table_name(),
+            'table_name': self.model.cls_tablename(),
             'action': 'db__table_add_column',
             'field_creation_string': field.creation_query(),
         }]
@@ -95,7 +95,7 @@ class Queryset(object):
         '''
         Builds the fk fields
         '''
-        for n, f in self.model.fields.items():
+        for f in self.model.fields.values():
             if isinstance(f, ForeignKey):
                 await self.db_request(self.add_fk_field_builder(f))
 
@@ -110,7 +110,7 @@ class Queryset(object):
         '''
         Builds the m2m_fields
         '''
-        for n, f in self.model.fields.items():
+        for f in self.model.fields.values():
             if isinstance(f, ManyToMany):
                 await self.db_request(self.add_m2m_columns_builder(f))
 
@@ -149,7 +149,7 @@ class Queryset(object):
         query[0]['select'] = 'COUNT(*)'
 
         resp = await self.db_request(query)
-        for k, v in resp.items():
+        for v in resp.values():
             return v
 
     async def get(self, **kwargs):
@@ -223,7 +223,7 @@ class Queryset(object):
         db_request[0].update({
             'select': db_request[0].get('select', self.select),
             'table_name': db_request[0].get(
-                'table_name', self.model.table_name()
+                'table_name', self.model.cls_tablename()
             ),
         })
         query = self.db_manager.construct_query(db_request)
@@ -323,18 +323,18 @@ class ModelManager(Queryset):
         db_request = [{
             'action': (
                 getattr(
-                    instanced_model, instanced_model._orm_pk
+                    instanced_model, instanced_model.orm_pk
                 ) and 'db__update' or 'db__insert'
             ),
             'id_data': '{}={}'.format(
-                instanced_model._db_pk,
-                getattr(instanced_model, instanced_model._orm_pk),
+                instanced_model.db_pk,
+                getattr(instanced_model, instanced_model.orm_pk),
             ),
             'field_names': ', '.join(fields),
             'field_values': ', '.join(field_data),
             'condition': '{}={}'.format(
-                instanced_model._db_pk,
-                getattr(instanced_model, instanced_model._orm_pk)
+                instanced_model.db_pk,
+                getattr(instanced_model, instanced_model.orm_pk)
             )
         }]
         try:
@@ -355,9 +355,9 @@ class ModelManager(Queryset):
             table_name = cls_field.table_name
             foreign_column = cls_field.foreign_key
 
-            model_column = instanced_model.table_name()
+            model_column = instanced_model.cls_tablename()
 
-            model_id = getattr(instanced_model, instanced_model._orm_pk)
+            model_id = getattr(instanced_model, instanced_model.orm_pk)
 
             db_request = [{
                 'table_name': table_name,
@@ -379,8 +379,8 @@ class ModelManager(Queryset):
         db_request = [{
             'action': 'db__delete',
             'id_data': '{}={}'.format(
-                instanced_model._db_pk,
-                getattr(instanced_model, instanced_model._db_pk)
+                instanced_model.db_pk,
+                getattr(instanced_model, instanced_model.db_pk)
             )
         }]
         return await self.db_request(db_request)
