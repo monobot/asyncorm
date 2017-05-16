@@ -95,23 +95,23 @@ class OrmApp(object):
 
         for name, model in self.models.items():
 
-            for n, f in model.fields.items():
+            for f in model.fields.values():
                 if isinstance(f, ManyToMany):
                     m2m_tablename = '{}_{}'.format(name, f.foreign_key).lower()
                     other = self.get_model(f.foreign_key)
-                    other._set_many2many(f, m2m_tablename, f.foreign_key, name)
+                    other.set_many2many(f, m2m_tablename, f.foreign_key, name)
 
-                    model._set_many2many(f, m2m_tablename, name, f.foreign_key,
+                    model.set_many2many(f, m2m_tablename, name, f.foreign_key,
                                          # direct=True
                                          )
 
                 elif isinstance(f, ForeignKey):
                     other_model = self.get_model(f.foreign_key)
-                    other_model._set_reverse_foreignkey(name, f.field_name)
+                    other_model.set_reverse_foreignkey(name, f.field_name)
 
     def _set_model_orm(self):
         for model in self.models.values():
-            model._set_orm(self)
+            model.set_orm(self)
 
     async def create_db(self):
         """
@@ -119,16 +119,16 @@ class OrmApp(object):
         """
 
         for model in self.models.values():
-            await model().objects._create_table()
+            await model().objects.create_table()
 
         for model in self.models.values():
-            await model().objects._add_fk_columns()
+            await model().objects.add_fk_columns()
 
         for model in self.models.values():
             await model().objects._add_m2m_columns()
 
         for model in self.models.values():
-            await model().objects._unique_together()
+            await model().objects.unique_together()
 
     def sync_db(self):
         self.loop.run_until_complete(

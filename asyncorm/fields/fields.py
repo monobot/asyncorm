@@ -281,6 +281,6 @@ class ManyToMany(Field):
     def _validate(self, value):
         if isinstance(value, list):
             for i in value:
-                super()._validate(value)
+                super()._validate(i)
         else:
             super()._validate(value)

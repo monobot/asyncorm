@@ -34,7 +34,7 @@ class Queryset(object):
         self.query_chain = []
 
     @classmethod
-    def _set_orm(cls, orm):
+    def set_orm(cls, orm):
         cls.orm = orm
         cls.db_manager = orm.db_manager
 
@@ -59,13 +59,13 @@ class Queryset(object):
             'field_queries': self._get_field_queries(),
         }
 
-    async def _create_table(self):
+    async def create_table(self):
         '''
         Builds the table without the m2m_fields and fks
         '''
         await self.db_request(self._create_table_builder())
 
-    async def _unique_together(self):
+    async def unique_together(self):
         '''
         Builds the unique together constraint
         '''
@@ -87,7 +87,7 @@ class Queryset(object):
             'field_creation_string': field._creation_query(),
         }
 
-    async def _add_fk_columns(self):
+    async def add_fk_columns(self):
         '''
         Builds the fk fields
         '''

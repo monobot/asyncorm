@@ -115,7 +115,7 @@ class BaseModel(object, metaclass=ModelMeta):
         return cls._table_name or cls.__name__
 
     @classmethod
-    def _set_reverse_foreignkey(cls, model_name, field_name):
+    def set_reverse_foreignkey(cls, model_name, field_name):
         def fk_set(self):
             model = get_model(model_name)
 
@@ -126,11 +126,11 @@ class BaseModel(object, metaclass=ModelMeta):
         setattr(cls, '{}_set'.format(model_name.lower()), fk_set)
 
     @classmethod
-    def _set_many2many(cls, field, table_name, my_column, other_column,
+    def set_many2many(cls, field, table_name, my_column, other_column,
                        direct=False):
         other_model = get_model(other_column)
         queryset = ModelManager(other_model, field=field)
-        queryset._set_orm(cls.objects.orm)
+        queryset.set_orm(cls.objects.orm)
 
         def m2m_set(self):
             queryset.query = [{
@@ -152,8 +152,8 @@ class BaseModel(object, metaclass=ModelMeta):
         setattr(cls, method_name, m2m_set)
 
     @classmethod
-    def _set_orm(cls, orm):
-        cls.objects._set_orm(orm)
+    def set_orm(cls, orm):
+        cls.objects.set_orm(orm)
 
     @property
     def data(self):
