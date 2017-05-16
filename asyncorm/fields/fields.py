@@ -46,8 +46,7 @@ class Field(object):
         if default_value:
             creation_string += ' DEFAULT '
             if callable(self.default):
-                default_value = default_value()
-                self.default = default_value
+                self.default = default_value = default_value()
 
             if isinstance(default_value, str):
                 creation_string += '\'{}\''.format(default_value)
