@@ -9,8 +9,8 @@ Book = get_model('Book')
 db_config = {
     'database': 'asyncorm',
     'host': 'localhost',
-    'user': 'sanicdbuser',
-    'password': 'sanicDbPass',
+    'user': 'ormdbuser',
+    'password': 'ormDbPass',
 }
 
 

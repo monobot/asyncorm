@@ -16,8 +16,8 @@ app = Sanic(name=__name__)
 def orm_configure(sanic, loop):
     db_config = {'database': 'sanic_example',
                  'host': 'localhost',
-                 'user': 'sanicdbuser',
-                 'password': 'sanicDbPass',
+                 'user': 'ormdbuser',
+                 'password': 'ormDbPass',
                  }
 
     # configure_orm needs a dictionary with:
