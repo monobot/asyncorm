@@ -72,7 +72,7 @@ class ModelSerializer(Serializer, metaclass=ModelSerializerMeta):
                         )
             else:
                 field_class = getattr(instanced_model.__class__, f)
-                return_dict[f] = field_class._serialize_data(
+                return_dict[f] = field_class.serialize_data(
                     getattr(instanced_model, f)
                 )
 

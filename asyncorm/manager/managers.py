@@ -48,32 +48,32 @@ class Queryset(object):
         cls.orm = orm
         cls.db_manager = orm.db_manager
 
-    def _get_field_queries(self):
+    def get_field_queries(self):
         # Builds the creationquery for each of the non fk or m2m fields
         return ', '.join([
-            f._creation_query() for f in self.model.fields.values()
+            f.creation_query() for f in self.model.fields.values()
             if not isinstance(f, ManyToMany) and
             not isinstance(f, ForeignKey)
         ])
 
-    def _create_table_builder(self):
+    def create_table_builder(self):
         return [{
             'table_name': self.model.table_name(),
             'action': 'db__create_table',
-            'field_queries': self._get_field_queries(),
+            'field_queries': self.get_field_queries(),
         }]
 
     async def create_table(self):
         '''
         Builds the table without the m2m_fields and fks
         '''
-        await self.db_request(self._create_table_builder())
+        await self.db_request(self.create_table_builder())
 
     async def unique_together(self):
         '''
         Builds the unique together constraint
         '''
-        unique_together = self._get_unique_together()
+        unique_together = self.get_unique_together()
 
         if unique_together:
             db_request = [{
@@ -84,11 +84,11 @@ class Queryset(object):
 
             await self.db_request(db_request)
 
-    def _add_fk_field_builder(self, field):
+    def add_fk_field_builder(self, field):
         return [{
             'table_name': self.model.table_name(),
             'action': 'db__table_add_column',
-            'field_creation_string': field._creation_query(),
+            'field_creation_string': field.creation_query(),
         }]
 
     async def add_fk_columns(self):
@@ -97,31 +97,31 @@ class Queryset(object):
         '''
         for n, f in self.model.fields.items():
             if isinstance(f, ForeignKey):
-                await self.db_request(self._add_fk_field_builder(f))
+                await self.db_request(self.add_fk_field_builder(f))
 
-    def _add_m2m_columns_builder(self, field):
+    def add_m2m_columns_builder(self, field):
         return [{
             'table_name': field.table_name,
             'action': 'db__create_table',
-            'field_queries': field._creation_query(),
+            'field_queries': field.creation_query(),
         }]
 
-    async def _add_m2m_columns(self):
+    async def add_m2m_columns(self):
         '''
         Builds the m2m_fields
         '''
         for n, f in self.model.fields.items():
             if isinstance(f, ManyToMany):
-                await self.db_request(self._add_m2m_columns_builder(f))
+                await self.db_request(self.add_m2m_columns_builder(f))
 
-    def _get_unique_together(self):
+    def get_unique_together(self):
         # builds the table with all its fields definition
         unique_string = ' UNIQUE ({}) '.format(
             ','.join(self.model.unique_together)
         )
         return self.model.unique_together and unique_string or ''
 
-    def _model_constructor(self, record, instance=None):
+    def modelconstructor(self, record, instance=None):
         if not instance:
             instance = self.model()
 
@@ -129,7 +129,7 @@ class Queryset(object):
         for k, v in record.items():
             data.update({k: v})
 
-        instance._construct(data)
+        instance.construct(data)
         return instance
 
     async def queryset(self):
@@ -194,12 +194,12 @@ class Queryset(object):
                     bool_string +
                     '({k}>{min} AND {k}<{max})'.format(
                         k=field.field_name,
-                        min=field._sanitize_data(v[0]),
-                        max=field._sanitize_data(v[1]),
+                        min=field.sanitize_data(v[0]),
+                        max=field.sanitize_data(v[1]),
                     )
                 )
             else:
-                v = field._sanitize_data(v)
+                v = field.sanitize_data(v)
                 filters.append(
                     bool_string + '{}{}{}'.format(field.field_name, middle, v)
                 )
@@ -261,7 +261,7 @@ class Queryset(object):
                 )
 
             async for res in cursor:
-                return self._model_constructor(res)
+                return self.modelconstructor(res)
             raise IndexError(
                 'That {} index does not exist'.format(self.model.__name__)
             )
@@ -284,7 +284,7 @@ class Queryset(object):
             )
 
         async for rec in self._cursor:
-            item = self._model_constructor(rec)
+            item = self.modelconstructor(rec)
             return item
         raise StopAsyncIteration()
 
@@ -315,7 +315,7 @@ class ModelManager(Queryset):
             f_class = getattr(instanced_model.__class__, k)
 
             field_name = f_class.field_name or k
-            data = f_class._sanitize_data(data)
+            data = f_class.sanitize_data(data)
 
             fields.append(field_name)
             field_data.append(data)
@@ -342,7 +342,7 @@ class ModelManager(Queryset):
         except UniqueViolationError:
             raise ModelError('The model violates a unique constraint')
 
-        self._model_constructor(response, instanced_model)
+        self.modelconstructor(response, instanced_model)
 
         # now we have to save the m2m relations: m2m_data
         fields, field_data = [], []

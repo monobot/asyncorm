@@ -30,7 +30,7 @@ class OrmApp(object):
         Then the database manager is configured, and set to all the
         models previously declared
         and then we finish the models configurations using
-        _models_configure(): will take care of the inverse relations for
+        models_configure(): will take care of the inverse relations for
         foreignkeys and many2many
         '''
         self.get_declared_models(config.pop('modules', None))
@@ -52,7 +52,7 @@ class OrmApp(object):
         self.db_manager = manager(db_config)
 
         # After the manager is set then we can build the rest of db features
-        self._models_configure()
+        self.models_configure()
 
     def get_declared_models(self, modules):
         if modules is None:
@@ -89,9 +89,9 @@ class OrmApp(object):
         except KeyError:
             raise ModuleError('The model does not exists')
 
-    def _models_configure(self):
+    def models_configure(self):
         # and we set it to all the different models defined
-        self._set_model_orm()
+        self.set_model_orm()
 
         for name, model in self.models.items():
 
@@ -101,15 +101,13 @@ class OrmApp(object):
                     other = self.get_model(f.foreign_key)
                     other.set_many2many(f, m2m_tablename, f.foreign_key, name)
 
-                    model.set_many2many(f, m2m_tablename, name, f.foreign_key,
-                                         # direct=True
-                                         )
+                    model.set_many2many(f, m2m_tablename, name, f.foreign_key)
 
                 elif isinstance(f, ForeignKey):
                     other_model = self.get_model(f.foreign_key)
                     other_model.set_reverse_foreignkey(name, f.field_name)
 
-    def _set_model_orm(self):
+    def set_model_orm(self):
         for model in self.models.values():
             model.set_orm(self)
 
@@ -125,7 +123,7 @@ class OrmApp(object):
             await model().objects.add_fk_columns()
 
         for model in self.models.values():
-            await model().objects._add_m2m_columns()
+            await model().objects.add_m2m_columns()
 
         for model in self.models.values():
             await model().objects.unique_together()

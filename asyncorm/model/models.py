@@ -38,7 +38,7 @@ class ModelMeta(type):
                     defined_meta, 'table_name'
                 )
 
-        base_class.fields = base_class._get_fields()
+        base_class.fields = base_class.get_fields()
 
         if PkField not in [f.__class__ for f in base_class.fields.values()]:
             base_class.id = PkField()
@@ -93,7 +93,7 @@ class BaseModel(object, metaclass=ModelMeta):
 
                 setattr(self, k, new_func)
 
-        self._validate_kwargs(kwargs)
+        self.validate_kwargs(kwargs)
 
         for field_name in self.fields.keys():
             if hasattr(getattr(self.__class__, field_name), 'default'):
@@ -192,7 +192,7 @@ class BaseModel(object, metaclass=ModelMeta):
         return d
 
     @classmethod
-    def _get_fields(cls):
+    def get_fields(cls):
         fields = {}
 
         cls._attr_names = {}
@@ -201,7 +201,7 @@ class BaseModel(object, metaclass=ModelMeta):
                 field.orm_field_name = f_n
 
                 if not field.field_name:
-                    field._set_field_name(f_n)
+                    field.set_field_name(f_n)
 
                 if not field.table_name:
                     field.table_name = cls.table_name()
@@ -226,7 +226,7 @@ class BaseModel(object, metaclass=ModelMeta):
 
         return fields
 
-    def _validate_kwargs(self, kwargs):
+    def validate_kwargs(self, kwargs):
         '''validate the kwargs on object instantiation only'''
         attr_errors = [k for k in kwargs.keys() if k not in self.fields.keys()]
 
@@ -240,7 +240,7 @@ class BaseModel(object, metaclass=ModelMeta):
 
         for k, v in kwargs.items():
             att_field = getattr(self.__class__, k)
-            att_field._validate(v)
+            att_field.validate(v)
             if att_field.__class__ is PkField and v:
                 raise FieldError('Models can not be generated with forced id')
 
@@ -250,7 +250,7 @@ class Model(BaseModel):
     def serialize(self, serializer):
         return serializer.serialize(self)
 
-    def _construct(self, data, deleted=False):
+    def construct(self, data, deleted=False):
         # poblates the model with the data
         for k, v in data.items():
             # check if its named different in the database than the orm
@@ -261,7 +261,7 @@ class Model(BaseModel):
                         break
             # get the recomposed value
             field_class = getattr(self.__class__, k)
-            v = field_class._recompose(v)
+            v = field_class.recompose(v)
 
             if field_class in [ForeignKey, ManyToMany]:
                 pass
@@ -277,7 +277,7 @@ class Model(BaseModel):
                     model_name=self.__class__.__name__
                 )
             )
-        self._construct(kwargs)
+        self.construct(kwargs)
         await self.objects.save(self)
 
     async def delete(self):

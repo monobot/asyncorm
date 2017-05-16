@@ -24,7 +24,7 @@ class ModelTests(AioTestCase):
         self.assertEqual(Book().table_name(), 'library')
         self.assertEqual(Author().table_name(), 'Author')
 
-        fields = Book._get_fields()
+        fields = Book.get_fields()
 
         self.assertEqual(len(fields), 5)
         self.assertEqual(
@@ -32,7 +32,7 @@ class ModelTests(AioTestCase):
             sorted(['id', 'content', 'name', 'author', 'date_created'])
         )
 
-        fields = Author._get_fields()
+        fields = Author.get_fields()
 
         self.assertEqual(len(fields), 4)
         self.assertEqual(
@@ -52,7 +52,7 @@ class ModelTests(AioTestCase):
         self.assertEqual(author._db_pk, 'uid')
         self.assertEqual(author._orm_pk, 'na')
 
-    def test__validate_kwargs(self):
+    def test_validate_kwargs(self):
         kwargs = {
             'name': 'name',
             'content': 3,
@@ -61,7 +61,7 @@ class ModelTests(AioTestCase):
         # raises the validate content has an incorrect value
         with self.assertRaises(FieldError) as exc:
             book = Book()
-            book._validate_kwargs(kwargs)
+            book.validate_kwargs(kwargs)
         self.assertTrue(
             'is a wrong datatype for field' in exc.exception.args[0]
         )
@@ -74,7 +74,7 @@ class ModelTests(AioTestCase):
         # also raises fielderror because you can not pre-set the object's id
         with self.assertRaises(FieldError) as exc:
             book = Book()
-            book._validate_kwargs(kwargs)
+            book.validate_kwargs(kwargs)
         self.assertEqual(
             exc.exception.args[0],
             'Models can not be generated with forced id'
@@ -86,7 +86,7 @@ class ModelTests(AioTestCase):
         # raises the validate error because volume is not a correct attrib
         with self.assertRaises(ModelError) as exc:
             book = Book()
-            book._validate_kwargs(kwargs)
+            book.validate_kwargs(kwargs)
         # its a list because we validate all kwargs
         self.assertEqual(
             exc.exception.args[0],
@@ -96,7 +96,7 @@ class ModelTests(AioTestCase):
         kwargs.pop('volume')
 
         # now it correctly validates
-        book._validate_kwargs(kwargs)
+        book.validate_kwargs(kwargs)
 
     async def test_ordering(self):
         self.assertEqual(Book().ordering, ['-id'])

@@ -25,7 +25,7 @@ class Field(object):
     table_name = None
 
     def __init__(self, **kwargs):
-        self._validate_kwargs(kwargs)
+        self.validate_kwargs(kwargs)
         self.field_type = self.__class__.__name__
 
         for kw in kwargs.keys():
@@ -33,7 +33,7 @@ class Field(object):
             if kw == 'choices':
                 self.choices = {k: v for k, v in kwargs.get(kw)}
 
-    def _creation_query(self):
+    def creation_query(self):
         creation_string = '{field_name} ' + self.creation_string
         date_field = self.field_type in DATE_FIELDS
 
@@ -62,7 +62,7 @@ class Field(object):
 
         return creation_string.format(**self.__dict__)
 
-    def _field_constraints(self):
+    def field_constraints(self):
         if self.choices:
             key_list = ['\'{}\''.format(k) for k in self.choices.keys()]
 
@@ -82,7 +82,7 @@ class Field(object):
             )
         return ''
 
-    def _validate_kwargs(self, kwargs):
+    def validate_kwargs(self, kwargs):
         for kw in self.required_kwargs:
             if not kwargs.get(kw, None):
                 raise FieldError(
@@ -98,9 +98,9 @@ class Field(object):
                 raise FieldError('Wrong value for {k}'.format(k=k))
 
         if kwargs.get('field_name', ''):
-            self._set_field_name(kwargs['field_name'])
+            self.set_field_name(kwargs['field_name'])
 
-    def _validate(self, value):
+    def validate(self, value):
         if not value and not self.null:
             raise FieldError('null value in NOT NULL field')
         if not isinstance(value, self.internal_type):
@@ -111,21 +111,21 @@ class Field(object):
             )
 
     @classmethod
-    def _recompose(cls, value):
+    def recompose(cls, value):
         return value
 
-    def _sanitize_data(self, value):
+    def sanitize_data(self, value):
         '''method used to convert to SQL data'''
         if value is None:
             return 'NULL'
-        self._validate(value)
+        self.validate(value)
         return value
 
-    def _serialize_data(self, value):
+    def serialize_data(self, value):
         '''to directly serialize the data field based'''
         return value
 
-    def _set_field_name(self, field_name):
+    def set_field_name(self, field_name):
         if '__' in field_name:
             raise FieldError('field_name can not contain "__"')
         if field_name.startswith('_'):
@@ -156,8 +156,8 @@ class CharField(Field):
                          unique=unique
                          )
 
-    def _sanitize_data(self, value):
-        value = super()._sanitize_data(value)
+    def sanitize_data(self, value):
+        value = super().sanitize_data(value)
         if len(value) > self.max_length:
             raise FieldError(
                 ('The string entered is bigger than '
@@ -179,13 +179,13 @@ class JsonField(CharField):
                          )
 
     @classmethod
-    def _recompose(cls, value):
+    def recompose(cls, value):
         return json.loads(value)
 
-    def _sanitize_data(self, value):
+    def sanitize_data(self, value):
         if value is None:
             return 'NULL'
-        self._validate(value)
+        self.validate(value)
 
         if value != 'NULL':
             try:
@@ -213,8 +213,8 @@ class IntegerField(Field):
         super().__init__(field_name=field_name, default=default, null=null,
                          choices=choices, unique=unique)
 
-    def _sanitize_data(self, value):
-        value = super()._sanitize_data(value)
+    def sanitize_data(self, value):
+        value = super().sanitize_data(value)
 
         return '{}'.format(value)
 
@@ -236,12 +236,12 @@ class DateField(Field):
                          unique=unique, strftime=strftime
                          )
 
-    def _sanitize_data(self, value):
-        value = super()._sanitize_data(value)
+    def sanitize_data(self, value):
+        value = super().sanitize_data(value)
 
         return "'{}'".format(value)
 
-    def _serialize_data(self, value):
+    def serialize_data(self, value):
         return value.strftime(self.strftime)
 
 
@@ -256,8 +256,8 @@ class ForeignKey(Field):
                          foreign_key=foreign_key, null=null, unique=unique
                          )
 
-    def _sanitize_data(self, value):
-        value = super()._sanitize_data(value)
+    def sanitize_data(self, value):
+        value = super().sanitize_data(value)
         return str(value)
 
 
@@ -275,12 +275,12 @@ class ManyToMany(Field):
                          default=default, unique=unique
                          )
 
-    def _creation_query(self):
+    def creation_query(self):
         return self.creation_string.format(**self.__dict__)
 
-    def _validate(self, value):
+    def validate(self, value):
         if isinstance(value, list):
             for i in value:
-                super()._validate(i)
+                super().validate(i)
         else:
-            super()._validate(value)
+            super().validate(value)
