@@ -72,9 +72,6 @@ class OrmApp(object):
             self.modules.update({m.split('.')[-1]: module_list})
 
     def get_model(self, model_name):
-        if self.models is None:
-            raise ModuleError('There are no modules declared in the orm')
-
         try:
             model_split = model_name.split('.')
             if len(model_split) == 2:
@@ -83,7 +80,8 @@ class OrmApp(object):
                 return self.models[model_name]
             else:
                 raise ModelError(
-                    'The string declared doesn\'t return any valid Model'
+                    'The string declared should be in format '
+                    '"model_name" or "module.model_name"'
                 )
         except KeyError:
             raise ModuleError('The model does not exists')

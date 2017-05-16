@@ -1,7 +1,7 @@
 import asyncio
 import unittest
 
-from asyncorm.application import get_model, orm_app
+from asyncorm.application import get_model, orm_app, configure_orm
 from asyncorm.exceptions import *
 from asyncorm.fields import *
 
@@ -18,6 +18,26 @@ db_config = {
 
 
 class ModuleTests(AioTestCase):
+
+    def test_ormconfigure(self):
+        with self.assertRaises(ModuleError) as exc:
+            configure_orm({
+                # 'db_config': db_config,
+                'modules': ['tests.testapp', 'tests.testapp2'],
+            })
+        self.assertTrue(
+            'Imposible to configure without database' in exc.exception.args[0]
+        )
+
+        orm = configure_orm({
+            'db_config': db_config,
+            # 'modules': ['tests.testapp', 'tests.testapp2'],
+        })
+        with self.assertRaises(ModelError) as exc:
+            orm.get_model('hiihi.huhuhu.uhuh')
+        self.assertTrue(
+            'The string declared should be in format ' in exc.exception.args[0]
+        )
 
     def test_configuration(self):
         with self.assertRaises(ModuleError) as exc:
