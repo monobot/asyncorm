@@ -170,64 +170,51 @@ class Queryset(object):
             'That {} does not exist'.format(self.model.__name__)
         )
 
-    def calc_filters(self, kwargs, exclude=False):
+    def calc_filters(self, kwargs, exclude):
         # recompose the filters
         bool_string = exclude and 'NOT ' or ''
         filters = []
 
-        # if the queryset is a real model_queryset
-        if self.model:
-            for k, v in kwargs.items():
-                # we format the key, the conditional and the value
-                middle = '='
-                if len(k.split('__')) > 1:
-                    k, middle = k.split('__')
-                    middle = MIDDLE_OPERATOR[middle]
+        for k, v in kwargs.items():
+            # we format the key, the conditional and the value
+            middle = '='
+            if len(k.split('__')) > 1:
+                k, middle = k.split('__')
+                middle = MIDDLE_OPERATOR[middle]
 
-                field = getattr(self.model, k)
+            field = getattr(self.model, k)
 
-                if middle == '=' and isinstance(v, tuple):
-                    if len(v) != 2:
-                        raise QuerysetError(
-                            'Not a correct tuple definition, filter '
-                            'only allows tuples of size 2'
-                        )
-                    filters.append(
-                        bool_string +
-                        '({k}>{min} AND {k}<{max})'.format(
-                            k=k,
-                            min=field._sanitize_data(v[0]),
-                            max=field._sanitize_data(v[1]),
-                        )
+            if middle == '=' and isinstance(v, tuple):
+                if len(v) != 2:
+                    raise QuerysetError(
+                        'Not a correct tuple definition, filter '
+                        'only allows tuples of size 2'
                     )
-                else:
-                    v = field._sanitize_data(v)
-                    filters.append(bool_string + '{}{}{}'.format(k, middle, v))
+                filters.append(
+                    bool_string +
+                    '({k}>{min} AND {k}<{max})'.format(
+                        k=field.field_name,
+                        min=field._sanitize_data(v[0]),
+                        max=field._sanitize_data(v[1]),
+                    )
+                )
+            else:
+                v = field._sanitize_data(v)
+                filters.append(bool_string + '{}{}{}'.format(field.field_name, middle, v))
 
-        else:
-            for k, v in kwargs.items():
-                filters.append('{}={}'.format(k, v))
         return filters
 
-    def filter(self, **kwargs):
-        filters = self.calc_filters(kwargs)
-        condition = ' AND '.join(filters)
-
-        queryset = self.all()
-
-        queryset.query.append(
-            {'action': 'db__where', 'condition': condition}
-        )
-        return queryset
-
-    def exclude(self, **kwargs):
-        filters = self.calc_filters(kwargs, exclude=True)
+    def filter(self, exclude=False, **kwargs):
+        filters = self.calc_filters(kwargs, exclude)
         condition = ' AND '.join(filters)
 
         queryset = self.all()
 
         queryset.query.append({'action': 'db__where', 'condition': condition})
         return queryset
+
+    def exclude(self, **kwargs):
+        return self.filter(exclude=True, **kwargs)
 
     async def db_request(self, db_request):
         db_request = db_request[:]

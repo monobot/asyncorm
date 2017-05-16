@@ -70,10 +70,15 @@ class ManageTestMethods(AioTestCase):
         queryset = Book.objects.filter(id__lte=100)
         self.assertTrue(await queryset.count() == 100)
 
+    async def test_filter_changed_fieldname(self):
+        author = await Author.objects.filter(na__lt=5)[0]
+        self.assertTrue(isinstance(author, Author))
+        self.assertEqual(author.na, 1)
+
     async def test_slice(self):
         book = await Book.objects.filter(id__lt=25)[1]
         self.assertTrue(isinstance(book, Book))
-        self.assertTrue(book.id, 23)
+        self.assertEqual(book.id, 23)
 
         q_book = Book.objects.filter(id__lt=5)
         with self.assertRaises(IndexError) as exc:
