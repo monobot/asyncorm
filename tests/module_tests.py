@@ -1,6 +1,3 @@
-import asyncio
-import unittest
-
 from asyncorm.application import get_model, orm_app, configure_orm
 from asyncorm.exceptions import *
 from asyncorm.fields import *
@@ -34,7 +31,7 @@ class ModuleTests(AioTestCase):
             # 'modules': ['tests.testapp', 'tests.testapp2'],
         })
         with self.assertRaises(ModelError) as exc:
-            orm.get_model('hiihi.huhuhu.uhuh')
+            orm.get_model('here.there.what')
         self.assertTrue(
             'The string declared should be in format ' in exc.exception.args[0]
         )

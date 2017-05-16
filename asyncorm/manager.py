@@ -1,11 +1,10 @@
 from asyncpg.exceptions import UniqueViolationError
 
-from ..exceptions import QuerysetError, ModelError
-from ..fields import ManyToMany, ForeignKey  # , ManyToMany
-from ..database import Cursor
+from .exceptions import QuerysetError, ModelError
+from .fields import ManyToMany, ForeignKey  # , ManyToMany
 # from .log import logger
 
-__all__ = ['ModelManager', 'Queryset']
+__all__ = ['FieldQueryset', 'ModelManager', 'Queryset']
 
 MIDDLE_OPERATOR = {
     'gt': '>',
@@ -13,6 +12,13 @@ MIDDLE_OPERATOR = {
     'gte': '>=',
     'lte': '<=',
 }
+
+
+# this is a decorator for future lazy queryset
+def queryset_checker(func):
+    def checker(self, *args, **kargs):
+        return func(self, *args, **kargs)
+    return checker
 
 
 class Queryset(object):
@@ -25,43 +31,33 @@ class Queryset(object):
         self.table_name = self.model.table_name()
         self.select = '*'
 
-        self.query = None
-
-        self._cursor = None
-        self._results = []
-
-        self.forward = 0
-        self.stop = None
-        self.step = None
-
-    @property
-    def basic_query(self):
-        return [{
-            'action': 'db__select_all',
-            'select': '*',
-            'table_name': self.model.table_name(),
-            'ordering': []
-        }]
+        self.query_chain = []
 
     @classmethod
     def _set_orm(cls, orm):
         cls.orm = orm
         cls.db_manager = orm.db_manager
 
+    # def _copy_me(self):
+    #     queryset = Queryset()
+    #     queryset.model = self.model
+    #     return queryset
+
     def _get_field_queries(self):
         # Builds the creationquery for each of the non fk or m2m fields
-        return ', '.join([
-            f._creation_query() for f in self.model.fields.values()
-            if not isinstance(f, ManyToMany) and
-            not isinstance(f, ForeignKey)
-        ])
+        return ', '.join(
+            [f._creation_query() for f in self.model.fields.values()
+             if not isinstance(f, ManyToMany) and
+             not isinstance(f, ForeignKey)
+             ]
+        )
 
     def _create_table_builder(self):
-        return [{
+        return {
             'table_name': self.model.table_name(),
             'action': 'db__create_table',
             'field_queries': self._get_field_queries(),
-        }]
+        }
 
     async def _create_table(self):
         '''
@@ -76,20 +72,20 @@ class Queryset(object):
         unique_together = self._get_unique_together()
 
         if unique_together:
-            db_request = [{
+            db_request = {
                 'table_name': self.model.table_name(),
                 'action': 'db__constrain_table',
                 'constrain': unique_together,
-            }]
+            }
 
             await self.db_request(db_request)
 
     def _add_fk_field_builder(self, field):
-        return [{
+        return {
             'table_name': self.model.table_name(),
             'action': 'db__table_add_column',
             'field_creation_string': field._creation_query(),
-        }]
+        }
 
     async def _add_fk_columns(self):
         '''
@@ -100,11 +96,11 @@ class Queryset(object):
                 await self.db_request(self._add_fk_field_builder(f))
 
     def _add_m2m_columns_builder(self, field):
-        return [{
+        return {
             'table_name': field.table_name,
             'action': 'db__create_table',
             'field_queries': field._creation_query(),
-        }]
+        }
 
     async def _add_m2m_columns(self):
         '''
@@ -135,26 +131,24 @@ class Queryset(object):
     async def queryset(self):
         return await self.all()
 
-    def all(self):
-        queryset = self
-        if not self.query:
-            queryset = self._copy_me()
+    async def all(self):
+        db_request = {'action': 'db__select_all'}
 
-        return queryset
+        if self.model.ordering:
+            db_request.update({'ordering': self.model.ordering})
+
+        request = await self.db_request(db_request)
+        return [self._model_constructor(r) for r in request]
 
     async def count(self):
-        if self.query is None:
-            self.query = self.basic_query
-        query = self.query[:]
-        query[0]['select'] = 'COUNT(*)'
+        self.select = 'COUNT(*)'
+        db_request = {'action': 'db__count'}
 
-        resp = await self.db_request(query)
-        for k, v in resp.items():
-            return v
+        return await self.db_request(db_request)
 
     async def get(self, **kwargs):
-        data = self.filter(**kwargs)
-        length = await data.count()
+        data = await self.filter(**kwargs)
+        length = len(data)
         if length:
             if length > 1:
                 raise QuerysetError(
@@ -164,149 +158,109 @@ class Queryset(object):
                     )
                 )
 
-            async for itm in self.filter(**kwargs):
-                return itm
+            return data[0]
         raise QuerysetError(
             'That {} does not exist'.format(self.model.__name__)
         )
 
-    def calc_filters(self, kwargs, exclude):
+    def calc_filters(self, kwargs, exclude=False):
         # recompose the filters
         bool_string = exclude and 'NOT ' or ''
         filters = []
 
-        for k, v in kwargs.items():
-            # we format the key, the conditional and the value
-            middle = '='
-            if len(k.split('__')) > 1:
-                k, middle = k.split('__')
-                middle = MIDDLE_OPERATOR[middle]
+        # if the queryset is a real model_queryset
+        if self.model:
+            for k, v in kwargs.items():
+                # we format the key, the conditional and the value
+                middle = '='
+                if len(k.split('__')) > 1:
+                    k, middle = k.split('__')
+                    middle = MIDDLE_OPERATOR[middle]
 
-            field = getattr(self.model, k)
+                field = getattr(self.model, k)
 
-            if middle == '=' and isinstance(v, tuple):
-                if len(v) != 2:
-                    raise QuerysetError(
-                        'Not a correct tuple definition, filter '
-                        'only allows tuples of size 2'
+                if middle == '=' and isinstance(v, tuple):
+                    if len(v) != 2:
+                        raise QuerysetError(
+                            'Not a correct tuple definition, filter '
+                            'only allows tuples of size 2'
+                        )
+                    filters.append(
+                        bool_string +
+                        '({k}>{min} AND {k}<{max})'.format(
+                            k=k,
+                            min=field._sanitize_data(v[0]),
+                            max=field._sanitize_data(v[1]),
+                        )
                     )
-                filters.append(
-                    bool_string +
-                    '({k}>{min} AND {k}<{max})'.format(
-                        k=field.field_name,
-                        min=field._sanitize_data(v[0]),
-                        max=field._sanitize_data(v[1]),
-                    )
-                )
-            else:
-                v = field._sanitize_data(v)
-                filters.append(
-                    bool_string + '{}{}{}'.format(field.field_name, middle, v)
-                )
+                else:
+                    v = field._sanitize_data(v)
+                    filters.append(bool_string + '{}{}{}'.format(k, middle, v))
 
+        else:
+            for k, v in kwargs.items():
+                filters.append('{}={}'.format(k, v))
         return filters
 
-    def filter(self, exclude=False, **kwargs):
-        filters = self.calc_filters(kwargs, exclude)
+    async def filter(self, **kwargs):
+        filters = self.calc_filters(kwargs)
+
         condition = ' AND '.join(filters)
 
-        queryset = self.all()
+        db_request = {'action': 'db__select', 'condition': condition}
 
-        queryset.query.append({'action': 'db__where', 'condition': condition})
-        return queryset
+        if self.model.ordering:
+            db_request.update({'ordering': self.model.ordering})
 
-    def exclude(self, **kwargs):
-        return self.filter(exclude=True, **kwargs)
+        request = self.db_request(db_request)
+        return [self._model_constructor(r) for r in await request]
+
+    async def filter_m2m(self, m2m_filter):
+        m2m_filter.update({'action': 'db__select_m2m'})
+        if self.model.ordering:
+            m2m_filter.update({'ordering': self.model.ordering})
+
+        results = await self.db_request(m2m_filter)
+        if results.__class__.__name__ == 'Record':
+            results = [results, ]
+
+        return [self._model_constructor(r) for r in results]
+
+    async def exclude(self, **kwargs):
+        filters = self.calc_filters(kwargs, exclude=True)
+        condition = ' AND '.join(filters)
+
+        db_request = {'action': 'db__select', 'condition': condition}
+
+        if self.model.ordering:
+            db_request.update({'ordering': self.model.ordering})
+
+        request = await self.db_request(db_request)
+        return [self._model_constructor(r) for r in request]
 
     async def db_request(self, db_request):
-        db_request = db_request[:]
-        db_request[0].update({
-            'select': db_request[0].get('select', self.select),
-            'table_name': db_request[0].get(
+        db_request.update({
+            'select': db_request.get('select', self.select),
+            'table_name': db_request.get(
                 'table_name', self.model.table_name()
             ),
         })
-        query = self.db_manager.construct_query(db_request)
-        return await self.db_manager.request(query)
+        response = await self.db_manager.request(db_request)
+        return response
 
-    async def __getitem__(self, key):
-        if isinstance(key, slice):
-            # control the keys values
-            if key.start is not None and key.start < 0:
-                raise QuerysetError('Negative indices are not allowed')
-            if key.stop is not None and key.stop < 0:
-                raise QuerysetError('Negative indices are not allowed')
-            if key.step is not None:
-                raise QuerysetError('step on Queryset is not allowed')
 
-            # asign forward and stop to the modelmanager and return it
-            self.forward = key.start
-            self.stop = key.stop
-            return self
+class FieldQueryset(Queryset):
 
-        elif isinstance(key, int):
-            # if its an int, the developer wants the object directly
-            if key < 0:
-                raise QuerysetError('Negative indices are not allowed')
-
-            conn = await self.db_manager.get_conn()
-
-            cursor = self._cursor
-            if not cursor:
-                query = self.db_manager.construct_query(self.query[:])
-                cursor = Cursor(
-                    conn,
-                    query,
-                    forward=key,
-                )
-
-            async for res in cursor:
-                return self._model_constructor(res)
-            raise IndexError(
-                'That {} index does not exist'.format(self.model.__name__)
-            )
-
-        else:
-            raise TypeError("Invalid argument type.")
-
-    def __aiter__(self):
-        return self
-
-    async def __anext__(self):
-        if not self._cursor:
-            conn = await self.db_manager.get_conn()
-            query = self.db_manager.construct_query(self.query[:])
-            self._cursor = Cursor(
-                conn,
-                query,
-                forward=self.forward,
-                stop=self.stop,
-            )
-
-        async for rec in self._cursor:
-            item = self._model_constructor(rec)
-            return item
-        raise StopAsyncIteration()
+    def __init__(self, field, *args):
+        self.field = field
+        super().__init__(*args)
 
 
 class ModelManager(Queryset):
 
-    def __init__(self, model, field=None):
+    def __init__(self, model):
         self.model = model
-        self.field = field
         super().__init__(model)
-
-    def _copy_me(self):
-        queryset = ModelManager(self.model)
-
-        queryset.query = self.basic_query
-
-        if self.model.ordering:
-            queryset.query[0].update({'ordering': self.model.ordering})
-
-        queryset._set_orm(self.orm)
-
-        return queryset
 
     async def save(self, instanced_model):
         # performs the database save
@@ -320,11 +274,11 @@ class ModelManager(Queryset):
             fields.append(field_name)
             field_data.append(data)
 
-        db_request = [{
+        db_request = {
             'action': (
                 getattr(
                     instanced_model, instanced_model._orm_pk
-                ) and 'db__update' or 'db__insert'
+                ) and 'db__update' or 'db_insert'
             ),
             'id_data': '{}={}'.format(
                 instanced_model._db_pk,
@@ -336,7 +290,7 @@ class ModelManager(Queryset):
                 instanced_model._db_pk,
                 getattr(instanced_model, instanced_model._orm_pk)
             )
-        }]
+        }
         try:
             response = await self.db_request(db_request)
         except UniqueViolationError:
@@ -359,16 +313,17 @@ class ModelManager(Queryset):
 
             model_id = getattr(instanced_model, instanced_model._orm_pk)
 
-            db_request = [{
+            db_request = {
                 'table_name': table_name,
-                'action': 'db__insert',
+                'action': 'db_insert',
                 'field_names': ', '.join([model_column, foreign_column]),
                 'field_values': ', '.join([str(model_id), str(data)]),
-            }]
+                # 'ordering': 'id',
+            }
 
             if isinstance(data, list):
                 for d in data:
-                    db_request[0].update(
+                    db_request.update(
                         {'field_values': ', '.join([str(model_id), str(d)])}
                     )
                     await self.db_request(db_request)
@@ -376,11 +331,11 @@ class ModelManager(Queryset):
                 await self.db_request(db_request)
 
     async def delete(self, instanced_model):
-        db_request = [{
+        db_request = {
             'action': 'db__delete',
             'id_data': '{}={}'.format(
                 instanced_model._db_pk,
                 getattr(instanced_model, instanced_model._db_pk)
             )
-        }]
+        }
         return await self.db_request(db_request)

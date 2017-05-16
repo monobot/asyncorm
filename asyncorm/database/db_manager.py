@@ -1,4 +1,4 @@
-class PostgresCursor(object):
+class Cursor(object):
 
     def __init__(self, conn, query, step=20, forward=0, stop=None):
         self._conn = conn
