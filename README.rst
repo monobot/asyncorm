@@ -2,6 +2,17 @@
 asyncorm
 ===============================
 
+.. image:: https://img.shields.io/pypi/v/asyncorm.svg
+    :target: https://pypi.python.org/pypi/asyncorm
+.. image:: https://landscape.io/github/monobot/asyncorm/development/landscape.svg
+    :target: https://landscape.io/github/monobot/asyncorm
+.. image:: https://pyup.io/repos/github/monobot/asyncorm/shield.svg
+    :target: https://pyup.io/account/repos/github/monobot/asyncorm/
+.. image:: https://travis-ci.org/monobot/asyncorm.svg?branch=master
+    :target: https://travis-ci.org/monobot/asyncorm
+.. image:: https://readthedocs.org/projects/asyncorm/badge/?version=latest
+    :target: https://asyncorm.readthedocs.io/en/latest/?badge=latest
+
 A fully asynchronous python ORM
 
 

@@ -1,9 +1,6 @@
 # AsyncORM
 
-
-[![pypi version](https://img.shields.io/pypi/v/asyncorm.svg)](https://pypi.python.org/pypi/asyncorm) [![Code Health](https://landscape.io/github/monobot/asyncorm/development/landscape.svg)](https://landscape.io/github/monobot/asyncorm) [![Documentation Status](https://readthedocs.org/projects/asyncorm/badge/?version=latest)](https://asyncorm.readthedocs.io/en/latest/?badge=latest) [![Updates](https://pyup.io/repos/github/monobot/asyncorm/shield.svg)](https://pyup.io/account/repos/github/monobot/asyncorm/)
-
-
+[![pypi version](https://img.shields.io/pypi/v/asyncorm.svg)](https://pypi.python.org/pypi/asyncorm) [![Code Health](https://landscape.io/github/monobot/asyncorm/development/landscape.svg)](https://landscape.io/github/monobot/asyncorm) [![Updates](https://pyup.io/repos/github/monobot/asyncorm/shield.svg)](https://pyup.io/account/repos/github/monobot/asyncorm/) [![Build Status](https://travis-ci.org/monobot/asyncorm.svg?branch=master)](https://travis-ci.org/monobot/asyncorm) [![Documentation Status](https://readthedocs.org/projects/asyncorm/badge/?version=latest)](https://asyncorm.readthedocs.io/en/latest/?badge=latest)
 
 :exclamation: version prebeta !!
 
