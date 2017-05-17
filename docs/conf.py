@@ -258,8 +258,8 @@ texinfo_documents = [
      u'asyncorm Documentation',
      u'Héctor Alvarez (monobot)',
      'asyncorm',
-     'One line description of project.',
-     'Miscellaneous'),
+     'A fully asynchronous python ORM',
+     ),
 ]
 
 # Documents to append as an appendix to all manuals.
