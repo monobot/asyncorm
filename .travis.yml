@@ -1,21 +1,20 @@
-# Config file for automatic testing at travis-ci.org
-# This file will be regenerated if you run travis_pypi_setup.py
-
 language: python
 python: 3.5
 
+before_script:
+  - psql -c "create user ormdbuser with password 'ormDbPass';" -U postgres
+  - psql -c "create database asyncorm;" -U postgres
+  - psql -c "grant all privileges on database asyncorm to ormdbuser;" -U postgres
+
+services:
+  - postgresql
+
+# command to install dependencies
+install: "pip install -r requirements.txt"
+
 env:
-  - TOXENV=py35
-  - TOXENV=py34
-  - TOXENV=py33
-  - TOXENV=py27
-  - TOXENV=py26
-  - TOXENV=pypy
+  - sanic=0.5.4
+  - sanic=0.5.5
 
-# command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install: pip install -U tox
-
-# command to run tests, e.g. python setup.py test
-script: tox -e ${TOXENV}
-
-
+# command to run tests
+script: python -m tests
