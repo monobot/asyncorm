@@ -102,6 +102,13 @@ class FieldTests(AioTestCase):
             exc.exception.args[0],
             '"telomero" not in model choices'
         )
+        with self.assertRaises(FieldError) as exc:
+            read = Reader(power='flower')
+            await read.save()
+        self.assertEqual(
+            exc.exception.args[0],
+            '"flower" not in model choices'
+        )
 
     async def test_default_callable(self):
         reader = Reader(size='M')

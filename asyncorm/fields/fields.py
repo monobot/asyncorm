@@ -31,7 +31,10 @@ class Field(object):
         for kw in kwargs.keys():
             setattr(self, kw, kwargs.get(kw))
             if kw == 'choices':
-                self.choices = {k: v for k, v in kwargs.get(kw)}
+                if isinstance(kwargs.get(kw), dict):
+                    self.choices = kwargs.get(kw)
+                else:
+                    self.choices = {k: v for k, v in kwargs.get(kw)}
 
     def creation_query(self):
         creation_string = '{field_name} ' + self.creation_string
@@ -97,8 +100,7 @@ class Field(object):
                 )
 
         for k, v in kwargs.items():
-            check = isinstance(v, KWARGS_TYPES[k])
-            if not check:
+            if not isinstance(v, KWARGS_TYPES[k]):
                 raise FieldError('Wrong value for {k}'.format(k=k))
 
         if kwargs.get('field_name', ''):
@@ -107,14 +109,11 @@ class Field(object):
     def validate(self, value):
         if not value and not self.null:
             raise FieldError('null value in NOT NULL field')
-        if hasattr(self, 'choices') and self.choices:
-            if isinstance(self.choices, dict):
-                keys = self.choices.keys()
-            else:
-                keys = [k for k, v in self.choices]
 
-            if value not in keys:
+        if hasattr(self, 'choices') and self.choices:
+            if value not in self.choices.keys():
                 raise FieldError('"{}" not in model choices'.format(value))
+
         if not isinstance(value, self.internal_type):
             raise FieldError(
                 '{} is a wrong datatype for field {}'.format(
