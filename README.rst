@@ -4,11 +4,13 @@ asyncorm
 
 .. image:: https://img.shields.io/pypi/v/asyncorm.svg
     :target: https://pypi.python.org/pypi/asyncorm
+.. image:: https://img.shields.io/pypi/pyversions/asyncorm.svg
+    :target: https://pypi.python.org/pypi/asyncorm
 .. image:: https://landscape.io/github/monobot/asyncorm/development/landscape.svg
     :target: https://landscape.io/github/monobot/asyncorm
 .. image:: https://pyup.io/repos/github/monobot/asyncorm/shield.svg
     :target: https://pyup.io/account/repos/github/monobot/asyncorm/
-.. image:: https://codecov.io/github/monobot/asyncorm/example-python.svg
+.. image:: https://codecov.io/github/monobot/asyncorm/development.svg
     :target: https://codecov.io/github/monobot/asyncorm/
 .. image:: https://travis-ci.org/monobot/asyncorm.svg?branch=development
     :target: https://travis-ci.org/monobot/asyncorm
