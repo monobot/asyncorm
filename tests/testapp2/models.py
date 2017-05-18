@@ -8,7 +8,7 @@ class Organization(Model):
 
 class Developer(Model):
     name = CharField(max_length=50, unique=True)
-    age = IntegerField()
+    age = IntegerField(default=25)
     org = ManyToMany(foreign_key='Organization')
 
 

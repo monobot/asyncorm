@@ -1,2 +1,4 @@
 [run]
-    omit = */python3.5/site-packages/asyncpg/*
+    omit =
+        */python3.5/site-packages/asyncpg/*
+        tests/*

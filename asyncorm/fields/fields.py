@@ -51,7 +51,9 @@ class Field(object):
             if isinstance(default_value, str):
                 creation_string += '\'{}\''.format(default_value)
             else:
-                creation_string += default_value
+                creation_string += '\'{}\''.format(
+                    self.sanitize_data(default_value)
+                )
 
         elif date_field and self.auto_now:
             creation_string += ' DEFAULT now()'

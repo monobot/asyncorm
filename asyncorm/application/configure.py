@@ -56,6 +56,7 @@ class OrmApp(object):
 
     def get_declared_models(self, modules):
         if modules is None:
+            self.models = OrderedDict()
             return None
 
         from asyncorm.model import Model
@@ -72,7 +73,7 @@ class OrmApp(object):
             self.modules.update({m.split('.')[-1]: module_list})
 
     def get_model(self, model_name):
-        if self.models is None:
+        if not bool(self.models):
             raise ModuleError('There are no modules declared in the orm')
 
         try:

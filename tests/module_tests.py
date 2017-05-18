@@ -17,6 +17,16 @@ db_config = {
 class ModuleTests(AioTestCase):
 
     def test_ormconfigure(self):
+        print('nowww')
+        orm = configure_orm({
+            'db_config': db_config,
+            'modules': None,
+        })
+        with self.assertRaises(ModuleError) as exc:
+            orm.get_model('here.there.what')
+        self.assertTrue(
+            'There are no modules declared in the orm' == exc.exception.args[0]
+        )
         with self.assertRaises(ModuleError) as exc:
             configure_orm({
                 # 'db_config': db_config,
@@ -28,7 +38,7 @@ class ModuleTests(AioTestCase):
 
         orm = configure_orm({
             'db_config': db_config,
-            # 'modules': ['tests.testapp', 'tests.testapp2'],
+            'modules': ['tests.testapp', 'tests.testapp2'],
         })
         with self.assertRaises(ModelError) as exc:
             orm.get_model('here.there.what')
@@ -39,9 +49,7 @@ class ModuleTests(AioTestCase):
     def test_configuration(self):
         with self.assertRaises(ModuleError) as exc:
             get_model('Tato')
-        self.assertTrue(
-            'The model does not exists' in exc.exception.args[0]
-        )
+        self.assertTrue('The model does not exists' in exc.exception.args[0])
 
         # the orm is configure on the start of tests, but the data is kept
         self.assertEqual(
