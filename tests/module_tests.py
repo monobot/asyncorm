@@ -17,7 +17,6 @@ db_config = {
 class ModuleTests(AioTestCase):
 
     def test_ormconfigure(self):
-        print('nowww')
         orm = configure_orm({
             'db_config': db_config,
             'modules': None,

@@ -1,7 +1,7 @@
 import json
+from json.decoder import JSONDecodeError
 
 from datetime import datetime
-
 from ..exceptions import FieldError  # , ModuleError
 
 DATE_FIELDS = ['DateField', ]
@@ -63,25 +63,28 @@ class Field(object):
 
         return creation_string.format(**self.__dict__)
 
-    def field_constraints(self):
-        if self.choices:
-            key_list = ['\'{}\''.format(k) for k in self.choices.keys()]
+    # def field_constraints(self):
+    #     if self.choices:
+    #         key_list = [
+    #             '\'{}\''.format(self.sanitize_data(k)) for k
+    #             in self.choices.keys()
+    #         ]
 
-            return_query = '''
-                ALTER TABLE {table_name}
-                ADD CONSTRAINT {const_name}
-                CHECK ({field_name} IN ({key_list}) );
-            '''
-            return return_query.format(
-                table_name=self.table_name,
-                const_name='{}_{}_const'.format(
-                    self.table_name,
-                    self.field_name
-                ),
-                field_name=self.field_name,
-                key_list=','.join(key_list),
-            )
-        return ''
+    #         return_query = '''
+    #             ALTER TABLE {table_name}
+    #             ADD CONSTRAINT {const_name}
+    #             CHECK ({field_name} IN ({key_list}) );
+    #         '''
+    #         return return_query.format(
+    #             table_name=self.table_name,
+    #             const_name='{}_{}_const'.format(
+    #                 self.table_name,
+    #                 self.field_name
+    #             ),
+    #             field_name=self.field_name,
+    #             key_list=','.join(key_list),
+    #         )
+    #     return ''
 
     def validate_kwargs(self, kwargs):
         for kw in self.required_kwargs:
@@ -104,6 +107,14 @@ class Field(object):
     def validate(self, value):
         if not value and not self.null:
             raise FieldError('null value in NOT NULL field')
+        if hasattr(self, 'choices') and self.choices:
+            if isinstance(self.choices, dict):
+                keys = self.choices.keys()
+            else:
+                keys = [k for k, v in self.choices]
+
+            if value not in keys:
+                raise FieldError('"{}" not in model choices'.format(value))
         if not isinstance(value, self.internal_type):
             raise FieldError(
                 '{} is a wrong datatype for field {}'.format(
@@ -174,34 +185,36 @@ class JsonField(CharField):
     def __init__(self, field_name='', default=None, max_length=0,
                  null=False, choices={}, unique=False
                  ):
-        super().__init__(field_name=field_name, default=default,
-                         max_length=max_length, null=null, choices=choices,
-                         unique=unique
-                         )
+        super().__init__(
+            field_name=field_name, default=default,
+            max_length=max_length, null=null, choices=choices,
+            unique=unique
+        )
 
     @classmethod
     def recompose(cls, value):
         return json.loads(value)
 
     def sanitize_data(self, value):
-        if value is None:
-            return 'NULL'
         self.validate(value)
 
         if value != 'NULL':
-            try:
-                value = json.dumps(value)
+            if isinstance(value, str):
+                try:
+                    value = json.loads(value)
+                except JSONDecodeError:
+                    raise FieldError(
+                        'The data entered can not be converted to json'
+                    )
+            value = json.dumps(value)
 
-            except SyntaxError:
-                raise FieldError(
-                    'The data entered can not be converted to json'
-                )
         if len(value) > self.max_length:
             raise FieldError(
                 ('The string entered is bigger than '
                  'the "max_length" defined ({})'
                  ).format(self.max_length)
             )
+
         return '\'{}\''.format(value)
 
 

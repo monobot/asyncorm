@@ -7,9 +7,22 @@ BOOK_CHOICES = (
 )
 
 
+SIZE_CHOICES = (
+    ('XS', 'XS'),
+    ('S', 'S'),
+    ('M', 'M'),
+    ('L', 'L'),
+    ('XL', 'XL'),
+)
+
+
+def weight():
+    return 85
+
+
 class Publisher(Model):
     name = CharField(max_length=50)
-    json = JsonField(max_length=250, null=True)
+    json = JsonField(max_length=50, null=True)
 
 
 class Author(Model):
@@ -29,3 +42,9 @@ class Book(Model):
         table_name = 'library'
         ordering = ['-id', ]
         unique_together = ['name', 'content']
+
+
+class Reader(Model):
+    name = CharField(max_length=15, default='pepito')
+    size = CharField(choices=SIZE_CHOICES, max_length=2)
+    weight = IntegerField(default=weight)

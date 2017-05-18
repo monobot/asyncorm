@@ -54,8 +54,7 @@ class ModelTests(AioTestCase):
 
     def test_validate_kwargs(self):
         kwargs = {
-            'name': 'name',
-            'content': 3,
+            'name': 67,
         }
 
         # raises the validate content has an incorrect value
