@@ -188,7 +188,3 @@ class ManageTestMethods(AioTestCase):
         with self.assertRaises(QuerysetError) as exc:
             await Book.objects.get(id=2800)
         self.assertTrue('does not exist' in exc.exception.args[0])
-
-
-if __name__ == '__main__':
-    unittest.main()

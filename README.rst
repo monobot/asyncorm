@@ -8,10 +8,10 @@ asyncorm
     :target: https://landscape.io/github/monobot/asyncorm
 .. image:: https://pyup.io/repos/github/monobot/asyncorm/shield.svg
     :target: https://pyup.io/account/repos/github/monobot/asyncorm/
+.. image:: https://codecov.io/github/monobot/asyncorm/example-python.svg
+    :target: https://codecov.io/github/monobot/asyncorm/
 .. image:: https://travis-ci.org/monobot/asyncorm.svg?branch=development
     :target: https://travis-ci.org/monobot/asyncorm
-.. image:: https://readthedocs.org/projects/asyncorm/badge/?version=latest
-    :target: https://asyncorm.readthedocs.io/en/latest/?badge=latest
 
 A fully asynchronous python ORM
 
