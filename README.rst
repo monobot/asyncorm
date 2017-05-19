@@ -1,5 +1,5 @@
 ===============================
-asyncorm
+asyncOrm
 ===============================
 
 .. image:: https://img.shields.io/pypi/v/asyncorm.svg
@@ -15,8 +15,8 @@ asyncorm
 .. image:: https://travis-ci.org/monobot/asyncorm.svg?branch=development
     :target: https://travis-ci.org/monobot/asyncorm
 
-A fully asynchronous python ORM
 
+A fully asynchronous python ORM
 
 * Free software: Apache Software License 2.0
 * Documentation: https://asyncorm.readthedocs.io.
@@ -25,17 +25,15 @@ A fully asynchronous python ORM
 Features
 --------
 
-# AsyncORM
+WARNING: version prebeta !!
 
-:exclamation: version prebeta !!
-
-:exclamation: Work In Progress !!
+WARNING: Work In Progress !!
 
 **AsyncORM** is a fully async [ORM](https://en.wikipedia.org/wiki/Object-relational_mapping) inspired in the fantastic [django orm](https://docs.djangoproject.com/en/1.11/topics/db/).
 
 It is designed to be used together with [sanic](https://github.com/channelcat/sanic) or other async webserver.
 
-### Dependencies
+Dependencies
 [asyncpg](https://github.com/MagicStack/asyncpg)
 
 Credits
