@@ -7,11 +7,12 @@ from ..database import Cursor
 
 __all__ = ['ModelManager', 'Queryset']
 
-MIDDLE_OPERATOR = {
-    'gt': '>',
-    'lt': '<',
-    'gte': '>=',
-    'lte': '<=',
+LOOKUP_OPERATOR = {
+    'gt': '{} > {}',
+    'lt': '{} < {}',
+    'gte': '{} >= {}',
+    'lte': '{} <= {}',
+    'in': '{} = ANY (array[{}])'
 }
 
 
@@ -177,14 +178,14 @@ class Queryset(object):
 
         for k, v in kwargs.items():
             # we format the key, the conditional and the value
-            middle = '='
+            operator = '{} = {}'
             if len(k.split('__')) > 1:
-                k, middle = k.split('__')
-                middle = MIDDLE_OPERATOR[middle]
+                k, operator = k.split('__')
+                operator = LOOKUP_OPERATOR[operator]
 
             field = getattr(self.model, k)
 
-            if middle == '=' and isinstance(v, tuple):
+            if operator == '{} = {}' and isinstance(v, tuple):
                 if len(v) != 2:
                     raise QuerysetError(
                         'Not a correct tuple definition, filter '
@@ -199,9 +200,14 @@ class Queryset(object):
                     )
                 )
             else:
-                v = field.sanitize_data(v)
+                if isinstance(v, (list, tuple)):
+                    # check they are correct items and serialize
+                    v = ','.join([str(field.sanitize_data(si)) for si in v])
+                else:
+                    v = field.sanitize_data(v)
+
                 filters.append(
-                    bool_string + '{}{}{}'.format(field.field_name, middle, v)
+                    bool_string + operator.format(field.field_name, v)
                 )
 
         return filters
@@ -384,3 +390,9 @@ class ModelManager(Queryset):
             )
         }]
         return await self.db_request(db_request)
+
+    async def create(self, **kwargs):
+        n_object = self.model(**kwargs)
+        await n_object.save()
+
+        return n_object

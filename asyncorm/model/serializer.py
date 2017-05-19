@@ -13,17 +13,20 @@ class ModelSerializerMeta(type):
         defined_meta = clsdict.pop('Meta', None)
 
         if defined_meta:
+            # For a modelserializer when check that has it correctly defined
+            # has a model
             if hasattr(defined_meta, 'model'):
                 base_class.model = getattr(defined_meta, 'model')
             else:
                 raise SerializerError(
-                    'The serializer has to define it refeers to'
+                    'The serializer has to define the model it\'s serializing'
                 )
+            # has fields
             if hasattr(defined_meta, 'fields'):
                 base_class._fields = getattr(defined_meta, 'fields')
             else:
                 raise SerializerError(
-                    'The serializer has to define it refeers to'
+                    'The serializer has to define the fields\'s to serialize'
                 )
 
         return base_class
@@ -57,6 +60,7 @@ class ModelSerializer(Serializer, metaclass=ModelSerializerMeta):
             )
 
         for f in cls._fields:
+            # if the serializer class has an specific serializer for that field
             if hasattr(cls, f):
                 serializer = getattr(cls, f)
                 if isinstance(serializer, SerializerMethod):

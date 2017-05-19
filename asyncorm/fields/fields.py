@@ -147,7 +147,7 @@ class Field(object):
 
 
 class PkField(Field):
-    internal_type = object
+    internal_type = int
     creation_string = 'serial primary key'
 
     def __init__(self, field_name='id', unique=False, null=False):

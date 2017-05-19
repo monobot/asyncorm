@@ -1,9 +1,11 @@
 from datetime import datetime
+from datetime import timedelta
 
 from asyncorm.exceptions import *
 from asyncorm.fields import *
 
 from .testapp.models import Author, Book
+from .testapp2.models import Appointment
 from .test_helper import AioTestCase
 
 
@@ -156,6 +158,46 @@ class ManageTestMethods(AioTestCase):
         queryset = Book.objects.filter(id__gt=2800)
         self.assertEqual(await queryset.count(), 0)
 
+    async def test_comparisons_dates(self):
+        today = datetime.now()
+        await Appointment.objects.create(
+            name='app1', date=today + timedelta(days=1)
+        )
+        await Appointment.objects.create(
+            name='app2', date=today
+        )
+        await Appointment.objects.create(
+            name='app3', date=today - timedelta(days=1)
+        )
+
+        self.assertEqual(
+            await Appointment.objects.all().count(), 3)
+        self.assertEqual(
+            await Appointment.objects.filter(date__gt=today).count(),
+            1
+        )
+        self.assertEqual(
+            await Appointment.objects.filter(date__gte=today).count(),
+            2
+        )
+        self.assertEqual(
+            await Appointment.objects.filter(date__lt=today).count(),
+            1
+        )
+        self.assertEqual(
+            await Appointment.objects.filter(
+                date__lte=today + timedelta(days=1)
+            ).count(),
+            3
+        )
+
+    async def test_in_lookput(self):
+        queryset = Book.objects.filter(id__in=(1, 2, 56, 456))
+        self.assertEqual(await queryset.count(), 3)
+
+        queryset = Book.objects.filter(name__in=('1', '2', '56'))
+        self.assertEqual(await queryset.count(), 0)
+
     async def test_exclude(self):
         queryset = Book.objects.exclude(id__gt=280)
 
@@ -188,3 +230,8 @@ class ManageTestMethods(AioTestCase):
         with self.assertRaises(QuerysetError) as exc:
             await Book.objects.get(id=2800)
         self.assertTrue('does not exist' in exc.exception.args[0])
+
+    async def test_create(self):
+        author = await Author.objects.create(**{'name': 'Juanito', 'age': 73})
+
+        self.assertTrue(isinstance(author, Author))

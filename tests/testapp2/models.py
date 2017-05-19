@@ -15,3 +15,8 @@ class Developer(Model):
 class Client(Model):
     name = CharField(max_length=10)
     dev = ForeignKey(foreign_key='Developer')
+
+
+class Appointment(Model):
+    name = CharField(max_length=50)
+    date = DateField()

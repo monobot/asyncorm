@@ -189,7 +189,7 @@ class ModelTests(AioTestCase):
                 model = Book
                 fields = ['name', 'content', ]
 
-        # complains i we try to serialize an incorrect model
+        # complains if we try to serialize an incorrect model
         with self.assertRaises(SerializerError) as exc:
             author = Author()
             BookSerializer().serialize(author)
@@ -199,3 +199,27 @@ class ModelTests(AioTestCase):
 
         serialized_book = BookSerializer().serialize(book)
         self.assertEqual(serialized_book.get('name'), 'this is a new name')
+
+        # complains if we have a model serializer without model
+        with self.assertRaises(SerializerError) as exc:
+
+            class NooneSerializer(ModelSerializer):
+
+                class Meta:
+                    fields = ['name', 'content', ]
+        self.assertEqual(
+            'The serializer has to define the model it\'s serializing',
+            exc.exception.args[0]
+        )
+
+        # complains if we have a model serializer without model
+        with self.assertRaises(SerializerError) as exc:
+
+            class Noone2Serializer(ModelSerializer):
+
+                class Meta:
+                    model = Book
+        self.assertEqual(
+            'The serializer has to define the fields\'s to serialize',
+            exc.exception.args[0]
+        )

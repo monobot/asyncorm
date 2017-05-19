@@ -20,6 +20,7 @@ loop = orm_app.loop
 
 drop_tables = ['Publisher', 'Author', 'library', 'Organization', 'Developer',
                'Client', 'Developer_Organization', 'Author_Publisher',
+               'Appointment', 'Reader'
                ]
 
 
