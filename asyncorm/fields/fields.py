@@ -66,29 +66,6 @@ class Field(object):
 
         return creation_string.format(**self.__dict__)
 
-    # def field_constraints(self):
-    #     if self.choices:
-    #         key_list = [
-    #             '\'{}\''.format(self.sanitize_data(k)) for k
-    #             in self.choices.keys()
-    #         ]
-
-    #         return_query = '''
-    #             ALTER TABLE {table_name}
-    #             ADD CONSTRAINT {const_name}
-    #             CHECK ({field_name} IN ({key_list}) );
-    #         '''
-    #         return return_query.format(
-    #             table_name=self.table_name,
-    #             const_name='{}_{}_const'.format(
-    #                 self.table_name,
-    #                 self.field_name
-    #             ),
-    #             field_name=self.field_name,
-    #             key_list=','.join(key_list),
-    #         )
-    #     return ''
-
     def validate_kwargs(self, kwargs):
         for kw in self.required_kwargs:
             if not kwargs.get(kw, None):

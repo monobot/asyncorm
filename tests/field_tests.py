@@ -95,6 +95,7 @@ class FieldTests(AioTestCase):
         book = Book(content='paperback')
         self.assertEqual(book.content_display(), 'paperback book')
 
+        # choices defined as lists or tuples
         with self.assertRaises(FieldError) as exc:
             book = Book(content='telomero')
             await book.save()
@@ -102,6 +103,7 @@ class FieldTests(AioTestCase):
             exc.exception.args[0],
             '"telomero" not in model choices'
         )
+        # choices defined as dictionaries
         with self.assertRaises(FieldError) as exc:
             read = Reader(power='flower')
             await read.save()
