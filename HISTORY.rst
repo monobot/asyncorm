@@ -2,6 +2,9 @@
 History
 =======
 
+0.1.0 (2017-05-19)
+* more solid state, added coverage
+
 0.0.10 (2017-05-13)
 * querysets, slices and indices implemented
 
