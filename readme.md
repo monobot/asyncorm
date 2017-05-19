@@ -1,6 +1,6 @@
 # AsyncORM
 
-[![pypi version](https://img.shields.io/pypi/v/asyncorm.svg)](https://pypi.python.org/pypi/asyncorm) [![python](https://img.shields.io/pypi/pyversions/asyncorm.svg)](https://pypi.python.org/pypi/asyncorm) [![Code Health](https://landscape.io/github/monobot/asyncorm/development/landscape.svg)](https://landscape.io/github/monobot/asyncorm) [![Updates](https://pyup.io/repos/github/monobot/asyncorm/shield.svg)](https://pyup.io/account/repos/github/monobot/asyncorm/) [![Updates](https://codecov.io/github/monobot/asyncorm/development.svg)](https://codecov.io/github/monobot/asyncorm/) [![Build Status](https://travis-ci.org/monobot/asyncorm.svg?branch=development)](https://travis-ci.org/monobot/asyncorm)
+[![pypi version](https://img.shields.io/pypi/v/asyncorm.svg)](https://pypi.python.org/pypi/asyncorm) [![python](https://img.shields.io/pypi/pyversions/asyncorm.svg)](https://pypi.python.org/pypi/asyncorm) [![Code Health](https://api.codacy.com/project/badge/Grade/86ee891909654fc0a294849d0a436109)](https://www.codacy.com/app/monobot/asyncorm?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=monobot/asyncorm&amp;utm_campaign=Badge_Grade) [![Updates](https://pyup.io/repos/github/monobot/asyncorm/shield.svg)](https://pyup.io/account/repos/github/monobot/asyncorm/) [![Updates](https://codecov.io/github/monobot/asyncorm/development.svg)](https://codecov.io/github/monobot/asyncorm/) [![Build Status](https://travis-ci.org/monobot/asyncorm.svg?branch=development)](https://travis-ci.org/monobot/asyncorm)
 
 :exclamation: version prebeta !!
 
