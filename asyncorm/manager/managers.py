@@ -12,7 +12,15 @@ LOOKUP_OPERATOR = {
     'lt': '{} < {}',
     'gte': '{} >= {}',
     'lte': '{} <= {}',
-    'in': '{} = ANY (array[{}])'
+    'in': '{} = ANY (array[{}])',
+    'exact': '{} LIKE {}',
+    'iexact': '{} ILIKE {}',
+    'contains': '{} LIKE \'%{}%\'',
+    'icontains': '{} ILIKE \'%{}%\'',
+    'startswith': '{} LIKE \'{}%\'',
+    'istartswith': '{} ILIKE \'{}%\'',
+    'endswith': '{} LIKE \'%{}\'',
+    'iendswith': '{} ILIKE \'%{}\'',
 }
 
 
@@ -179,11 +187,17 @@ class Queryset(object):
         for k, v in kwargs.items():
             # we format the key, the conditional and the value
             operator = '{} = {}'
+            lookup = None
             if len(k.split('__')) > 1:
-                k, operator = k.split('__')
-                operator = LOOKUP_OPERATOR[operator]
+                k, lookup = k.split('__')
+                operator = LOOKUP_OPERATOR[lookup]
 
             field = getattr(self.model, k)
+
+            string_lookups = [
+                'contains', 'icontains', 'startswith', 'istartswith',
+                'endswith', 'iendswith',
+            ]
 
             if operator == '{} = {}' and isinstance(v, tuple):
                 if len(v) != 2:
@@ -198,6 +212,11 @@ class Queryset(object):
                         min=field.sanitize_data(v[0]),
                         max=field.sanitize_data(v[1]),
                     )
+                )
+            elif lookup in string_lookups:
+                v = field.sanitize_data(v)[1:-2]
+                filters.append(
+                    bool_string + operator.format(field.field_name, v)
                 )
             else:
                 if isinstance(v, (list, tuple)):

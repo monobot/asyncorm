@@ -191,12 +191,40 @@ class ManageTestMethods(AioTestCase):
             3
         )
 
-    async def test_in_lookput(self):
+    async def test_in_lookup(self):
         queryset = Book.objects.filter(id__in=(1, 2, 56, 456))
         self.assertEqual(await queryset.count(), 3)
 
         queryset = Book.objects.filter(name__in=('1', '2', '56'))
         self.assertEqual(await queryset.count(), 0)
+
+    async def test_string_lookups(self):
+        queryset = Book.objects.filter(name__exact='book name 10')
+        self.assertEqual(await queryset.count(), 1)
+
+        queryset = Book.objects.filter(name__iexact='book NAME 10')
+        self.assertEqual(await queryset.count(), 1)
+
+        queryset = Book.objects.filter(name__iexact=' NAME 10')
+        self.assertEqual(await queryset.count(), 0)
+
+        queryset = Book.objects.filter(name__contains='NAME')
+        self.assertEqual(await queryset.count(), 0)
+
+        queryset = Book.objects.filter(name__icontains='NAME')
+        self.assertTrue(await queryset.count() > 200)
+
+        queryset = Book.objects.filter(name__startswith='book name 10')
+        self.assertEqual(await queryset.count(), 111)
+
+        queryset = Book.objects.filter(name__istartswith='boOk NAMe')
+        self.assertTrue(await queryset.count() > 200)
+
+        queryset = Book.objects.filter(name__endswith='name 51')
+        self.assertEqual(await queryset.count(), 1)
+
+        queryset = Book.objects.filter(name__iendswith='NAMe 23')
+        self.assertEqual(await queryset.count(), 1)
 
     async def test_exclude(self):
         queryset = Book.objects.exclude(id__gt=280)
