@@ -126,6 +126,9 @@ class ManageTestMethods(AioTestCase):
             'Negative indices are not allowed' == exc.exception.args[0]
         )
 
+        async for book in await Book.objects.all()[24:125]:
+            pass
+
     async def test_filter(self):
         queryset = Book.objects.filter(id__lte=30)
         book = await queryset[0]

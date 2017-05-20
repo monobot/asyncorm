@@ -281,6 +281,8 @@ class Queryset(object):
             # asign forward and stop to the modelmanager and return it
             self.forward = key.start
             self.stop = key.stop
+            if key.start is None:
+                self.forward = 0
             return self
 
         elif isinstance(key, int):
