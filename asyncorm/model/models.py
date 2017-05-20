@@ -1,7 +1,7 @@
 from ..log import logger
 from ..fields import Field, PkField, ManyToMany, ForeignKey
 from ..manager import ModelManager
-from ..exceptions import ModelError, FieldError
+from ..exceptions import ModelError, FieldError, ModelDoesNotExist
 from ..application import get_model
 
 from .serializer import ModelSerializer, SerializerMethod
@@ -25,6 +25,7 @@ class ModelMeta(type):
         base_class.ordering = None
         base_class.unique_together = []
         base_class.table_name = ''
+        base_class.DoesNotExist = ModelDoesNotExist
 
         if defined_meta:
             if hasattr(defined_meta, 'ordering'):
@@ -247,9 +248,6 @@ class BaseModel(object, metaclass=ModelMeta):
 
 
 class Model(BaseModel):
-
-    def serialize(self, serializer):
-        return serializer.serialize(self)
 
     def construct(self, data, deleted=False):
         # poblates the model with the data

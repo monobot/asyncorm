@@ -1,6 +1,9 @@
 from asyncpg.exceptions import UniqueViolationError
 
-from ..exceptions import QuerysetError, ModelError
+from ..exceptions import (
+    ModelDoesNotExist, ModelError, MultipleObjectsReturned, QuerysetError,
+)
+
 from ..fields import ManyToMany, ForeignKey, CharField  # , ManyToMany
 from ..database import Cursor
 # from .log import logger
@@ -169,7 +172,7 @@ class Queryset(object):
         length = await data.count()
         if length:
             if length > 1:
-                raise QuerysetError(
+                raise MultipleObjectsReturned(
                     'More than one {} where returned, there are {}!'.format(
                         self.model.__name__,
                         length,
@@ -178,7 +181,7 @@ class Queryset(object):
 
             async for itm in self.filter(**kwargs):
                 return itm
-        raise QuerysetError(
+        raise self.model.DoesNotExist(
             'That {} does not exist'.format(self.model.__name__)
         )
 
@@ -349,6 +352,12 @@ class ModelManager(Queryset):
         queryset.set_orm(self.orm)
 
         return queryset
+
+    async def get_or_create(self, **kwargs):
+        try:
+            return await self.get(**kwargs), False
+        except ModelDoesNotExist:
+            return await self.create(**kwargs), True
 
     async def save(self, instanced_model):
         # performs the database save

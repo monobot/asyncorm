@@ -64,7 +64,7 @@ class ManageTestMethods(AioTestCase):
             await book.save()
         self.assertTrue('has already been deleted!' in exc.exception.args[0])
 
-        with self.assertRaises(QuerysetError) as exc:
+        with self.assertRaises(ModelDoesNotExist) as exc:
             await Book.objects.get(**{'id': book.id})
         self.assertTrue('does not exist' in exc.exception.args[0])
 
@@ -278,7 +278,7 @@ class ManageTestMethods(AioTestCase):
         self.assertTrue(isinstance(book, Book))
 
         # now try to get using wrong arguments (more than one)
-        with self.assertRaises(QuerysetError) as exc:
+        with self.assertRaises(MultipleObjectsReturned) as exc:
             await Book.objects.get(id__gt=280)
         self.assertTrue(
             'More than one Book where returned, there are' in
@@ -286,7 +286,7 @@ class ManageTestMethods(AioTestCase):
         )
 
         # now try to get using wrong arguments (no object)
-        with self.assertRaises(QuerysetError) as exc:
+        with self.assertRaises(ModelDoesNotExist) as exc:
             await Book.objects.get(id=2800)
         self.assertTrue('does not exist' in exc.exception.args[0])
 
@@ -294,3 +294,14 @@ class ManageTestMethods(AioTestCase):
         author = await Author.objects.create(**{'name': 'Juanito', 'age': 73})
 
         self.assertTrue(isinstance(author, Author))
+
+    async def test_get_or_create(self):
+        kwargs = {'name': 'Raulito', 'age': 73}
+        author, created = await Author.objects.get_or_create(**kwargs)
+
+        self.assertTrue(isinstance(author, Author))
+        self.assertTrue(created)
+
+        author, created = await Author.objects.get_or_create(**kwargs)
+        self.assertTrue(isinstance(author, Author))
+        self.assertFalse(created)
