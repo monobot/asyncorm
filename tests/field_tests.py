@@ -157,6 +157,7 @@ class FieldTests(AioTestCase):
 
     def test_emailfield(self):
         EmailField(max_length=35).validate('laadio@s.com')
+
         with self.assertRaises(FieldError) as exc:
             EmailField(
                 max_length=35
@@ -173,5 +174,17 @@ class FieldTests(AioTestCase):
             EmailField(
                 max_length=35
             ).validate('laadio@svgv@gv.com')
+        self.assertTrue(
+            'not a valid email address' in exc.exception.args[0])
+        with self.assertRaises(FieldError) as exc:
+            EmailField(
+                max_length=35
+            ).validate('.laadio@svgv@gv.com')
+        self.assertTrue(
+            'not a valid email address' in exc.exception.args[0])
+        with self.assertRaises(FieldError) as exc:
+            EmailField(
+                max_length=35
+            ).validate('_laadio@svgv@gv.com')
         self.assertTrue(
             'not a valid email address' in exc.exception.args[0])

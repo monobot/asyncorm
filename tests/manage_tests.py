@@ -224,6 +224,21 @@ class ManageTestMethods(AioTestCase):
         queryset = Book.objects.filter(name__iendswith='NAMe 23')
         self.assertEqual(await queryset.count(), 1)
 
+    async def test_regex_lookups(self):
+        q_book = Book.objects.filter(name__iregex='^book name 1$')
+        self.assertEqual(await q_book.count(), 1)
+
+        await Book.objects.get(name__iregex='^book NAME 1$')
+
+        q_book = Book.objects.filter(name__iregex='^[b] NAME 1$')
+        self.assertEqual(await q_book.count(), 0)
+
+        q_book = Book.objects.filter(name__regex='^[b]')
+        self.assertTrue(await q_book.count() > 200)
+
+        q_book = Book.objects.filter(name__iregex='^[bhuijki]')
+        self.assertTrue(await q_book.count() > 200)
+
     async def test_exclude(self):
         queryset = Book.objects.exclude(id__gt=280)
 

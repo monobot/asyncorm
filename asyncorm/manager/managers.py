@@ -22,6 +22,8 @@ LOOKUP_OPERATOR = {
     'istartswith': '{} ILIKE \'{}%\'',
     'endswith': '{} LIKE \'%{}\'',
     'iendswith': '{} ILIKE \'%{}\'',
+    'regex': '{} ~ {}',
+    'iregex': '{} ~* {}',
 }
 
 
