@@ -14,8 +14,8 @@ LOOKUP_OPERATOR = {
     'lte': '{} <= {}',
     'range': '({k}>{min} AND {k}<{max})',
     'in': '{} = ANY (array[{}])',
-    'exact': '{} LIKE {}',
-    'iexact': '{} ILIKE {}',
+    'exact': '{} LIKE \'{}\'',
+    'iexact': '{} ILIKE \'{}\'',
     'contains': '{} LIKE \'%{}%\'',
     'icontains': '{} ILIKE \'%{}%\'',
     'startswith': '{} LIKE \'{}%\'',
@@ -198,8 +198,9 @@ class Queryset(object):
             field = getattr(self.model, k)
 
             string_lookups = [
-                'contains', 'icontains', 'startswith', 'istartswith',
-                'endswith', 'iendswith',
+                'exact', 'iexact',
+                'contains', 'icontains',
+                'startswith', 'istartswith', 'endswith', 'iendswith',
             ]
 
             if operator == '({k}>{min} AND {k}<{max})':
@@ -228,7 +229,7 @@ class Queryset(object):
                     raise QuerysetError(
                         '{} not allowed in non CharField fields'.format(lookup)
                     )
-                v = field.sanitize_data(v)[1:-2]
+                v = field.sanitize_data(v)[1:-1]
                 filters.append(
                     bool_string + operator.format(field.field_name, v)
                 )

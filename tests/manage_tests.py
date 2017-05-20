@@ -126,7 +126,7 @@ class ManageTestMethods(AioTestCase):
             'Negative indices are not allowed' == exc.exception.args[0]
         )
 
-        async for book in await Book.objects.all()[24:125]:
+        async for book in Book.objects.all():
             pass
 
     async def test_filter(self):
@@ -138,6 +138,14 @@ class ManageTestMethods(AioTestCase):
 
         queryset = Book.objects.filter(id__range=(280, 282))
         self.assertEqual(await queryset.count(), 1)
+
+        # upside doesnt really makes sense but also works
+        with self.assertRaises(QuerysetError) as exc:
+            queryset = Book.objects.filter(id__range={282, 280})
+        self.assertEqual(
+            'range should be list or a tuple',
+            exc.exception.args[0]
+        )
 
         # upside doesnt really makes sense but also works
         queryset = Book.objects.filter(id__range=(282, 280))
@@ -200,6 +208,13 @@ class ManageTestMethods(AioTestCase):
         self.assertEqual(await queryset.count(), 0)
 
     async def test_string_lookups(self):
+        with self.assertRaises(QuerysetError)as exc:
+            queryset = Book.objects.filter(id__exact=3)
+        self.assertEqual(
+            'exact not allowed in non CharField fields',
+            exc.exception.args[0]
+        )
+
         queryset = Book.objects.filter(name__exact='book name 10')
         self.assertEqual(await queryset.count(), 1)
 
@@ -216,7 +231,7 @@ class ManageTestMethods(AioTestCase):
         self.assertTrue(await queryset.count() > 200)
 
         queryset = Book.objects.filter(name__startswith='book name 10')
-        self.assertEqual(await queryset.count(), 111)
+        self.assertEqual(await queryset.count(), 11)
 
         queryset = Book.objects.filter(name__istartswith='boOk NAMe')
         self.assertTrue(await queryset.count() > 200)
