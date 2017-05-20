@@ -1,9 +1,10 @@
 from asyncorm.application import get_model
 from asyncorm.exceptions import *
 from asyncorm.fields import *
-from asyncorm.model import ModelSerializer
+from asyncorm.model import ModelSerializer, SerializerMethod
 
 from .testapp.models import Book, Author
+from .testapp.serializer import BookSerializer, BookSerializer2
 from .testapp2.models import Developer, Client, Organization
 from .test_helper import AioTestCase
 
@@ -169,11 +170,6 @@ class ModelTests(AioTestCase):
         q_book = Book.objects.all()
 
         async for book in q_book:
-            class BookSerializer(ModelSerializer):
-
-                class Meta:
-                    model = Book
-                    fields = ['name', 'content', 'kks']
 
             # meta fields definition is not correct
             with self.assertRaises(SerializerError) as exc:
@@ -183,21 +179,15 @@ class ModelTests(AioTestCase):
             )
             break
 
-        class BookSerializer(ModelSerializer):
-
-            class Meta:
-                model = Book
-                fields = ['name', 'content', ]
-
         # complains if we try to serialize an incorrect model
         with self.assertRaises(SerializerError) as exc:
             author = Author()
-            BookSerializer().serialize(author)
+            BookSerializer2().serialize(author)
         self.assertTrue(
             'That model is not an instance of' in exc.exception.args[0]
         )
 
-        serialized_book = BookSerializer().serialize(book)
+        serialized_book = BookSerializer2().serialize(book)
         self.assertEqual(serialized_book.get('name'), 'this is a new name')
 
         # complains if we have a model serializer without model
@@ -219,7 +209,41 @@ class ModelTests(AioTestCase):
 
                 class Meta:
                     model = Book
+
         self.assertEqual(
             'The serializer has to define the fields\'s to serialize',
             exc.exception.args[0]
         )
+
+        # complains if we have a model serializer without model
+        with self.assertRaises(SerializerError) as exc:
+
+            class BookSerializerNew(ModelSerializer):
+                its_a_2 = SerializerMethod()
+
+                def get_its_a_2(self, instance):
+                    return instance.its_a_2()
+
+                class Meta:
+                    model = Book
+                    fields = ['its_a_2', 'its_a_3', ]
+
+            BookSerializerNew().serialize(await Book.objects.get(id=3))
+
+        self.assertTrue(
+            'its_a_3 is not a correct argument for model' in
+            exc.exception.args[0]
+        )
+
+        class BookSerializerNew(ModelSerializer):
+            its_a_2 = SerializerMethod()
+
+            def get_its_a_2(self, instance):
+                return instance.its_a_2()
+
+            class Meta:
+                model = Book
+                fields = ['its_a_2', ]
+
+        book_ser = BookSerializerNew().serialize(await Book.objects.get(id=3))
+        self.assertEqual(book_ser['its_a_2'], 2)

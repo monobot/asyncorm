@@ -1,7 +1,7 @@
 from ..exceptions import SerializerError
 
 
-class Serializer():
+class Serializers():
     pass
 
 
@@ -32,18 +32,18 @@ class ModelSerializerMeta(type):
         return base_class
 
 
-class SerializerMethod(Serializer):
+class SerializerMethod(Serializers):
     pass
 
 
-class ModelSerializer(Serializer, metaclass=ModelSerializerMeta):
+class ModelSerializer(Serializers, metaclass=ModelSerializerMeta):
 
     def __init__(self):
         self.validate_fields()
 
     def validate_fields(self):
         for f in self._fields:
-            if not hasattr(self.model, f):
+            if not hasattr(self.__class__, f) and not hasattr(self.model, f):
                 raise SerializerError(
                     '{} is not a correct argument for model {}'.format(
                         f, self.model
@@ -64,16 +64,11 @@ class ModelSerializer(Serializer, metaclass=ModelSerializerMeta):
             if hasattr(cls, f):
                 serializer = getattr(cls, f)
                 if isinstance(serializer, SerializerMethod):
-                    try:
-                        serializer_method = getattr(cls, 'get_{}'.format(f))
-                        return_dict[f] = serializer_method(
-                            serializer, instanced_model
-                        )
-                    except AttributeError:
-                        raise SerializerError(
-                            ('The serializer does not defines the method '
-                             'for attribute {}').format(f)
-                        )
+                    serializer_method = getattr(cls, 'get_{}'.format(f))
+                    return_dict[f] = serializer_method(
+                        serializer, instanced_model
+                    )
+                # here we have to add subserializers when posible
             else:
                 field_class = getattr(instanced_model.__class__, f)
                 return_dict[f] = field_class.serialize_data(

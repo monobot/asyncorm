@@ -48,6 +48,9 @@ class Book(Model):
     date_created = DateField(auto_now=True)
     author = ForeignKey(foreign_key='Author', null=True)
 
+    def its_a_2(self):
+        return 2
+
     class Meta():
         table_name = 'library'
         ordering = ['-id', ]
