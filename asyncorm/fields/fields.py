@@ -1,4 +1,5 @@
 import json
+import re
 from json.decoder import JSONDecodeError
 
 from datetime import datetime
@@ -155,8 +156,20 @@ class CharField(Field):
         return '\'{}\''.format(value)
 
 
-class JsonField(CharField):
+class EmailField(CharField):
+
+    def validate(self, value):
+        super(EmailField, self).validate(value)
+        # now validate the emailfield here
+        email_regex = r'(^[\w][\w0-9_.+-]+@[\w0-9-]+\.[\w0-9-.]+$)'
+        if not re.match(email_regex, value):
+            raise FieldError('"{}" not a valid email address'.format(value))
+
+
+class JsonField(Field):
     internal_type = dict, list, str
+    required_kwargs = ['max_length', ]
+    creation_string = 'varchar({max_length})'
 
     def __init__(self, field_name='', default=None, max_length=0,
                  null=False, choices={}, unique=False

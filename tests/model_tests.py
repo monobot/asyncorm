@@ -34,10 +34,10 @@ class ModelTests(AioTestCase):
 
         fields = Author.get_fields()
 
-        self.assertEqual(len(fields), 4)
+        self.assertEqual(len(fields), 5)
         self.assertEqual(
             sorted(list(fields.keys())),
-            sorted(['na', 'name', 'age', 'publisher'])
+            sorted(['na', 'name', 'age', 'publisher', 'email'])
         )
 
     def test_instantiated__init__(self):

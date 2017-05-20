@@ -1,4 +1,6 @@
-from asyncorm.fields import *
+from asyncorm.fields import (
+    CharField, DateField, ForeignKey, IntegerField, ManyToMany,
+)
 from asyncorm.model import Model
 
 

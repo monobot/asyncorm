@@ -154,3 +154,24 @@ class FieldTests(AioTestCase):
         await publisher.save()
         self.assertEqual(publisher.json['last_name'], 'Gregory')
         self.assertEqual(publisher.json['67'], 6)
+
+    def test_emailfield(self):
+        EmailField(max_length=35).validate('laadio@s.com')
+        with self.assertRaises(FieldError) as exc:
+            EmailField(
+                max_length=35
+            ).validate('laadio@svgvgvcom')
+        self.assertTrue(
+            'not a valid email address' in exc.exception.args[0])
+        with self.assertRaises(FieldError) as exc:
+            EmailField(
+                max_length=35
+            ).validate('@laadio@svgvgv.com')
+        self.assertTrue(
+            'not a valid email address' in exc.exception.args[0])
+        with self.assertRaises(FieldError) as exc:
+            EmailField(
+                max_length=35
+            ).validate('laadio@svgv@gv.com')
+        self.assertTrue(
+            'not a valid email address' in exc.exception.args[0])

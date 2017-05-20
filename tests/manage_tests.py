@@ -133,26 +133,24 @@ class ManageTestMethods(AioTestCase):
         self.assertTrue(isinstance(book, Book))
         self.assertTrue(await queryset.count() >= 20)
 
-        queryset = Book.objects.filter(id=(280, 282))
+        queryset = Book.objects.filter(id__range=(280, 282))
         self.assertEqual(await queryset.count(), 1)
 
         # upside doesnt really makes sense but also works
-        queryset = Book.objects.filter(id=(282, 280))
+        queryset = Book.objects.filter(id__range=(282, 280))
         self.assertEqual(await queryset.count(), 0)
 
         # incorrect fitler tuple definition error catched
         with self.assertRaises(QuerysetError) as exc:
-            await Book.objects.get(id=(280, 234, 23))
+            await Book.objects.get(id__range=(280, 234, 23))
         self.assertTrue(
-            ('Not a correct tuple definition, filter '
-             'only allows tuples of size 2') in exc.exception.args[0])
+            ('Not a correct tuple/list definition, ') in exc.exception.args[0])
 
         # incorrect fitler tuple definition error catched
         with self.assertRaises(QuerysetError) as exc:
-            await Book.objects.get(id=(280, ))
+            await Book.objects.get(id__range=(280, ))
         self.assertTrue(
-            ('Not a correct tuple definition, filter '
-             'only allows tuples of size 2') in exc.exception.args[0])
+            ('should be of size 2') in exc.exception.args[0])
 
         # empty queryset
         queryset = Book.objects.filter(id__gt=2800)
@@ -234,7 +232,7 @@ class ManageTestMethods(AioTestCase):
 
         self.assertTrue(await queryset.count() >= 20)
 
-        queryset = Book.objects.exclude(id=(280, 282))
+        queryset = Book.objects.exclude(id__range=(280, 282))
         self.assertTrue(await queryset.count() > 250)
 
         # empty queryset

@@ -1,4 +1,8 @@
-from asyncorm.fields import *
+from asyncorm.fields import (
+    CharField, DateField, EmailField, ForeignKey, IntegerField, JsonField,
+    ManyToMany, PkField,
+)
+
 from asyncorm.model import Model
 
 BOOK_CHOICES = (
@@ -33,6 +37,7 @@ class Publisher(Model):
 class Author(Model):
     na = PkField(field_name='uid')
     name = CharField(max_length=50, unique=True)
+    email = EmailField(max_length=100, null=True)
     age = IntegerField()
     publisher = ManyToMany(foreign_key='Publisher')
 

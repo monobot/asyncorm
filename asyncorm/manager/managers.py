@@ -1,7 +1,7 @@
 from asyncpg.exceptions import UniqueViolationError
 
 from ..exceptions import QuerysetError, ModelError
-from ..fields import ManyToMany, ForeignKey  # , ManyToMany
+from ..fields import ManyToMany, ForeignKey, CharField  # , ManyToMany
 from ..database import Cursor
 # from .log import logger
 
@@ -12,6 +12,7 @@ LOOKUP_OPERATOR = {
     'lt': '{} < {}',
     'gte': '{} >= {}',
     'lte': '{} <= {}',
+    'range': '({k}>{min} AND {k}<{max})',
     'in': '{} = ANY (array[{}])',
     'exact': '{} LIKE {}',
     'iexact': '{} ILIKE {}',
@@ -199,11 +200,15 @@ class Queryset(object):
                 'endswith', 'iendswith',
             ]
 
-            if operator == '{} = {}' and isinstance(v, tuple):
+            if operator == '({k}>{min} AND {k}<{max})':
+                if not isinstance(v, (tuple, list)):
+                    raise QuerysetError(
+                        '{} should be list or a tuple'.format(lookup)
+                    )
                 if len(v) != 2:
                     raise QuerysetError(
-                        'Not a correct tuple definition, filter '
-                        'only allows tuples of size 2'
+                        'Not a correct tuple/list definition, '
+                        'should be of size 2'
                     )
                 filters.append(
                     bool_string +
@@ -214,6 +219,13 @@ class Queryset(object):
                     )
                 )
             elif lookup in string_lookups:
+                is_charfield = isinstance(field, CharField)
+                # is_othercharfield = issubclass(field, CharField)
+                # if not is_charfield or not is_othercharfield:
+                if not is_charfield:
+                    raise QuerysetError(
+                        '{} not allowed in non CharField fields'.format(lookup)
+                    )
                 v = field.sanitize_data(v)[1:-2]
                 filters.append(
                     bool_string + operator.format(field.field_name, v)
