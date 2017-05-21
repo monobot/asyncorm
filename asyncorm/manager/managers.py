@@ -5,7 +5,7 @@ from ..exceptions import (
     ModelDoesNotExist, ModelError, MultipleObjectsReturned, QuerysetError,
 )
 
-from ..fields import ManyToMany, ForeignKey, CharField  # , ManyToMany
+from ..fields import ManyToMany, ForeignKey, CharField, NumberField
 from ..database import Cursor
 # from .log import logger
 
@@ -169,6 +169,42 @@ class Queryset(object):
         for v in resp.values():
             return v
 
+    # Avg, Max, Min, Sum
+    async def calculate(self, field_name, operation):
+        if hasattr(self.model, field_name):
+            field = getattr(self.model, field_name)
+        else:
+            raise QuerysetError(
+                '{} wrong field name for model {}'.format(
+                    field_name,
+                    self.model.__name__
+                )
+            )
+        if not isinstance(field, NumberField):
+            raise QuerysetError('{} is not a numeric field'.format(field_name))
+
+        query = self.query_copy()
+        query[0]['select'] = '{}({})'.format(operation, field_name)
+
+        resp = await self.db_request(query)
+        for v in resp.values():
+            return v
+
+    async def Max(self, field_name):
+        return await self.calculate(field_name, 'MAX')
+
+    async def Min(self, field_name):
+        return await self.calculate(field_name, 'MIN')
+
+    async def Sum(self, field_name):
+        return await self.calculate(field_name, 'SUM')
+
+    async def Avg(self, field_name):
+        return await self.calculate(field_name, 'AVG')
+
+    async def StdDev(self, field_name):
+        return await self.calculate(field_name, 'STDDEV')
+
     async def get(self, **kwargs):
         queryset = self.queryset().filter(**kwargs)
 
@@ -285,7 +321,7 @@ class Queryset(object):
 
     #               DB RELAED METHODS
     async def db_request(self, db_request):
-        db_request = db_request[:]
+        db_request = deepcopy(db_request)
         db_request[0].update({
             'select': db_request[0].get('select', self.select),
             'table_name': db_request[0].get(
@@ -321,7 +357,7 @@ class Queryset(object):
 
             cursor = self._cursor
             if not cursor:
-                query = self.db_manager.construct_query(self.query[:])
+                query = self.db_manager.construct_query(deepcopy(self.query))
                 cursor = Cursor(
                     conn,
                     query,
@@ -343,7 +379,7 @@ class Queryset(object):
     async def __anext__(self):
         if not self._cursor:
             conn = await self.db_manager.get_conn()
-            query = self.db_manager.construct_query(self.query[:])
+            query = self.db_manager.construct_query(self.query)
             self._cursor = Cursor(
                 conn,
                 query,

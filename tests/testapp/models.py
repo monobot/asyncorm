@@ -47,6 +47,7 @@ class Book(Model):
     content = CharField(max_length=255, choices=BOOK_CHOICES)
     date_created = DateField(auto_now=True)
     author = ForeignKey(foreign_key='Author', null=True)
+    price = IntegerField(default=25)
 
     def its_a_2(self):
         return 2

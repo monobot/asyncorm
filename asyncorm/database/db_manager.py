@@ -147,7 +147,7 @@ class GeneralManager(object):
 
     def construct_query(self, query_chain):
         # here we take the query_chain and convert to a real aql sentence
-        res_dict = query_chain[:].pop(0)
+        res_dict = query_chain.pop(0)
 
         query_type = res_dict['action']
         for q in query_chain:

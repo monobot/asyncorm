@@ -27,10 +27,12 @@ class ModelTests(AioTestCase):
 
         fields = Book.get_fields()
 
-        self.assertEqual(len(fields), 5)
+        self.assertEqual(len(fields), 6)
         self.assertEqual(
             sorted(list(fields.keys())),
-            sorted(['id', 'content', 'name', 'author', 'date_created'])
+            sorted(
+                ['id', 'content', 'name', 'author', 'date_created', 'price']
+            )
         )
 
         fields = Author.get_fields()
@@ -102,9 +104,9 @@ class ModelTests(AioTestCase):
         self.assertEqual(Book().ordering, ['-id'])
         self.assertEqual(Author().ordering, None)
 
-        q_books = Book.objects.filter(id__gt=10)
+        q_books = Book.objects.filter(id__lt=10)
         async for book in q_books:
-            self.assertEqual(book.id, 303)
+            self.assertEqual(book.id, 9)
             break
 
     async def test_fk(self):
@@ -167,7 +169,7 @@ class ModelTests(AioTestCase):
 
     async def test_serialize(self):
         # the inverse relation is correctly set
-        q_book = Book.objects.all()
+        q_book = Book.objects.filter(id__lt=100)
 
         async for book in q_book:
 
@@ -188,7 +190,7 @@ class ModelTests(AioTestCase):
         )
 
         serialized_book = BookSerializer2().serialize(book)
-        self.assertEqual(serialized_book.get('name'), 'this is a new name')
+        self.assertEqual(serialized_book.get('name'), 'book name 98')
 
         # complains if we have a model serializer without model
         with self.assertRaises(SerializerError) as exc:

@@ -319,3 +319,46 @@ class ManageTestMethods(AioTestCase):
         book = await q_books.get(id=34)
         self.assertTrue(book.name)
         self.assertTrue(book.id is None)
+
+    async def test_sum(self):
+        q_books = Book.objects.filter(id__lt=100)
+
+        quant = await q_books.count()
+        total_price = await q_books.Sum('price')
+        self.assertEqual(total_price, quant * 25)
+
+    async def test_max(self):
+        await Book.objects.create(
+            **{'name': 'chancleta 2',
+               'price': 35,
+               'content': 'hard cover',
+               }
+        )
+        q_books = Book.objects.all()
+
+        max_price = await q_books.Max('price')
+        self.assertEqual(max_price, 35)
+
+    async def test_min(self):
+        await Book.objects.create(
+            **{'name': 'chancleta',
+               'price': 15,
+               'content': 'hard cover',
+               }
+        )
+        q_books = Book.objects.all()
+
+        min_price = await q_books.Min('price')
+        self.assertEqual(min_price, 15)
+
+    async def test_stddev(self):
+        await Book.objects.create(
+            **{'name': 'chancletas nuevas',
+               'price': 15,
+               'content': 'hard cover',
+               }
+        )
+        q_books = Book.objects.all()
+
+        min_price = await q_books.StdDev('price')
+        self.assertTrue(min_price)

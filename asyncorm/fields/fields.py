@@ -207,7 +207,11 @@ class JsonField(Field):
         return '\'{}\''.format(value)
 
 
-class IntegerField(Field):
+class NumberField(Field):
+    pass
+
+
+class IntegerField(NumberField):
     internal_type = int
     creation_string = 'integer'
 
@@ -222,7 +226,7 @@ class IntegerField(Field):
         return '{}'.format(value)
 
 
-class DecimalField(IntegerField):
+class DecimalField(NumberField):
     internal_type = float
     creation_string = 'decimal'
 
