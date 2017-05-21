@@ -305,3 +305,17 @@ class ManageTestMethods(AioTestCase):
         author, created = await Author.objects.get_or_create(**kwargs)
         self.assertTrue(isinstance(author, Author))
         self.assertFalse(created)
+
+    async def test_only(self):
+        q_books = Book.objects.filter(
+            name__startswith='book name 10').only('name')
+
+        async for book in q_books:
+            self.assertTrue(book.name)
+            self.assertTrue(book.id is None)
+
+        q_books = Book.objects.only('name')
+
+        book = await q_books.get(id=34)
+        self.assertTrue(book.name)
+        self.assertTrue(book.id is None)

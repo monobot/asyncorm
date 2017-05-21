@@ -64,8 +64,8 @@ for x in range(300):
 
 
 if __name__ == '__main__':
-    from .module_tests import ModuleTests
     from .manage_tests import ManageTestMethods
+    from .module_tests import ModuleTests
     from .model_tests import ModelTests
     from .field_tests import FieldTests
     from .migration_tests import MigrationTests

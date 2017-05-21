@@ -174,6 +174,7 @@ class GeneralManager(object):
             getattr(self, res_dict['action']).format(**res_dict)
         )
 
+        # print(query)
         return query
 
 

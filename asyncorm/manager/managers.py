@@ -1,4 +1,5 @@
 from asyncpg.exceptions import UniqueViolationError
+from copy import deepcopy
 
 from ..exceptions import (
     ModelDoesNotExist, ModelError, MultipleObjectsReturned, QuerysetError,
@@ -49,13 +50,18 @@ class Queryset(object):
         self.stop = None
         self.step = None
 
+    def query_copy(self):
+        return (
+            self.query and deepcopy(self.query) or deepcopy(self.basic_query)
+        )
+
     @property
     def basic_query(self):
         return [{
             'action': 'db__select_all',
             'select': '*',
             'table_name': self.model.cls_tablename(),
-            'ordering': []
+            'ordering': self.model.ordering
         }]
 
     @classmethod
@@ -64,7 +70,7 @@ class Queryset(object):
         cls.db_manager = orm.db_manager
 
     def get_field_queries(self):
-        # Builds the creationquery for each of the non fk or m2m fields
+        '''Builds the creationquery for each of the non fk or m2m fields'''
         return ', '.join([
             f.creation_query() for f in self.model.fields.values()
             if not isinstance(f, ManyToMany) and
@@ -79,15 +85,11 @@ class Queryset(object):
         }]
 
     async def create_table(self):
-        '''
-        Builds the table without the m2m_fields and fks
-        '''
+        '''Builds the table without the m2m_fields and fks'''
         await self.db_request(self.create_table_builder())
 
     async def unique_together(self):
-        '''
-        Builds the unique together constraint
-        '''
+        '''Builds the unique together constraint'''
         unique_together = self.get_unique_together()
 
         if unique_together:
@@ -147,8 +149,9 @@ class Queryset(object):
         instance.construct(data)
         return instance
 
-    async def queryset(self):
-        return await self.all()
+    #               QUERYSET METHODS
+    def queryset(self):
+        return self._copy_me()
 
     def all(self):
         queryset = self
@@ -157,10 +160,9 @@ class Queryset(object):
 
         return queryset
 
+    #               ENDING QUERYSETS
     async def count(self):
-        if self.query is None:
-            self.query = self.basic_query
-        query = self.query[:]
+        query = self.query_copy()
         query[0]['select'] = 'COUNT(*)'
 
         resp = await self.db_request(query)
@@ -168,23 +170,26 @@ class Queryset(object):
             return v
 
     async def get(self, **kwargs):
-        data = self.filter(**kwargs)
-        length = await data.count()
-        if length:
-            if length > 1:
-                raise MultipleObjectsReturned(
-                    'More than one {} where returned, there are {}!'.format(
-                        self.model.__name__,
-                        length,
-                    )
+        queryset = self.queryset().filter(**kwargs)
+
+        count = await queryset.count()
+
+        if count > 1:
+            raise MultipleObjectsReturned(
+                'More than one {} where returned, there are {}!'.format(
+                    self.model.__name__,
+                    count,
                 )
+            )
+        elif not count:
+            raise self.model.DoesNotExist(
+                'That {} does not exist'.format(self.model.__name__)
+            )
 
-            async for itm in self.filter(**kwargs):
-                return itm
-        raise self.model.DoesNotExist(
-            'That {} does not exist'.format(self.model.__name__)
-        )
+        async for itm in self.filter(**kwargs):
+            return itm
 
+    #               CHAINABLE QUERYSET METHODS
     def calc_filters(self, kwargs, exclude):
         # recompose the filters
         bool_string = exclude and 'NOT ' or ''
@@ -253,7 +258,7 @@ class Queryset(object):
         filters = self.calc_filters(kwargs, exclude)
         condition = ' AND '.join(filters)
 
-        queryset = self.all()
+        queryset = self.queryset()
 
         queryset.query.append({'action': 'db__where', 'condition': condition})
         return queryset
@@ -261,6 +266,24 @@ class Queryset(object):
     def exclude(self, **kwargs):
         return self.filter(exclude=True, **kwargs)
 
+    def only(self, *args):
+        # retrieves from the database only the attrs requested
+        # all the rest come as None
+        for arg in args:
+            if not hasattr(self.model, arg):
+                raise QuerysetError(
+                    '{} is not a correct field for {}'.format(
+                        arg, self.model.__name__
+                    )
+                )
+
+        queryset = self.queryset()
+        queryset.query = self.query_copy()
+        queryset.query[0]['select'] = ','.join(args)
+
+        return queryset
+
+    #               DB RELAED METHODS
     async def db_request(self, db_request):
         db_request = db_request[:]
         db_request[0].update({
@@ -343,13 +366,8 @@ class ModelManager(Queryset):
 
     def _copy_me(self):
         queryset = ModelManager(self.model)
-
-        queryset.query = self.basic_query
-
-        if self.model.ordering:
-            queryset.query[0].update({'ordering': self.model.ordering})
-
         queryset.set_orm(self.orm)
+        queryset.query = self.query_copy()
 
         return queryset
 
