@@ -1,5 +1,7 @@
 import json
 import re
+
+from decimal import Decimal
 from json.decoder import JSONDecodeError
 
 from datetime import datetime
@@ -18,6 +20,8 @@ KWARGS_TYPES = {
     'choices': (dict, tuple),
     'unique': bool,
     'strftime': str,
+    'max_digits': int,
+    'decimal_places': int,
 }
 
 
@@ -227,8 +231,19 @@ class IntegerField(NumberField):
 
 
 class DecimalField(NumberField):
-    internal_type = float
-    creation_string = 'decimal'
+    internal_type = (Decimal, float, int)
+    creation_string = 'decimal({max_digits},{decimal_places})'
+
+    def __init__(self, field_name='', default=None, null=False, choices={},
+                 unique=False, max_digits=10, decimal_places=2):
+        super().__init__(field_name=field_name, default=default, null=null,
+                         choices=choices, unique=unique,
+                         max_digits=max_digits, decimal_places=decimal_places)
+
+    def sanitize_data(self, value):
+        value = super().sanitize_data(value)
+
+        return '{}'.format(value)
 
 
 class DateField(Field):

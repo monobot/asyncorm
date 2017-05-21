@@ -1,6 +1,6 @@
 from asyncorm.fields import (
-    CharField, DateField, EmailField, ForeignKey, IntegerField, JsonField,
-    ManyToMany, PkField,
+    CharField, DateField, DecimalField, EmailField, ForeignKey, IntegerField,
+    JsonField, ManyToMany, PkField,
 )
 
 from asyncorm.model import Model
@@ -47,7 +47,8 @@ class Book(Model):
     content = CharField(max_length=255, choices=BOOK_CHOICES)
     date_created = DateField(auto_now=True)
     author = ForeignKey(foreign_key='Author', null=True)
-    price = IntegerField(default=25)
+    price = DecimalField(default=25)
+    quantity = IntegerField(default=1)
 
     def its_a_2(self):
         return 2

@@ -27,11 +27,12 @@ class ModelTests(AioTestCase):
 
         fields = Book.get_fields()
 
-        self.assertEqual(len(fields), 6)
+        self.assertEqual(len(fields), 7)
         self.assertEqual(
             sorted(list(fields.keys())),
             sorted(
-                ['id', 'content', 'name', 'author', 'date_created', 'price']
+                ['id', 'content', 'name', 'author', 'date_created', 'price',
+                 'quantity']
             )
         )
 

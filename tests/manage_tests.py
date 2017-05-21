@@ -320,6 +320,8 @@ class ManageTestMethods(AioTestCase):
         self.assertTrue(book.name)
         self.assertTrue(book.id is None)
 
+        book = await Book.objects.all()[0]
+
     async def test_sum(self):
         q_books = Book.objects.filter(id__lt=100)
 
