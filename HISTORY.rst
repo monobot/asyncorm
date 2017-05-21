@@ -2,6 +2,9 @@
 History
 =======
 
+0.1.1 (2017-05-19)
+* increase the number of lookups, database lookup calculation, better queryset setup
+
 0.1.0 (2017-05-19)
 * more solid state, added coverage
 
