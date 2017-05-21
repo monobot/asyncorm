@@ -285,6 +285,12 @@ class ManageTestMethods(AioTestCase):
         self.assertTrue(isinstance(book, Book))
         self.assertEqual(book.id, 280)
 
+    async def test_none(self):
+        queryset = Book.objects.none().order_by('id', 'name')
+
+        results = await queryset.count()
+        self.assertEqual(results, 0)
+
     async def test_get(self):
         book = await Book.objects.get(id=280)
 

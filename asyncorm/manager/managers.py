@@ -160,6 +160,14 @@ class Queryset(object):
 
         return queryset
 
+    def none(self):
+        queryset = self
+        if not self.query:
+            queryset = self._copy_me()
+
+        kwargs = {self.model.db_pk: -1}
+        return queryset.filter(**kwargs)
+
     #               ENDING QUERYSETS
     async def count(self):
         query = self.query_copy()
@@ -169,7 +177,6 @@ class Queryset(object):
         for v in resp.values():
             return v
 
-    # Avg, Max, Min, Sum
     async def calculate(self, field_name, operation):
         if hasattr(self.model, field_name):
             field = getattr(self.model, field_name)
