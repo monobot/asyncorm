@@ -272,6 +272,19 @@ class ManageTestMethods(AioTestCase):
         queryset = Book.objects.exclude(id__lt=2800)
         self.assertEqual(await queryset.count(), 0)
 
+    async def test_order_by(self):
+        queryset = Book.objects.exclude(id__gt=280).order_by('id', 'name')
+
+        book = await queryset[0]
+        self.assertTrue(isinstance(book, Book))
+        self.assertEqual(book.id, 1)
+
+        queryset = Book.objects.exclude(id__gt=280).order_by('-id', 'name')
+
+        book = await queryset[0]
+        self.assertTrue(isinstance(book, Book))
+        self.assertEqual(book.id, 280)
+
     async def test_get(self):
         book = await Book.objects.get(id=280)
 

@@ -319,6 +319,30 @@ class Queryset(object):
 
         return queryset
 
+    def order_by(self, *args):
+        # retrieves from the database only the attrs requested
+        # all the rest come as None
+        final_args = []
+        for arg in args:
+            if arg[0] == '-':
+                arg = arg[1:]
+                final_args.append('-' + arg)
+            else:
+                final_args.append(arg)
+
+            if not hasattr(self.model, arg):
+                raise QuerysetError(
+                    '{} is not a correct field for {}'.format(
+                        arg, self.model.__name__
+                    )
+                )
+
+        queryset = self.queryset()
+        queryset.query = self.query_copy()
+        queryset.query[0]['ordering'] = final_args
+
+        return queryset
+
     #               DB RELAED METHODS
     async def db_request(self, db_request):
         db_request = deepcopy(db_request)
