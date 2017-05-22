@@ -128,12 +128,14 @@ class GeneralManager(object):
     def db__delete(self):
         return 'DELETE FROM {table_name} WHERE {id_data} '
 
-    def query_clean(self, query):
+    @staticmethod
+    def query_clean(query):
         '''Here we clean the queryset'''
         query += ';'
         return query
 
-    def ordering_syntax(self, ordering):
+    @staticmethod
+    def ordering_syntax(ordering):
         result = []
         if not ordering:
             return ''

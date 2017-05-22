@@ -116,7 +116,8 @@ class Queryset(object):
             if isinstance(f, ForeignKey):
                 await self.db_request(self.add_fk_field_builder(f))
 
-    def add_m2m_columns_builder(self, field):
+    @staticmethod
+    def add_m2m_columns_builder(field):
         return [{
             'table_name': field.table_name,
             'action': 'db__create_table',

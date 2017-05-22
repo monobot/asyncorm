@@ -38,6 +38,8 @@ class Field(object):
             if kw == 'choices':
                 if isinstance(kwargs.get(kw), dict):
                     self.choices = kwargs.get(kw)
+                elif kwargs.get(kw) is None:
+                    pass
                 else:
                     self.choices = {k: v for k, v in kwargs.get(kw)}
 
@@ -81,17 +83,18 @@ class Field(object):
                 )
 
         for k, v in kwargs.items():
-            if not isinstance(v, KWARGS_TYPES[k]):
+            null_choices = v is None and k == 'choices'
+            if not isinstance(v, KWARGS_TYPES[k]) and not null_choices:
                 raise FieldError('Wrong value for {k}'.format(k=k))
 
         if kwargs.get('field_name', ''):
             self.set_field_name(kwargs['field_name'])
 
     def validate(self, value):
-        if not value and not self.null:
+        if value is None and not self.null:
             raise FieldError('null value in NOT NULL field')
 
-        if hasattr(self, 'choices') and self.choices:
+        if hasattr(self, 'choices') and self.choices is not None:
             if value not in self.choices.keys():
                 raise FieldError('"{}" not in model choices'.format(value))
 
@@ -162,7 +165,7 @@ class CharField(Field):
     creation_string = 'varchar({max_length})'
 
     def __init__(self, field_name='', default=None, max_length=0,
-                 null=False, choices={}, unique=False
+                 null=False, choices=None, unique=False
                  ):
         super().__init__(field_name=field_name, default=default,
                          max_length=max_length, null=null, choices=choices,
@@ -196,7 +199,7 @@ class JsonField(Field):
     creation_string = 'varchar({max_length})'
 
     def __init__(self, field_name='', default=None, max_length=0,
-                 null=False, choices={}, unique=False
+                 null=False, choices=None, unique=False
                  ):
         super().__init__(
             field_name=field_name, default=default,
@@ -239,7 +242,7 @@ class IntegerField(NumberField):
     internal_type = int
     creation_string = 'integer'
 
-    def __init__(self, field_name='', default=None, null=False, choices={},
+    def __init__(self, field_name='', default=None, null=False, choices=None,
                  unique=False):
         super().__init__(field_name=field_name, default=default, null=null,
                          choices=choices, unique=unique)
@@ -254,7 +257,7 @@ class DecimalField(NumberField):
     internal_type = (Decimal, float, int)
     creation_string = 'decimal({max_digits},{decimal_places})'
 
-    def __init__(self, field_name='', default=None, null=False, choices={},
+    def __init__(self, field_name='', default=None, null=False, choices=None,
                  unique=False, max_digits=10, decimal_places=2):
         super().__init__(field_name=field_name, default=default, null=null,
                          choices=choices, unique=unique,
@@ -271,7 +274,7 @@ class DateField(Field):
     creation_string = 'timestamp'
 
     def __init__(self, field_name='', default=None, auto_now=False, null=False,
-                 choices={}, unique=False, strftime='date %Y-%m-%d'
+                 choices=None, unique=False, strftime='date %Y-%m-%d'
                  ):
         super().__init__(field_name=field_name, default=default,
                          auto_now=auto_now, null=null, choices=choices,
