@@ -1,9 +1,9 @@
 from .fields import (
     Field, PkField, CharField, JsonField, IntegerField, DecimalField,
-    DateField, ForeignKey, ManyToMany, EmailField, NumberField
+    DateField, ForeignKey, ManyToMany, EmailField, NumberField, BooleanField
 )
 
 __all__ = ('Field', 'PkField', 'CharField', 'IntegerField', 'DateField',
            'ForeignKey', 'ManyToMany', 'DecimalField', 'JsonField',
-           'EmailField', 'NumberField'
+           'EmailField', 'NumberField', 'BooleanField'
            )

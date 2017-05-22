@@ -158,15 +158,10 @@ class ModelTests(AioTestCase):
             self.assertEqual(dd.id, dev.id)
             break
 
+        dev = await Developer.objects.get(name='developer', age=55)
         # the first is 1
-        ind = 0
         async for dd in orgs_returned:
-            if ind == 0:
-                self.assertEqual(dd.id, 1)
-            # the last corresponds to the last added
-            ind += 1
-
-        self.assertEqual(dd.id, org.id)
+            self.assertTrue(dd.id in org_list)
 
     async def test_serialize(self):
         # the inverse relation is correctly set

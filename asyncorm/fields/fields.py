@@ -47,17 +47,16 @@ class Field(object):
 
         creation_string += self.null and ' NULL' or ' NOT NULL'
 
-        default_value = ''
-        if hasattr(self, 'default'):
-            default_value = self.default
-
-        if default_value:
+        if hasattr(self, 'default') and self.default is not None:
             creation_string += ' DEFAULT '
+            default_value = self.default
             if callable(self.default):
-                self.default = default_value = default_value()
+                default_value = self.default()
 
             if isinstance(default_value, str):
                 creation_string += '\'{}\''.format(default_value)
+            elif isinstance(default_value, bool):
+                creation_string += str(default_value)
             else:
                 creation_string += '\'{}\''.format(
                     self.sanitize_data(default_value)
@@ -134,6 +133,27 @@ class PkField(Field):
 
     def __init__(self, field_name='id', unique=False, null=False):
         super().__init__(field_name=field_name, unique=unique, null=null)
+
+
+class BooleanField(Field):
+    internal_type = bool
+    creation_string = 'boolean'
+
+    def __init__(self, field_name='', default=None, max_length=0,
+                 null=False, unique=False
+                 ):
+        super().__init__(field_name=field_name, default=default,
+                         max_length=max_length, null=null, unique=unique
+                         )
+
+    def sanitize_data(self, value):
+        '''method used to convert to SQL data'''
+        if value is None:
+            return 'NULL'
+        elif value is True:
+            return 'true'
+        elif value is False:
+            return 'false'
 
 
 class CharField(Field):

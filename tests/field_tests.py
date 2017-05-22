@@ -1,6 +1,7 @@
 from asyncorm.exceptions import *
 from asyncorm.fields import *
 from .testapp.models import Book, Publisher, Reader
+from .testapp2.models import Organization
 from .test_helper import AioTestCase
 
 
@@ -154,6 +155,21 @@ class FieldTests(AioTestCase):
         await publisher.save()
         self.assertEqual(publisher.json['last_name'], 'Gregory')
         self.assertEqual(publisher.json['67'], 6)
+
+    async def test_booleanfield(self):
+        BooleanField(default=False).validate(True)
+
+        with self.assertRaises(FieldError) as exc:
+            BooleanField(default=False).validate('laadio@svgvgvcom')
+        self.assertEqual(
+            'laadio@svgvgvcom is a wrong datatype for field BooleanField',
+            exc.exception.args[0]
+        )
+
+        org = await Organization.objects.create(
+            **{'name': 'chapulin', 'active': True, }
+            )
+        self.assertTrue(org.active)
 
     def test_emailfield(self):
         EmailField(max_length=35).validate('laadio@s.com')
