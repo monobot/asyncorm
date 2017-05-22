@@ -383,3 +383,14 @@ class ManageTestMethods(AioTestCase):
 
         min_price = await q_books.StdDev('price')
         self.assertTrue(min_price)
+
+    async def test_exists(self):
+        resp = await Book.objects.filter(
+            **{'name__icontains': 'name'}
+            ).exists()
+        self.assertTrue(resp)
+
+        resp = await Book.objects.filter(
+            **{'id': 155625}
+            ).exists()
+        self.assertFalse(resp)

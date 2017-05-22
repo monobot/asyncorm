@@ -102,6 +102,10 @@ class GeneralManager(object):
         )
 
     @property
+    def db__exists(self):
+        return 'SELECT EXISTS({})'.format(self.db__select)
+
+    @property
     def db__where(self):
         '''chainable'''
         return 'WHERE {condition} '

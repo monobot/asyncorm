@@ -178,6 +178,14 @@ class Queryset(object):
         for v in resp.values():
             return v
 
+    async def exists(self):
+        query = self.query_copy()
+        query[0]['action'] = 'db__exists'
+
+        resp = await self.db_request(query)
+        for v in resp.values():
+            return v
+
     async def calculate(self, field_name, operation):
         if hasattr(self.model, field_name):
             field = getattr(self.model, field_name)
