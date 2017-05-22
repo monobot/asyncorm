@@ -35,7 +35,7 @@ class Publisher(Model):
 
 
 class Author(Model):
-    na = PkField(field_name='uid')
+    na = PkField(db_column='uid')
     name = CharField(max_length=50, unique=True)
     email = EmailField(max_length=100, null=True)
     age = IntegerField()

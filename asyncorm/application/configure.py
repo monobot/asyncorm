@@ -106,7 +106,7 @@ class OrmApp(object):
 
                 elif isinstance(f, ForeignKey):
                     other_model = self.get_model(f.foreign_key)
-                    other_model.set_reverse_foreignkey(name, f.field_name)
+                    other_model.set_reverse_foreignkey(name, f.db_column)
 
     def set_model_orm(self):
         for model in self.models.values():

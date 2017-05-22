@@ -57,28 +57,28 @@ class FieldTests(AioTestCase):
 
     def test_field_name(self):
         with self.assertRaises(FieldError) as exc:
-            CharField(max_length=35, field_name='_oneone')
+            CharField(max_length=35, db_column='_oneone')
         self.assertEqual(
             exc.exception.args[0],
-            'field_name can not start with "_"'
+            'db_column can not start with "_"'
         )
 
         with self.assertRaises(FieldError) as exc:
-            CharField(max_length=35, field_name='oneone_')
+            CharField(max_length=35, db_column='oneone_')
         self.assertEqual(
             exc.exception.args[0],
-            'field_name can not end with "_"'
+            'db_column can not end with "_"'
         )
 
         with self.assertRaises(FieldError) as exc:
-            CharField(max_length=35, field_name='one__one')
+            CharField(max_length=35, db_column='one__one')
         self.assertEqual(
             exc.exception.args[0],
-            'field_name can not contain "__"'
+            'db_column can not contain "__"'
         )
 
         # this is an allowed fieldname
-        CharField(max_length=35, field_name='one_one')
+        CharField(max_length=35, db_column='one_one')
 
     async def test_field_max_length(self):
         reader = Reader(size='M', name='name bigger than max')

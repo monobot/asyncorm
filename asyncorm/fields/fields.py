@@ -10,7 +10,7 @@ from ..exceptions import FieldError  # , ModuleError
 DATE_FIELDS = ['DateField', ]
 
 KWARGS_TYPES = {
-    'field_name': str,
+    'db_column': str,
     'default': object,
     'null': bool,
     'max_length': int,
@@ -44,7 +44,7 @@ class Field(object):
                     self.choices = {k: v for k, v in kwargs.get(kw)}
 
     def creation_query(self):
-        creation_string = '{field_name} ' + self.creation_string
+        creation_string = '{db_column} ' + self.creation_string
         date_field = self.field_type in DATE_FIELDS
 
         creation_string += self.null and ' NULL' or ' NOT NULL'
@@ -87,8 +87,8 @@ class Field(object):
             if not isinstance(v, KWARGS_TYPES[k]) and not null_choices:
                 raise FieldError('Wrong value for {k}'.format(k=k))
 
-        if kwargs.get('field_name', ''):
-            self.set_field_name(kwargs['field_name'])
+        if kwargs.get('db_column', ''):
+            self.set_field_name(kwargs['db_column'])
 
     def validate(self, value):
         if value is None and not self.null:
@@ -120,32 +120,32 @@ class Field(object):
         '''to directly serialize the data field based'''
         return value
 
-    def set_field_name(self, field_name):
-        if '__' in field_name:
-            raise FieldError('field_name can not contain "__"')
-        if field_name.startswith('_'):
-            raise FieldError('field_name can not start with "_"')
-        if field_name.endswith('_'):
-            raise FieldError('field_name can not end with "_"')
-        self.field_name = field_name
+    def set_field_name(self, db_column):
+        if '__' in db_column:
+            raise FieldError('db_column can not contain "__"')
+        if db_column.startswith('_'):
+            raise FieldError('db_column can not start with "_"')
+        if db_column.endswith('_'):
+            raise FieldError('db_column can not end with "_"')
+        self.db_column = db_column
 
 
 class PkField(Field):
     internal_type = int
     creation_string = 'serial primary key'
 
-    def __init__(self, field_name='id', unique=False, null=False):
-        super().__init__(field_name=field_name, unique=unique, null=null)
+    def __init__(self, db_column='id', unique=False, null=False):
+        super().__init__(db_column=db_column, unique=unique, null=null)
 
 
 class BooleanField(Field):
     internal_type = bool
     creation_string = 'boolean'
 
-    def __init__(self, field_name='', default=None, max_length=0,
+    def __init__(self, db_column='', default=None, max_length=0,
                  null=False, unique=False
                  ):
-        super().__init__(field_name=field_name, default=default,
+        super().__init__(db_column=db_column, default=default,
                          max_length=max_length, null=null, unique=unique
                          )
 
@@ -164,10 +164,10 @@ class CharField(Field):
     required_kwargs = ['max_length', ]
     creation_string = 'varchar({max_length})'
 
-    def __init__(self, field_name='', default=None, max_length=0,
+    def __init__(self, db_column='', default=None, max_length=0,
                  null=False, choices=None, unique=False
                  ):
-        super().__init__(field_name=field_name, default=default,
+        super().__init__(db_column=db_column, default=default,
                          max_length=max_length, null=null, choices=choices,
                          unique=unique
                          )
@@ -198,11 +198,11 @@ class JsonField(Field):
     required_kwargs = ['max_length', ]
     creation_string = 'varchar({max_length})'
 
-    def __init__(self, field_name='', default=None, max_length=0,
+    def __init__(self, db_column='', default=None, max_length=0,
                  null=False, choices=None, unique=False
                  ):
         super().__init__(
-            field_name=field_name, default=default,
+            db_column=db_column, default=default,
             max_length=max_length, null=null, choices=choices,
             unique=unique
         )
@@ -242,9 +242,9 @@ class IntegerField(NumberField):
     internal_type = int
     creation_string = 'integer'
 
-    def __init__(self, field_name='', default=None, null=False, choices=None,
+    def __init__(self, db_column='', default=None, null=False, choices=None,
                  unique=False):
-        super().__init__(field_name=field_name, default=default, null=null,
+        super().__init__(db_column=db_column, default=default, null=null,
                          choices=choices, unique=unique)
 
     def sanitize_data(self, value):
@@ -257,9 +257,9 @@ class DecimalField(NumberField):
     internal_type = (Decimal, float, int)
     creation_string = 'decimal({max_digits},{decimal_places})'
 
-    def __init__(self, field_name='', default=None, null=False, choices=None,
+    def __init__(self, db_column='', default=None, null=False, choices=None,
                  unique=False, max_digits=10, decimal_places=2):
-        super().__init__(field_name=field_name, default=default, null=null,
+        super().__init__(db_column=db_column, default=default, null=null,
                          choices=choices, unique=unique,
                          max_digits=max_digits, decimal_places=decimal_places)
 
@@ -273,10 +273,10 @@ class DateField(Field):
     internal_type = datetime
     creation_string = 'timestamp'
 
-    def __init__(self, field_name='', default=None, auto_now=False, null=False,
+    def __init__(self, db_column='', default=None, auto_now=False, null=False,
                  choices=None, unique=False, strftime='date %Y-%m-%d'
                  ):
-        super().__init__(field_name=field_name, default=default,
+        super().__init__(db_column=db_column, default=default,
                          auto_now=auto_now, null=null, choices=choices,
                          unique=unique, strftime=strftime
                          )
@@ -295,9 +295,9 @@ class ForeignKey(Field):
     required_kwargs = ['foreign_key', ]
     creation_string = 'integer references {foreign_key}'
 
-    def __init__(self, field_name='', default=None, foreign_key='',
+    def __init__(self, db_column='', default=None, foreign_key='',
                  null=False, unique=False):
-        super().__init__(field_name=field_name, default=default,
+        super().__init__(db_column=db_column, default=default,
                          foreign_key=foreign_key, null=null, unique=unique
                          )
 
@@ -314,9 +314,9 @@ class ManyToMany(Field):
         {foreign_key} INTEGER REFERENCES {foreign_key} NOT NULL
     '''
 
-    def __init__(self, field_name='', foreign_key=None, default=None,
+    def __init__(self, db_column='', foreign_key=None, default=None,
                  unique=False):
-        super().__init__(field_name=field_name, foreign_key=foreign_key,
+        super().__init__(db_column=db_column, foreign_key=foreign_key,
                          default=default, unique=unique
                          )
 

@@ -276,7 +276,7 @@ class Queryset(object):
                 filters.append(
                     bool_string +
                     '({k}>{min} AND {k}<{max})'.format(
-                        k=field.field_name,
+                        k=field.db_column,
                         min=field.sanitize_data(v[0]),
                         max=field.sanitize_data(v[1]),
                     )
@@ -291,7 +291,7 @@ class Queryset(object):
                     )
                 v = field.sanitize_data(v)[1:-1]
                 filters.append(
-                    bool_string + operator.format(field.field_name, v)
+                    bool_string + operator.format(field.db_column, v)
                 )
             else:
                 if isinstance(v, (list, tuple)):
@@ -301,7 +301,7 @@ class Queryset(object):
                     v = field.sanitize_data(v)
 
                 filters.append(
-                    bool_string + operator.format(field.field_name, v)
+                    bool_string + operator.format(field.db_column, v)
                 )
 
         return filters
@@ -459,7 +459,7 @@ class ModelManager(Queryset):
         for k, data in instanced_model.data.items():
             f_class = getattr(instanced_model.__class__, k)
 
-            field_name = f_class.field_name or k
+            field_name = f_class.db_column or k
             data = f_class.sanitize_data(data)
 
             fields.append(field_name)

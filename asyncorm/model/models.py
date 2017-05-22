@@ -51,7 +51,7 @@ class ModelMeta(type):
             pk_fields = [
                 f for f in base_class.fields.values() if isinstance(f, PkField)
             ]
-            base_class.db_pk = pk_fields[0].field_name
+            base_class.db_pk = pk_fields[0].db_column
             base_class.orm_pk = pk_fields[0].orm_field_name
 
         for f in base_class.fields.values():
@@ -202,7 +202,7 @@ class BaseModel(object, metaclass=ModelMeta):
             if isinstance(field, Field):
                 field.orm_field_name = f_n
 
-                if not field.field_name:
+                if not field.db_column:
                     field.set_field_name(f_n)
 
                 if not field.table_name:
@@ -216,7 +216,7 @@ class BaseModel(object, metaclass=ModelMeta):
                     )
 
                 if not isinstance(field.__class__, PkField):
-                    cls.attr_names.update({f_n: field.field_name})
+                    cls.attr_names.update({f_n: field.db_column})
 
                 fields[f_n] = field
 
