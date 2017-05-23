@@ -92,7 +92,15 @@ class GeneralManager(object):
 
     @property
     def db__select_all(self):
-        return 'SELECT {select} FROM {table_name} {ordering}'
+        return 'SELECT {select} FROM {table_name} {join} {ordering}'
+
+    @property
+    def db__select_related(self):
+        # LEFT JOIN inventory ON inventory.film_id = film.film_id;
+        return '''
+            LEFT JOIN {right_table}
+            ON {foreign_field} = {right_table}.{model_db_pk}
+        '''
 
     @property
     def db__select(self):
@@ -155,12 +163,11 @@ class GeneralManager(object):
         # here we take the query_chain and convert to a real sql sentence
         res_dict = query_chain.pop(0)
 
-        query_type = res_dict['action']
         for q in query_chain:
             if q['action'] == 'db__where':
-                if query_type == 'db__select_all':
-                    query_type = 'db__select'
-                    res_dict.update({'action': query_type})
+                if res_dict['action'] == 'db__select_all':
+                    res_dict.update({'action': 'db__select'})
+
                 condition = res_dict.get('condition', '')
                 if condition:
                     condition = ' AND '.join([condition, q['condition']])
@@ -168,6 +175,10 @@ class GeneralManager(object):
                     condition = q['condition']
 
                 res_dict.update({'condition': condition})
+            elif q['action'] == 'db__select_related':
+                for model in q['fields']:
+                    join_const = getattr(self, q['action']).format(**model)
+                    res_dict['join'] += join_const
 
         # if we are not counting, then we can asign ordering
         if res_dict.get('select', '') == '*':
@@ -176,11 +187,12 @@ class GeneralManager(object):
             )
         else:
             res_dict['ordering'] = ''
-        query = self.query_clean(
-            getattr(self, res_dict['action']).format(**res_dict)
-        )
+            res_dict['join'] = ''
 
-        # print(query)
+        query = getattr(self, res_dict['action']).format(**res_dict)
+        query = self.query_clean(query)
+
+        # print('query', query)
         return query
 
 

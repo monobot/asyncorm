@@ -459,7 +459,7 @@ class ManageTestMethods(AioTestCase):
             exc.exception.args[0]
         )
 
-    async def test_select_related_wrong_fieldtype(self):
+    async def test_select_related_wrong_fieldtype_real(self):
         field_name = 'author'
 
-        await Book.objects.select_related(field_name).get(id=12)
+        await Book.objects.select_related(field_name).only('name').get(id=12)

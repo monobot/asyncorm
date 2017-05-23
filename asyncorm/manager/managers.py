@@ -61,7 +61,8 @@ class Queryset(object):
             'action': 'db__select_all',
             'select': '*',
             'table_name': self.model.cls_tablename(),
-            'ordering': self.model.ordering
+            'ordering': self.model.ordering,
+            'join': '',
         }]
 
     @classmethod
@@ -145,8 +146,16 @@ class Queryset(object):
 
         data = {}
         for k, v in record.items():
-            data.update({k: v})
+            select_related = []
+            splitted = k.split('__')
+            if len(splitted) > 1:
+                if splitted[0] not in select_related:
+                    select_related.append(splitted[0])
+            else:
+                data.update({k: v})
 
+        if select_related:
+            pass
         instance.construct(data)
         return instance
 
@@ -220,7 +229,7 @@ class Queryset(object):
                 'That {} does not exist'.format(self.model.__name__)
             )
 
-        async for itm in self.filter(**kwargs):
+        async for itm in self.queryset().filter(**kwargs):
             return itm
 
     #               CHAINABLE QUERYSET METHODS
@@ -237,7 +246,7 @@ class Queryset(object):
         return queryset.filter(**kwargs)
 
     def select_related(self, *args):
-        select_related = {'action': 'select_related', 'fields': []}
+        select_related = {'action': 'db__select_related', 'fields': []}
         for arg in args:
             # fr the time been we overlook the after the '__'
             if '__' in arg:
@@ -256,7 +265,16 @@ class Queryset(object):
                         self.model.__name__
                     )
                 )
-            select_related['fields'].append(arg)
+            model = self.orm.get_model(getattr(self.model, arg).foreign_key)
+            select_related['fields'].append(
+                # right_table foreign_field model model_db_pk
+                {
+                    'right_table': model.table_name or model.__name__.lower(),
+                    'foreign_field': arg,
+                    # 'model': model.db_pk,
+                    'model_db_pk': model.db_pk,
+                }
+            )
         queryset = self._copy_me()
         queryset.query.append(select_related)
 
