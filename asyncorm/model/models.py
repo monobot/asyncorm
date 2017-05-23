@@ -276,7 +276,6 @@ class Model(BaseModel):
                     model_name=self.__class__.__name__
                 )
             )
-        self.construct(kwargs)
         await self.objects.save(self)
 
     async def delete(self):

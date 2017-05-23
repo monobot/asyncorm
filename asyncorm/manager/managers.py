@@ -151,24 +151,6 @@ class Queryset(object):
         return instance
 
     #               QUERYSET METHODS
-    def queryset(self):
-        return self._copy_me()
-
-    def all(self):
-        queryset = self
-        if not self.query:
-            queryset = self._copy_me()
-
-        return queryset
-
-    def none(self):
-        queryset = self
-        if not self.query:
-            queryset = self._copy_me()
-
-        kwargs = {self.model.db_pk: -1}
-        return queryset.filter(**kwargs)
-
     #               ENDING QUERYSETS
     async def count(self):
         query = self.query_copy()
@@ -242,6 +224,44 @@ class Queryset(object):
             return itm
 
     #               CHAINABLE QUERYSET METHODS
+    def queryset(self):
+        return self._copy_me()
+
+    def all(self):
+        return self._copy_me()
+
+    def none(self):
+        queryset = self._copy_me()
+
+        kwargs = {self.model.db_pk: -1}
+        return queryset.filter(**kwargs)
+
+    def select_related(self, *args):
+        select_related = {'action': 'select_related', 'fields': []}
+        for arg in args:
+            # fr the time been we overlook the after the '__'
+            if '__' in arg:
+                arg = arg.split('__')[0]
+            if not hasattr(self.model, arg):
+                raise QuerysetError(
+                    '{} is not a {} attribute.'.format(
+                        arg,
+                        self.model.__name__
+                    )
+                )
+            if not isinstance(getattr(self.model, arg), ForeignKey):
+                raise QuerysetError(
+                    '{} is not a ForeignKey Field for {}.'.format(
+                        arg,
+                        self.model.__name__
+                    )
+                )
+            select_related['fields'].append(arg)
+        queryset = self._copy_me()
+        queryset.query.append(select_related)
+
+        return queryset
+
     def calc_filters(self, kwargs, exclude):
         # recompose the filters
         bool_string = exclude and 'NOT ' or ''
@@ -532,6 +552,5 @@ class ModelManager(Queryset):
 
     async def create(self, **kwargs):
         n_object = self.model(**kwargs)
-        await n_object.save()
-
+        await self.model.objects.save(n_object)
         return n_object

@@ -16,7 +16,6 @@ class ManageTestMethods(AioTestCase):
             'name': 'lord of the rings',
             'content': 'hard cover',
             'date_created': datetime.now(),
-            # 'author': 1
         })
         self.assertFalse(book.id)
 
@@ -169,6 +168,7 @@ class ManageTestMethods(AioTestCase):
 
     async def test_comparisons_dates(self):
         today = datetime.now()
+
         await Appointment.objects.create(
             name='app1', date=today + timedelta(days=1)
         )
@@ -179,8 +179,7 @@ class ManageTestMethods(AioTestCase):
             name='app3', date=today - timedelta(days=1)
         )
 
-        self.assertEqual(
-            await Appointment.objects.all().count(), 3)
+        self.assertEqual(await Appointment.objects.all().count(), 3)
         self.assertEqual(
             await Appointment.objects.filter(date__gt=today).count(),
             1
@@ -200,88 +199,120 @@ class ManageTestMethods(AioTestCase):
             3
         )
 
-    async def test_in_lookup(self):
+    async def test_in_lookup_integerfield(self):
         queryset = Book.objects.filter(id__in=(1, 2, 56, 456))
+
         self.assertEqual(await queryset.count(), 3)
 
+    async def test_in_lookup_stringfield(self):
         queryset = Book.objects.filter(name__in=('1', '2', '56'))
+
         self.assertEqual(await queryset.count(), 0)
 
-    async def test_string_lookups(self):
+    async def test_string_lookups_wrong_fieldtype(self):
         with self.assertRaises(QuerysetError)as exc:
-            queryset = Book.objects.filter(id__exact=3)
+            Book.objects.filter(id__exact=3)
         self.assertEqual(
             'exact not allowed in non CharField fields',
             exc.exception.args[0]
         )
 
+    async def test_string_lookups_exact(self):
         queryset = Book.objects.filter(name__exact='book name 10')
+
         self.assertEqual(await queryset.count(), 1)
 
+    async def test_string_lookups_iexact(self):
         queryset = Book.objects.filter(name__iexact='book NAME 10')
+
         self.assertEqual(await queryset.count(), 1)
 
+    async def test_string_lookups_iexact_wrong(self):
         queryset = Book.objects.filter(name__iexact=' NAME 10')
+
         self.assertEqual(await queryset.count(), 0)
 
+    async def test_string_lookups_contains_wrong(self):
         queryset = Book.objects.filter(name__contains='NAME')
+
         self.assertEqual(await queryset.count(), 0)
 
+    async def test_string_lookups_icontains(self):
         queryset = Book.objects.filter(name__icontains='NAME')
+
         self.assertTrue(await queryset.count() > 200)
 
+    async def test_string_lookups_startswith(self):
         queryset = Book.objects.filter(name__startswith='book name 10')
+
         self.assertEqual(await queryset.count(), 11)
 
+    async def test_string_lookups_istartswith(self):
         queryset = Book.objects.filter(name__istartswith='boOk NAMe')
+
         self.assertTrue(await queryset.count() > 200)
 
+    async def test_string_lookups_endswith(self):
         queryset = Book.objects.filter(name__endswith='name 51')
+
         self.assertEqual(await queryset.count(), 1)
 
+    async def test_string_lookups_iendswith(self):
         queryset = Book.objects.filter(name__iendswith='NAMe 23')
+
         self.assertEqual(await queryset.count(), 1)
 
-    async def test_regex_lookups(self):
+    async def test_regex_lookups_iregex(self):
         q_book = Book.objects.filter(name__iregex='^book name 1$')
-        self.assertEqual(await q_book.count(), 1)
 
+        book_count = await q_book.count()
+
+        self.assertEqual(book_count, 1)
+
+    async def test_regex_lookups_get_iregex(self):
         await Book.objects.get(name__iregex='^book NAME 1$')
 
+    async def test_regex_lookups_iregex_empty(self):
         q_book = Book.objects.filter(name__iregex='^[b] NAME 1$')
+
         self.assertEqual(await q_book.count(), 0)
 
+    async def test_regex_lookups_regex(self):
         q_book = Book.objects.filter(name__regex='^[b]')
-        self.assertTrue(await q_book.count() > 200)
 
-        q_book = Book.objects.filter(name__iregex='^[bhuijki]')
         self.assertTrue(await q_book.count() > 200)
 
     async def test_exclude(self):
         queryset = Book.objects.exclude(id__gt=280)
 
         book = await queryset[0]
-        self.assertTrue(isinstance(book, Book))
 
+        self.assertTrue(isinstance(book, Book))
         self.assertTrue(await queryset.count() >= 20)
 
+    async def test_exclude_range(self):
         queryset = Book.objects.exclude(id__range=(280, 282))
+
         self.assertTrue(await queryset.count() > 250)
 
-        # empty queryset
+    async def test_exclude_empty(self):
         queryset = Book.objects.exclude(id__lt=2800)
+
         self.assertEqual(await queryset.count(), 0)
 
-    async def test_order_by(self):
+    async def test_order_by_ascending(self):
         queryset = Book.objects.exclude(id__gt=280).order_by('id', 'name')
 
         book = await queryset[0]
+
         self.assertTrue(isinstance(book, Book))
         self.assertEqual(book.id, 1)
 
+    async def test_order_by_descending(self):
         queryset = Book.objects.exclude(id__gt=280).order_by('-id', 'name')
 
         book = await queryset[0]
+
         self.assertTrue(isinstance(book, Book))
         self.assertEqual(book.id, 280)
 
@@ -289,13 +320,15 @@ class ManageTestMethods(AioTestCase):
         queryset = Book.objects.none().order_by('id', 'name')
 
         results = await queryset.count()
+
         self.assertEqual(results, 0)
 
-    async def test_get(self):
+    async def test_get_correct(self):
         book = await Book.objects.get(id=280)
 
         self.assertTrue(isinstance(book, Book))
 
+    async def test_get_multiple_error(self):
         # now try to get using wrong arguments (more than one)
         with self.assertRaises(MultipleObjectsReturned) as exc:
             await Book.objects.get(id__gt=280)
@@ -304,28 +337,36 @@ class ManageTestMethods(AioTestCase):
             exc.exception.args[0]
         )
 
+    async def test_get_no_exists_exception(self):
         # now try to get using wrong arguments (no object)
         with self.assertRaises(ModelDoesNotExist) as exc:
             await Book.objects.get(id=2800)
         self.assertTrue('does not exist' in exc.exception.args[0])
 
     async def test_create(self):
-        author = await Author.objects.create(**{'name': 'Juanito', 'age': 73})
+        create_dict = {'name': 'Juanito', 'age': 73}
+
+        author = await Author.objects.create(**create_dict)
 
         self.assertTrue(isinstance(author, Author))
+        self.assertTrue(isinstance(author.na, int))
 
-    async def test_get_or_create(self):
+    async def test_get_or_create_exists(self):
         kwargs = {'name': 'Raulito', 'age': 73}
+
         author, created = await Author.objects.get_or_create(**kwargs)
 
         self.assertTrue(isinstance(author, Author))
         self.assertTrue(created)
 
-        author, created = await Author.objects.get_or_create(**kwargs)
-        self.assertTrue(isinstance(author, Author))
+    async def test_get_or_create_created(self):
+        kwargs = {'id': 73}
+        book, created = await Book.objects.get_or_create(**kwargs)
+
+        self.assertTrue(isinstance(book, Book))
         self.assertFalse(created)
 
-    async def test_only(self):
+    async def test_only_with_filter(self):
         q_books = Book.objects.filter(
             name__startswith='book name 10').only('name')
 
@@ -333,19 +374,20 @@ class ManageTestMethods(AioTestCase):
             self.assertTrue(book.name)
             self.assertTrue(book.id is None)
 
+    async def test_only_with_get(self):
         q_books = Book.objects.only('name')
 
         book = await q_books.get(id=34)
+
         self.assertTrue(book.name)
         self.assertTrue(book.id is None)
-
-        book = await Book.objects.all()[0]
 
     async def test_sum(self):
         q_books = Book.objects.filter(id__lt=100)
 
         quant = await q_books.count()
         total_price = await q_books.Sum('price')
+
         self.assertEqual(total_price, quant * 25)
 
     async def test_max(self):
@@ -373,24 +415,51 @@ class ManageTestMethods(AioTestCase):
         self.assertEqual(min_price, 15)
 
     async def test_stddev(self):
-        await Book.objects.create(
-            **{'name': 'chancletas nuevas',
-               'price': 15,
-               'content': 'hard cover',
-               }
-        )
+        new_data = {
+            'name': 'chancletas nuevas',
+            'price': 15,
+            'content': 'hard cover',
+        }
+        await Book.objects.create(**new_data)
         q_books = Book.objects.all()
 
         min_price = await q_books.StdDev('price')
+
         self.assertTrue(min_price)
 
-    async def test_exists(self):
-        resp = await Book.objects.filter(
-            **{'name__icontains': 'name'}
-            ).exists()
+    async def test_exists_true(self):
+        resp = await Book.objects.filter(**{'name__icontains': 'nam'}).exists()
         self.assertTrue(resp)
 
-        resp = await Book.objects.filter(
-            **{'id': 155625}
-            ).exists()
+    async def test_exists_false(self):
+        resp = await Book.objects.filter(**{'id': 155625}).exists()
+
         self.assertFalse(resp)
+
+    def test_select_related_wrong_field(self):
+        field_name = 'toto__noto'
+        with self.assertRaises(QuerysetError) as exc:
+            Book.objects.select_related(field_name)
+
+        self.assertEqual(
+            '{} is not a {} attribute.'.format(
+                field_name.split('__')[0],
+                'Book'
+            ),
+            exc.exception.args[0]
+        )
+
+    def test_select_related_wrong_fieldtype(self):
+        field_name = 'name'
+        with self.assertRaises(QuerysetError) as exc:
+            Book.objects.select_related(field_name)
+
+        self.assertEqual(
+            '{} is not a ForeignKey Field for {}.'.format(field_name, 'Book'),
+            exc.exception.args[0]
+        )
+
+    async def test_select_related_wrong_fieldtype(self):
+        field_name = 'author'
+
+        await Book.objects.select_related(field_name).get(id=12)
