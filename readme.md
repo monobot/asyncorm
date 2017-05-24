@@ -16,4 +16,4 @@ It is designed to be used together with [sanic](https://github.com/channelcat/sa
 [read the docs](https://readthedocs.org/projects/asyncorm/badge/?version=development)
 
 ### Dependencies
-[asyncpg](https://github.com/MagicStack/asyncpg)
+[asyncpg](http://asyncorm.readthedocs.io/en/development/)

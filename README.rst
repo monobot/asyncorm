@@ -42,12 +42,14 @@ WARNING: version prebeta !!
 WARNING: Work In Progress !!
 
 **AsyncORM** is a fully async ORM_ inspired in the fantastic `django orm`_
+
 .. _ORM: https://en.wikipedia.org/wiki/Object-relational_mapping
 .. _django orm: https://docs.djangoproject.com/en/1.11/topics/db/
 
 **AsyncORM** currently only supports postgres, but its developed to be "easy" to plug a number of different database interfaces.
 
 It is designed to be used together with sanic_ or other async webserver.
+
 .. _sanic: https://github.com/channelcat/sanic
 
 To do
@@ -62,7 +64,7 @@ A number of things are needed to be able to release asyncOrm a production ready 
 - maybe add some more fields like DateTimeField, `uuid4field`_
 
 .. _mySql: https://www.mysql.com/
-.. _mariaDb: https://www.mysql.com/
+.. _mariaDb: https://mariadb.org/
 .. _prefetch_related: https://docs.djangoproject.com/en/1.11/ref/models/querysets/#prefetch_related support
 .. _uuid4field: https://www.postgresql.org/docs/9.5/static/datatype-uuid.html
 
