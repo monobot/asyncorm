@@ -6,5 +6,5 @@ api:
 .. toctree::
    :maxdepth: 1
 
-   model
-   queryset
+   api/model
+   api/queryset
