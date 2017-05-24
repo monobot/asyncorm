@@ -5,8 +5,8 @@ Installation
 ============
 
 
-Stable release
---------------
+Development(current) release
+----------------------------
 
 To install asyncorm, run this command in your terminal:
 

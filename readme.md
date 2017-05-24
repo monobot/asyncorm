@@ -12,5 +12,8 @@
 
 It is designed to be used together with [sanic](https://github.com/channelcat/sanic) or any other async platform.
 
+## Documentation
+[read the docs](https://readthedocs.org/projects/asyncorm/badge/?version=development)
+
 ### Dependencies
 [asyncpg](https://github.com/MagicStack/asyncpg)
