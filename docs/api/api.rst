@@ -1,10 +1,9 @@
-.. highlight:: shell
-
-===
 Api
 ===
 
--- toctree::
+api:
+
+.. toctree::
    :maxdepth: 1
 
    model
