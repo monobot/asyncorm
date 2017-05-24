@@ -41,27 +41,30 @@ WARNING: version prebeta !!
 
 WARNING: Work In Progress !!
 
-**AsyncORM** is a fully async [ORM](https://en.wikipedia.org/wiki/Object-relational_mapping) inspired in the fantastic [django orm](https://docs.djangoproject.com/en/1.11/topics/db/).
+**AsyncORM** is a fully async ORM_ inspired in the fantastic `django orm`_
+.. _ORM: https://en.wikipedia.org/wiki/Object-relational_mapping
+.. _django orm: https://docs.djangoproject.com/en/1.11/topics/db/
 
 **AsyncORM** currently only supports postgres, but its developed to be "easy" to plug a number of different database interfaces.
 
-It is designed to be used together with [sanic](https://github.com/channelcat/sanic) or other async webserver.
+It is designed to be used together with sanic_ or other async webserver.
+.. _sanic: https://github.com/channelcat/sanic
 
 To do
 -----
 
 A number of things are needed to be able to release asyncOrm a production ready ORM:
+
 - better the documentation!
 - migration support (forward migration at least)
-
 - other databases interfaces ( `mysql`_ / `mariaDb`_ first priority)
 - `prefetch_related`_ functionality
 - maybe add some more fields like DateTimeField, `uuid4field`_
 
 .. _mySql: https://www.mysql.com/
 .. _mariaDb: https://www.mysql.com/
-- .. _prefetch_related: https://docs.djangoproject.com/en/1.11/ref/models/querysets/#prefetch_related support
-- .. _uuid4field: https://www.postgresql.org/docs/9.5/static/datatype-uuid.html
+.. _prefetch_related: https://docs.djangoproject.com/en/1.11/ref/models/querysets/#prefetch_related support
+.. _uuid4field: https://www.postgresql.org/docs/9.5/static/datatype-uuid.html
 
 Dependencies
 ------------
@@ -69,7 +72,7 @@ Dependencies
 AsyncOrm currently only depends on AsyncPg; that its the database interface of choice for postgresql.
 asyncpg_, is a database interface library designed specifically for PostgreSQL and Python/asyncio.
 
-- .. _asyncpg: https://github.com/MagicStack/asyncpg
+.. _asyncpg: https://github.com/MagicStack/asyncpg
 
 Credits
 ---------
