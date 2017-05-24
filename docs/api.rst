@@ -1,5 +1,5 @@
 Api
 ===
 
-.. include:: model.rst
-.. include:: queryser.rst
+.. include:: ./model.rst
+.. include:: ./queryset.rst
