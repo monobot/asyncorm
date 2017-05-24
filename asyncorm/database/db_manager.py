@@ -176,6 +176,8 @@ class GeneralManager(object):
 
                 res_dict.update({'condition': condition})
             elif q['action'] == 'db__select_related':
+                if res_dict.get('select', '') == '*':
+                    res_dict['select'] = q['models_fields']
                 for model in q['fields']:
                     join_const = getattr(self, q['action']).format(**model)
                     res_dict['join'] += join_const
