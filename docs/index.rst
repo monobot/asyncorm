@@ -9,7 +9,7 @@ Contents:
    readme
    installation
    usage
-   api
+   api/api
    contributing
    authors
    history
