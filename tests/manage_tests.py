@@ -459,7 +459,62 @@ class ManageTestMethods(AioTestCase):
             exc.exception.args[0]
         )
 
-    # async def test_select_related_fieldtype_get(self):
-    #     field_name = 'author'
+    async def test_select_related_fieldtype_null(self):
+        field_name = 'author'
 
-    #     await Book.objects.select_related(field_name).get(id=12)
+        book = await Book.objects.select_related(field_name).get(id=12)
+        book2 = await Book.objects.get(id=13)
+
+        # in both cases the author is None
+        self.assertTrue(book.author is None)
+        self.assertTrue(book2.author is None)
+
+    async def test_select_related_fieldtype_exists(self):
+        author = await Author.objects.create(
+            **{'name': 'new author', 'age': 23}
+        )
+        book = await Book.objects.create(**{
+            'name': 'book with author',
+            'content': 'hard cover',
+            'author': author.na,
+        })
+
+        book = await Book.objects.select_related('author').get(id=book.id)
+
+        self.assertTrue(isinstance(book.author, Author))
+
+    async def test_select_related_fieldtype_exists_get(self):
+        author = await Author.objects.create(
+            **{'name': 'new new author', 'age': 23}
+        )
+        book = await Book.objects.create(**{
+            'name': 'book with author 2',
+            'content': 'hard cover',
+            'author': author.na,
+        })
+
+        book = await Book.objects.select_related('author').get(id=book.id)
+
+        self.assertTrue(isinstance(book.author, Author))
+
+    async def test_select_related_fieldtype_exists_filter(self):
+        # get the last book id
+        last_book = await Book.objects.all()[0]
+        author = await Author.objects.create(
+            **{'name': 'supernew author', 'age': 23}
+        )
+        # we create a number of books
+        for x in range(10):
+            new_data = {
+                'name': 'book-author {}'.format(str(x)),
+                'content': 'hard cover',
+                'author': author.na,
+            }
+            book = await Book.objects.create(**new_data)
+        q_books = Book.objects.select_related('author').filter(
+            id__gt=last_book.id
+        )
+
+        async for book in q_books:
+            # we check each of them has the author prepopulated
+            self.assertTrue(isinstance(book.author, Author))

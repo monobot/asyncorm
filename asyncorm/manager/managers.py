@@ -156,6 +156,7 @@ class Queryset(object):
 
         if select_related:
             pass
+
         instance.construct(data)
         return instance
 
@@ -229,7 +230,8 @@ class Queryset(object):
                 'That {} does not exist'.format(self.model.__name__)
             )
 
-        async for itm in self.queryset().filter(**kwargs):
+        queryset = self.queryset()
+        async for itm in queryset.filter(**kwargs):
             return itm
 
     #               CHAINABLE QUERYSET METHODS
@@ -270,13 +272,20 @@ class Queryset(object):
             right_table = model.table_name or model.__name__.lower()
             left_table = self.model.table_name or self.model.__name__.lower()
 
+            fields_formatter = ', '.join([
+                '{right_table}.{field} AS {right_table}€€€{field}'.format(
+                    right_table=right_table,
+                    field=field
+                ) for field in model.get_db_columns()
+
+            ])
             select_related['fields'].append(
                 {
                     'right_table': right_table,
                     'left_table': left_table,
                     'foreign_field': arg,
-                    # 'model': model.db_pk,
                     'model_db_pk': model.db_pk,
+                    'fields_formatter': fields_formatter
                 }
             )
         queryset = self._copy_me()

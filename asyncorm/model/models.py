@@ -228,6 +228,16 @@ class BaseModel(object, metaclass=ModelMeta):
 
         return fields
 
+    @classmethod
+    def get_db_columns(cls):
+        db_columns = []
+
+        for f_n, field in cls.__dict__.items():
+            if isinstance(field, Field) and not isinstance(field, ManyToMany):
+                db_columns.append(field.db_column and field.db_column or f_n)
+
+        return db_columns
+
     def validate_kwargs(self, kwargs):
         '''validate the kwargs on object instantiation only'''
         attr_errors = [k for k in kwargs.keys() if k not in self.fields.keys()]
@@ -251,21 +261,38 @@ class Model(BaseModel):
 
     def construct(self, data, deleted=False):
         # poblates the model with the data
+        internal_objects = {}
         for k, v in data.items():
-            # print(k, v)
-            # check if its named different in the database than the orm
-            if k not in self.__class__.attr_names.keys():
-                for orm, db in self.__class__.attr_names.items():
-                    if k == db:
-                        k = orm
-                        break
-            # get the recomposed value
-            field_class = getattr(self.__class__, k)
-            v = field_class.recompose(v)
+            k_splitted = k.split('€€€')
+            if len(k_splitted) == 1:
+                # check if its named different in the database than the orm
+                if k not in self.__class__.attr_names.keys():
+                    for orm, db in self.__class__.attr_names.items():
+                        if k == db:
+                            k = orm
+                            break
+                # get the recomposed value
+                field_class = getattr(self.__class__, k)
+                v = field_class.recompose(v)
 
-            if field_class in [ForeignKey, ManyToMany]:
-                pass
-            setattr(self, k, v)
+                if field_class in [ForeignKey, ManyToMany]:
+                    pass
+                setattr(self, k, v)
+            else:
+                internal_objects[k_splitted[0]] = internal_objects.get(
+                    k_splitted[0], {}
+                )
+
+                internal_objects[k_splitted[0]].update({k_splitted[1]: v})
+
+        if internal_objects:
+            for attr_name, data in internal_objects.items():
+                if getattr(self, attr_name):
+                    field = getattr(self.__class__, attr_name)
+                    model = get_model(field.foreign_key)
+
+                    setattr(self, attr_name, model().construct(data))
+
         self.deleted = deleted
         return self
 

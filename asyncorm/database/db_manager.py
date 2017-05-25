@@ -176,24 +176,28 @@ class GeneralManager(object):
 
                 res_dict.update({'condition': condition})
             elif q['action'] == 'db__select_related':
-                for model in q['fields']:
-                    join_const = getattr(self, q['action']).format(**model)
+                for model_join in q['fields']:
+                    join_const = getattr(
+                        self, q['action']).format(**model_join)
                     res_dict['join'] += join_const
 
-                    if res_dict.get('select', '') == '*':
-                        select = res_dict['select'][:]
-                        res_dict['select'] = res_dict['select'].replace(
-                            '*',
-                            model['left_table'] + '.*, ' +
-                            model['right_table'] + '.*'
-                            )
-                        res_dict['select'] = select
-                    if res_dict.get('select', '') == 'COUNT(*)':
+                    select = res_dict['select'][:]
+
+                    if select == 'COUNT(*)':
                         pass
+                    elif select == '*':
+                        select = select.replace(
+                            '*',
+                            '{left_table}.*, {f_formatter}'.format(
+                                left_table=model_join['left_table'],
+                                f_formatter=model_join['fields_formatter'],
+                            )
+                        )
+                        res_dict['select'] = select
                     else:
                         res_dict['select'] += ', ' + (
-                            model['right_table'] + '.*'
-                            )
+                            model_join['fields_formatter']
+                        )
 
         # if we are not counting, then we can asign ordering
         operations = ['COUNT', 'MAX', 'MIN', 'SUM', 'AVG', 'STDDEV']
@@ -207,7 +211,7 @@ class GeneralManager(object):
         query = getattr(self, res_dict['action']).format(**res_dict)
         query = self.query_clean(query)
 
-        # print('query', query)
+        # print('QUERY:', query)
         return query
 
 
