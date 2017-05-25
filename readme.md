@@ -13,7 +13,7 @@
 It is designed to be used together with [sanic](https://github.com/channelcat/sanic) or any other async platform.
 
 ## Documentation
-[read the docs](https://readthedocs.org/projects/asyncorm/badge/?version=development)
+[read the docs](http://asyncorm.readthedocs.io/en/development/)
 
 ### Dependencies
 [asyncpg](http://asyncorm.readthedocs.io/en/development/)
