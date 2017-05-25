@@ -1,12 +1,11 @@
-from asyncorm.models import ModelSerializer, SerializerMethod
+from asyncorm.serializers import ModelSerializer, SerializerMethod
 from library.models import Book
 
 
 class BookSerializer(ModelSerializer):
     book_type = SerializerMethod()
 
-    @staticmethod
-    def get_book_type(instance):
+    def get_book_type(self, instance):
         return instance.book_type_display()
 
     class Meta():

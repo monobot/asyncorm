@@ -4,7 +4,7 @@ from ..manager import ModelManager
 from ..exceptions import ModelError, FieldError, ModelDoesNotExist
 from ..application import get_model
 
-from .serializer import ModelSerializer, SerializerMethod
+from ..serializers import ModelSerializer, SerializerMethod
 
 __all__ = ['Model', 'ModelSerializer', 'SerializerMethod']
 
