@@ -1,6 +1,6 @@
 from asyncorm.fields import (
     CharField, DateField, DecimalField, EmailField, ForeignKey, IntegerField,
-    JsonField, ManyToMany, PkField,
+    JsonField, ManyToManyField, PkField,
 )
 
 from asyncorm import models
@@ -39,7 +39,7 @@ class Author(models.Model):
     name = CharField(max_length=50, unique=True)
     email = EmailField(max_length=100, null=True)
     age = IntegerField()
-    publisher = ManyToMany(foreign_key='Publisher')
+    publisher = ManyToManyField(foreign_key='Publisher')
 
 
 class Book(models.Model):

@@ -1,12 +1,11 @@
 from .models import Model
-from ..serializers import ModelSerializer, SerializerMethod
-from ..fields import (
+from .fields import (
     BooleanField, CharField, DateField, DecimalField, EmailField, Field,
-    ForeignKey, IntegerField, JsonField, ManyToMany, NumberField, PkField,
+    ForeignKey, IntegerField, JsonField, ManyToManyField, NumberField, PkField,
 )
 
 __all__ = (
     'BooleanField', 'CharField', 'DateField', 'DecimalField', 'EmailField',
-    'Field', 'ForeignKey', 'IntegerField', 'JsonField', 'ManyToMany', 'Model',
-    'ModelSerializer', 'NumberField', 'PkField', 'SerializerMethod',
+    'Field', 'ForeignKey', 'IntegerField', 'JsonField', 'ManyToManyField',
+    'Model', 'NumberField', 'PkField',
 )

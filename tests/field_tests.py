@@ -41,19 +41,19 @@ class FieldTests(AioTestCase):
         ForeignKey(foreign_key='366')
 
         with self.assertRaises(FieldError) as exc:
-            ManyToMany()
+            ManyToManyField()
         self.assertEqual(
             exc.exception.args[0],
-            '"ManyToMany" field requires foreign_key'
+            '"ManyToManyField" field requires foreign_key'
         )
         with self.assertRaises(FieldError) as exc:
-            ManyToMany(foreign_key=56)
+            ManyToManyField(foreign_key=56)
         self.assertEqual(
             exc.exception.args[0],
             'Wrong value for foreign_key'
         )
         # correctly valuates if foreign_key correctly defined
-        ManyToMany(foreign_key='366')
+        ManyToManyField(foreign_key='366')
 
     def test_field_name(self):
         with self.assertRaises(FieldError) as exc:

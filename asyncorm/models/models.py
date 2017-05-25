@@ -1,5 +1,5 @@
 from ..log import logger
-from ..fields import Field, PkField, ManyToMany, ForeignKey
+from ..fields import Field, PkField, ManyToManyField, ForeignKey
 from ..manager import ModelManager
 from ..exceptions import ModelError, FieldError, ModelDoesNotExist
 from ..application import get_model
@@ -167,7 +167,7 @@ class BaseModel(object, metaclass=ModelMeta):
             self__orm = getattr(self, orm)
 
             has_pk = self.orm_pk == orm
-            many2many = isinstance(class__orm, ManyToMany)
+            many2many = isinstance(class__orm, ManyToManyField)
 
             if not has_pk and not many2many:
                 d[db] = self__orm
@@ -184,7 +184,7 @@ class BaseModel(object, metaclass=ModelMeta):
 
         for orm, db in self.__class__.attr_names.items():
             class__orm = getattr(self.__class__, orm)
-            if isinstance(class__orm, ManyToMany):
+            if isinstance(class__orm, ManyToManyField):
                 self__orm = getattr(self, orm)
                 d[db] = self__orm
 
@@ -208,7 +208,7 @@ class BaseModel(object, metaclass=ModelMeta):
                 if not field.table_name:
                     field.table_name = cls.cls_tablename()
 
-                if isinstance(field, ManyToMany):
+                if isinstance(field, ManyToManyField):
                     field.own_model = cls.cls_tablename()
                     field.table_name = '{my_model}_{foreign_key}'.format(
                         my_model=cls.cls_tablename(),
@@ -233,7 +233,10 @@ class BaseModel(object, metaclass=ModelMeta):
         db_columns = []
 
         for f_n, field in cls.__dict__.items():
-            if isinstance(field, Field) and not isinstance(field, ManyToMany):
+            is_many2many = isinstance(field, ManyToManyField)
+            is_field = isinstance(field, Field)
+
+            if is_field and not is_many2many:
                 db_columns.append(field.db_column and field.db_column or f_n)
 
         return db_columns
@@ -275,7 +278,7 @@ class Model(BaseModel):
                 field_class = getattr(self.__class__, k)
                 v = field_class.recompose(v)
 
-                if field_class in [ForeignKey, ManyToMany]:
+                if field_class in [ForeignKey, ManyToManyField]:
                     pass
                 setattr(self, k, v)
             else:

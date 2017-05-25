@@ -5,7 +5,7 @@ from ..exceptions import (
     ModelDoesNotExist, ModelError, MultipleObjectsReturned, QuerysetError,
 )
 
-from ..fields import ManyToMany, ForeignKey, CharField, NumberField
+from ..fields import ManyToManyField, ForeignKey, CharField, NumberField
 from ..database import Cursor
 # from .log import logger
 
@@ -74,7 +74,7 @@ class Queryset(object):
         '''Builds the creationquery for each of the non fk or m2m fields'''
         return ', '.join([
             f.creation_query() for f in self.model.fields.values()
-            if not isinstance(f, ManyToMany) and
+            if not isinstance(f, ManyToManyField) and
             not isinstance(f, ForeignKey)
         ])
 
@@ -130,7 +130,7 @@ class Queryset(object):
         Builds the m2m_fields
         '''
         for f in self.model.fields.values():
-            if isinstance(f, ManyToMany):
+            if isinstance(f, ManyToManyField):
                 await self.db_request(self.add_m2m_columns_builder(f))
 
     def get_unique_together(self):

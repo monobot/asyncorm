@@ -5,7 +5,7 @@ import asyncio
 from collections import OrderedDict
 
 from ..exceptions import ModuleError, ModelError
-from ..fields import ForeignKey, ManyToMany
+from ..fields import ForeignKey, ManyToManyField
 
 DEFAULT_CONFIG = {
     'db_config': None,
@@ -97,7 +97,7 @@ class OrmApp(object):
         for name, model in self.models.items():
 
             for f in model.fields.values():
-                if isinstance(f, ManyToMany):
+                if isinstance(f, ManyToManyField):
                     m2m_tablename = '{}_{}'.format(name, f.foreign_key).lower()
                     other = self.get_model(f.foreign_key)
                     other.set_many2many(f, m2m_tablename, f.foreign_key, name)

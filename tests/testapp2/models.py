@@ -1,5 +1,6 @@
 from asyncorm.fields import (
-    CharField, DateField, ForeignKey, IntegerField, ManyToMany, BooleanField,
+    CharField, DateField, ForeignKey, IntegerField, ManyToManyField,
+    BooleanField,
 )
 from asyncorm import models
 
@@ -12,7 +13,7 @@ class Organization(models.Model):
 class Developer(models.Model):
     name = CharField(max_length=50, unique=True)
     age = IntegerField(default=25)
-    org = ManyToMany(foreign_key='Organization')
+    org = ManyToManyField(foreign_key='Organization')
 
 
 class Client(models.Model):
