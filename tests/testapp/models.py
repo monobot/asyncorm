@@ -3,7 +3,7 @@ from asyncorm.fields import (
     JsonField, ManyToMany, PkField,
 )
 
-from asyncorm.model import Model
+from asyncorm import models
 
 BOOK_CHOICES = (
     ('hard cover', 'hard cover book'),
@@ -29,12 +29,12 @@ def weight():
     return 85
 
 
-class Publisher(Model):
+class Publisher(models.Model):
     name = CharField(max_length=50)
     json = JsonField(max_length=50, null=True)
 
 
-class Author(Model):
+class Author(models.Model):
     na = PkField(db_column='uid')
     name = CharField(max_length=50, unique=True)
     email = EmailField(max_length=100, null=True)
@@ -42,7 +42,7 @@ class Author(Model):
     publisher = ManyToMany(foreign_key='Publisher')
 
 
-class Book(Model):
+class Book(models.Model):
     name = CharField(max_length=50)
     content = CharField(max_length=255, choices=BOOK_CHOICES)
     date_created = DateField(auto_now=True)
@@ -59,7 +59,7 @@ class Book(Model):
         unique_together = ['name', 'content']
 
 
-class Reader(Model):
+class Reader(models.Model):
     name = CharField(max_length=15, default='pepito')
     size = CharField(choices=SIZE_CHOICES, max_length=2)
     power = CharField(choices=POWER_CHOICES, max_length=2, null=True)

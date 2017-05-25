@@ -1,25 +1,25 @@
 from asyncorm.fields import (
     CharField, DateField, ForeignKey, IntegerField, ManyToMany, BooleanField,
 )
-from asyncorm.model import Model
+from asyncorm import models
 
 
-class Organization(Model):
+class Organization(models.Model):
     name = CharField(max_length=50)
     active = BooleanField(default=False)
 
 
-class Developer(Model):
+class Developer(models.Model):
     name = CharField(max_length=50, unique=True)
     age = IntegerField(default=25)
     org = ManyToMany(foreign_key='Organization')
 
 
-class Client(Model):
+class Client(models.Model):
     name = CharField(max_length=10)
     dev = ForeignKey(foreign_key='Developer')
 
 
-class Appointment(Model):
+class Appointment(models.Model):
     name = CharField(max_length=50)
     date = DateField()

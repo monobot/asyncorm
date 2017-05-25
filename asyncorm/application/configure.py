@@ -59,13 +59,13 @@ class OrmApp(object):
             self.models = OrderedDict()
             return None
 
-        from asyncorm.model import Model
+        from asyncorm import models
         for m in modules:
             module_list = {}
             module = importlib.import_module('{}.models'.format(m))
             for k, v in inspect.getmembers(module):
                 try:
-                    if issubclass(v, Model) and v is not Model:
+                    if issubclass(v, models.Model) and v is not models.Model:
                         self.models[k] = v
                         module_list.update({k: v})
                 except TypeError:

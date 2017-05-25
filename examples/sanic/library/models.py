@@ -1,4 +1,4 @@
-from asyncorm.model import Model
+from asyncorm import models
 from asyncorm.fields import CharField, IntegerField, DateField
 
 
@@ -9,7 +9,7 @@ BOOK_CHOICES = (
 
 
 # This is a simple model definition
-class Book(Model):
+class Book(models.Model):
     name = CharField(max_length=50)
     synopsis = CharField(max_length=255)
     book_type = CharField(max_length=15, null=True, choices=BOOK_CHOICES)
