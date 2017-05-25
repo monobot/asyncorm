@@ -176,20 +176,33 @@ class GeneralManager(object):
 
                 res_dict.update({'condition': condition})
             elif q['action'] == 'db__select_related':
-                if res_dict.get('select', '') == '*':
-                    res_dict['select'] = q['models_fields']
                 for model in q['fields']:
                     join_const = getattr(self, q['action']).format(**model)
                     res_dict['join'] += join_const
 
+                    if res_dict.get('select', '') == '*':
+                        select = res_dict['select'][:]
+                        res_dict['select'] = res_dict['select'].replace(
+                            '*',
+                            model['left_table'] + '.*, ' +
+                            model['right_table'] + '.*'
+                            )
+                        res_dict['select'] = select
+                    if res_dict.get('select', '') == 'COUNT(*)':
+                        pass
+                    else:
+                        res_dict['select'] += ', ' + (
+                            model['right_table'] + '.*'
+                            )
+
         # if we are not counting, then we can asign ordering
-        if res_dict.get('select', '') == '*':
+        operations = ['COUNT', 'MAX', 'MIN', 'SUM', 'AVG', 'STDDEV']
+        if res_dict.get('select', '').split('(')[0] not in operations:
             res_dict['ordering'] = self.ordering_syntax(
                 res_dict.get('ordering', [])
             )
         else:
             res_dict['ordering'] = ''
-            res_dict['join'] = ''
 
         query = getattr(self, res_dict['action']).format(**res_dict)
         query = self.query_clean(query)

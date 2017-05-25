@@ -266,10 +266,14 @@ class Queryset(object):
                     )
                 )
             model = self.orm.get_model(getattr(self.model, arg).foreign_key)
+
+            right_table = model.table_name or model.__name__.lower()
+            left_table = self.model.table_name or self.model.__name__.lower()
+
             select_related['fields'].append(
-                # right_table foreign_field model model_db_pk
                 {
-                    'right_table': model.table_name or model.__name__.lower(),
+                    'right_table': right_table,
+                    'left_table': left_table,
                     'foreign_field': arg,
                     # 'model': model.db_pk,
                     'model_db_pk': model.db_pk,

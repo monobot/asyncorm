@@ -252,6 +252,7 @@ class Model(BaseModel):
     def construct(self, data, deleted=False):
         # poblates the model with the data
         for k, v in data.items():
+            # print(k, v)
             # check if its named different in the database than the orm
             if k not in self.__class__.attr_names.keys():
                 for orm, db in self.__class__.attr_names.items():
