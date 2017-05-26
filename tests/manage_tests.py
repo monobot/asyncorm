@@ -5,7 +5,7 @@ from asyncorm.exceptions import *
 from asyncorm.fields import *
 
 from .testapp.models import Author, Book
-from .testapp2.models import Appointment
+from .testapp2.models import Appointment, Developer, Client
 from .test_helper import AioTestCase
 
 
@@ -518,3 +518,25 @@ class ManageTestMethods(AioTestCase):
         async for book in q_books:
             # we check each of them has the author prepopulated
             self.assertTrue(isinstance(book.author, Author))
+
+    async def test_select_related_multiple(self):
+        # get the last book id
+        appoinment = await Appointment.objects.create(
+            name='totorota',
+            date=datetime.now(),
+        )
+        dev = await Developer.objects.create(
+            name='this is a developer',
+            age=23,
+        )
+        n_c = await Client.objects.create(**{
+            'name': 'awesome cl',
+            'dev': dev.id,
+            'appoinment': appoinment.id,
+        })
+
+        client = await Client.objects.select_related('dev', 'appoinment'
+                                                     ).get(id=n_c.id)
+
+        self.assertTrue(isinstance(client.dev, Developer))
+        self.assertTrue(isinstance(client.appoinment, Appointment))

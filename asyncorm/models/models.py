@@ -257,11 +257,11 @@ class BaseModel(object, metaclass=ModelMeta):
 
 class Model(BaseModel):
 
-    def construct(self, data, deleted=False):
+    def construct(self, data, deleted=False, subitems=None):
         # poblates the model with the data
         internal_objects = {}
         for k, v in data.items():
-            k_splitted = k.split('€€€')
+            k_splitted = k.split('€$$€')
             if len(k_splitted) == 1:
                 # check if its named different in the database than the orm
                 if k not in self.__class__.attr_names.keys():
@@ -277,19 +277,37 @@ class Model(BaseModel):
                     pass
                 setattr(self, k, v)
             else:
+                # itself or empty dict
                 internal_objects[k_splitted[0]] = internal_objects.get(
-                    k_splitted[0], {}
+                    k_splitted[0],
+                    {}
                 )
 
+                # update the new value
                 internal_objects[k_splitted[0]].update({k_splitted[1]: v})
 
         if internal_objects:
             for attr_name, data in internal_objects.items():
-                if getattr(self, attr_name):
-                    field = getattr(self.__class__, attr_name)
-                    model = get_model(field.foreign_key)
+                if hasattr(self, attr_name):
+                    if getattr(self, attr_name):
+                        field = getattr(self.__class__, attr_name)
+                        model = get_model(field.foreign_key)
 
-                    setattr(self, attr_name, model().construct(data))
+                        setattr(self, attr_name, model().construct(data))
+                else:
+                    for join in subitems[0]['fields']:
+                        if join['right_table'] == attr_name:
+                            field = getattr(
+                                self.__class__,
+                                join['orm_fieldname']
+                            )
+                            model = get_model(field.foreign_key)
+
+                            setattr(
+                                self, join['orm_fieldname'],
+                                model().construct(data)
+                            )
+                            break
 
         self.deleted = deleted
         return self

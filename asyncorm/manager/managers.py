@@ -12,22 +12,22 @@ from ..database import Cursor
 __all__ = ['ModelManager', 'Queryset']
 
 LOOKUP_OPERATOR = {
-    'gt': '{} > {}',
-    'lt': '{} < {}',
-    'gte': '{} >= {}',
-    'lte': '{} <= {}',
-    'range': '({k}>{min} AND {k}<{max})',
-    'in': '{} = ANY (array[{}])',
-    'exact': '{} LIKE \'{}\'',
-    'iexact': '{} ILIKE \'{}\'',
-    'contains': '{} LIKE \'%{}%\'',
-    'icontains': '{} ILIKE \'%{}%\'',
-    'startswith': '{} LIKE \'{}%\'',
-    'istartswith': '{} ILIKE \'{}%\'',
-    'endswith': '{} LIKE \'%{}\'',
-    'iendswith': '{} ILIKE \'%{}\'',
-    'regex': '{} ~ {}',
-    'iregex': '{} ~* {}',
+    'gt': '{t_n}.{k} > {v}',
+    'lt': '{t_n}.{k} < {v}',
+    'gte': '{t_n}.{k} >= {v}',
+    'lte': '{t_n}.{k} <= {v}',
+    'range': '({t_n}.{k}>{min} AND {t_n}.{k}<{max})',
+    'in': '{t_n}.{k} = ANY (array[{v}])',
+    'exact': '{t_n}.{k} LIKE \'{v}\'',
+    'iexact': '{t_n}.{k} ILIKE \'{v}\'',
+    'contains': '{t_n}.{k} LIKE \'%{v}%\'',
+    'icontains': '{t_n}.{k} ILIKE \'%{v}%\'',
+    'startswith': '{t_n}.{k} LIKE \'{v}%\'',
+    'istartswith': '{t_n}.{k} ILIKE \'{v}%\'',
+    'endswith': '{t_n}.{k} LIKE \'%{v}\'',
+    'iendswith': '{t_n}.{k} ILIKE \'%{v}\'',
+    'regex': '{t_n}.{k} ~ {v}',
+    'iregex': '{t_n}.{k} ~* {v}',
 }
 
 
@@ -157,7 +157,7 @@ class Queryset(object):
         if select_related:
             pass
 
-        instance.construct(data)
+        instance.construct(data, subitems=self.query)
         return instance
 
     #               QUERYSET METHODS
@@ -273,7 +273,7 @@ class Queryset(object):
             left_table = self.model.table_name or self.model.__name__.lower()
 
             fields_formatter = ', '.join([
-                '{right_table}.{field} AS {right_table}€€€{field}'.format(
+                '{right_table}.{field} AS {right_table}€$$€{field}'.format(
                     right_table=right_table,
                     field=field
                 ) for field in model.get_db_columns()
@@ -285,7 +285,8 @@ class Queryset(object):
                     'left_table': left_table,
                     'foreign_field': arg,
                     'model_db_pk': model.db_pk,
-                    'fields_formatter': fields_formatter
+                    'fields_formatter': fields_formatter,
+                    'orm_fieldname': arg,
                 }
             )
         queryset = self._copy_me()
@@ -300,7 +301,7 @@ class Queryset(object):
 
         for k, v in kwargs.items():
             # we format the key, the conditional and the value
-            operator = '{} = {}'
+            operator = '{t_n}.{k} = {v}'
             lookup = None
             if len(k.split('__')) > 1:
                 k, lookup = k.split('__')
@@ -314,7 +315,12 @@ class Queryset(object):
                 'startswith', 'istartswith', 'endswith', 'iendswith',
             ]
 
-            if operator == '({k}>{min} AND {k}<{max})':
+            operator_formater = {
+                't_n': self.model.table_name or self.model.__name__.lower(),
+                'k': field.db_column,
+                'v': v
+            }
+            if operator == '({t_n}.{k}>{min} AND {t_n}.{k}<{max})':
                 if not isinstance(v, (tuple, list)):
                     raise QuerysetError(
                         '{} should be list or a tuple'.format(lookup)
@@ -324,14 +330,10 @@ class Queryset(object):
                         'Not a correct tuple/list definition, '
                         'should be of size 2'
                     )
-                filters.append(
-                    bool_string +
-                    '({k}>{min} AND {k}<{max})'.format(
-                        k=field.db_column,
-                        min=field.sanitize_data(v[0]),
-                        max=field.sanitize_data(v[1]),
-                    )
-                )
+                operator_formater.update({
+                    'min': field.sanitize_data(v[0]),
+                    'max': field.sanitize_data(v[1]),
+                })
             elif lookup in string_lookups:
                 is_charfield = isinstance(field, CharField)
                 # is_othercharfield = issubclass(field, CharField)
@@ -340,20 +342,19 @@ class Queryset(object):
                     raise QuerysetError(
                         '{} not allowed in non CharField fields'.format(lookup)
                     )
-                v = field.sanitize_data(v)[1:-1]
-                filters.append(
-                    bool_string + operator.format(field.db_column, v)
-                )
+                operator_formater['v'] = field.sanitize_data(v)[1:-1]
             else:
                 if isinstance(v, (list, tuple)):
                     # check they are correct items and serialize
                     v = ','.join([str(field.sanitize_data(si)) for si in v])
                 else:
                     v = field.sanitize_data(v)
+                operator_formater['v'] = v
 
-                filters.append(
-                    bool_string + operator.format(field.db_column, v)
-                )
+            filters.append(
+                bool_string +
+                operator.format(**operator_formater)
+            )
 
         return filters
 

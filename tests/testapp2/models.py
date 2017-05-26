@@ -16,6 +16,7 @@ class Developer(models.Model):
 class Client(models.Model):
     name = fields.CharField(max_length=10)
     dev = fields.ForeignKey(foreign_key='Developer')
+    appoinment = fields.ForeignKey(foreign_key='Appointment', null=True)
 
 
 class Appointment(models.Model):
