@@ -15,7 +15,7 @@ For that we provide a **configure_orm** function that will return the already co
                  'password': 'ormDbPass',
                  }
 
-    orm_app = configure_orm({'loop': loop,  # always use the sanic loop!
+    orm_app = configure_orm({'loop': loop,  # always use the whole application loop!
                              'db_config': db_config,
                              'modules': ['library', ],  # list of apps
                              })

@@ -14,6 +14,7 @@ Quick example¶
 This example model defines an Author, which has a first_name, last_name and age
 
 .. code-block:: python
+
     from asyncorm import models
     from asyncorm import fields
 
