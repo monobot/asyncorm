@@ -8,7 +8,7 @@ Contents:
 
    readme
    installation
-   usage
+   setup
    api/api
    contributing
    authors

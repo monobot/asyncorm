@@ -1,6 +1,8 @@
-=====
 Usage
 =====
+
+configure
+~~~~~~~~~
 
 To be able to use asyncOrm you have to provide database, the loop and the modules where the models are defined.
 For that we provide a **configure_orm** function that will return the already configured orm you will use on the whole application
@@ -39,3 +41,18 @@ Understand that all the magic on the ORM is made behind scenes, in fact that fun
 Please find the `full example`_ for sanic that you will find in the repository, so you can see how easy it is to work with asyncOrm.
 
 .. _`full example`: https://pip.pypa.io
+
+create tables
+~~~~~~~~~~~~~
+
+Once **asyncOrm** is configured you can create all the tables for the defined models in different apps declared in the configuration.
+
+- We are planing to create a migration system so its possible to migrate the different database states.
+
+To create all the tables:
+
+.. code-block:: python
+
+    # use the orm_app obtained in the previou configure_orm command
+    orm_app.sync_db()
+
