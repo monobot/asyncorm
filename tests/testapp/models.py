@@ -1,8 +1,4 @@
-from asyncorm.fields import (
-    CharField, DateField, DecimalField, EmailField, ForeignKey, IntegerField,
-    JsonField, ManyToManyField, PkField,
-)
-
+from asyncorm import fields
 from asyncorm import models
 
 BOOK_CHOICES = (
@@ -30,25 +26,25 @@ def weight():
 
 
 class Publisher(models.Model):
-    name = CharField(max_length=50)
-    json = JsonField(max_length=50, null=True)
+    name = fields.CharField(max_length=50)
+    json = fields.JsonField(max_length=50, null=True)
 
 
 class Author(models.Model):
-    na = PkField(db_column='uid')
-    name = CharField(max_length=50, unique=True)
-    email = EmailField(max_length=100, null=True)
-    age = IntegerField()
-    publisher = ManyToManyField(foreign_key='Publisher')
+    na = fields.PkField(db_column='uid')
+    name = fields.CharField(max_length=50, unique=True)
+    email = fields.EmailField(max_length=100, null=True)
+    age = fields.IntegerField()
+    publisher = fields.ManyToManyField(foreign_key='Publisher')
 
 
 class Book(models.Model):
-    name = CharField(max_length=50)
-    content = CharField(max_length=255, choices=BOOK_CHOICES)
-    date_created = DateField(auto_now=True)
-    author = ForeignKey(foreign_key='Author', null=True)
-    price = DecimalField(default=25)
-    quantity = IntegerField(default=1)
+    name = fields.CharField(max_length=50)
+    content = fields.CharField(max_length=255, choices=BOOK_CHOICES)
+    date_created = fields.DateField(auto_now=True)
+    author = fields.ForeignKey(foreign_key='Author', null=True)
+    price = fields.DecimalField(default=25)
+    quantity = fields.IntegerField(default=1)
 
     def its_a_2(self):
         return 2
@@ -60,7 +56,7 @@ class Book(models.Model):
 
 
 class Reader(models.Model):
-    name = CharField(max_length=15, default='pepito')
-    size = CharField(choices=SIZE_CHOICES, max_length=2)
-    power = CharField(choices=POWER_CHOICES, max_length=2, null=True)
-    weight = IntegerField(default=weight)
+    name = fields.CharField(max_length=15, default='pepito')
+    size = fields.CharField(choices=SIZE_CHOICES, max_length=2)
+    power = fields.CharField(choices=POWER_CHOICES, max_length=2, null=True)
+    weight = fields.IntegerField(default=weight)
