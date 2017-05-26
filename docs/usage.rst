@@ -20,7 +20,7 @@ For that we provide a **configure_orm** function that will return the already co
                              'modules': ['library', ],  # list of apps
                              })
 
-** AsyncOrm should be configured once and only once in every project**, and preferibly before everything really starts. Also make sure that the async loop is be the same your application uses.
+**AsyncOrm should be configured once and only once in every project**, and preferibly before everything really starts. Also make sure that the async loop is be the same your application uses.
 
 Thats all!
 As you can see its very simple to configure asyncOrm, as long as you provide the needed information, asyncOrm will take care of inspecting the modules and detect all the models declared inside them.

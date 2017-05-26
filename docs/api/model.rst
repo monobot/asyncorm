@@ -11,7 +11,7 @@ The model object is the key stone of the orm, it has to reside in the models.py 
 
 Quick example¶
 
-This example model defines an Author, which has a first_name, last_name and age:
+This example model defines an Author, which has a first_name, last_name and age
 
 .. code-block:: python
     from asyncorm import models
