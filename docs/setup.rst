@@ -53,6 +53,6 @@ To create all the tables:
 
 .. code-block:: python
 
-    # use the orm_app obtained in the previou configure_orm command
+    # use the orm_app obtained in the previous configure_orm command
     orm_app.sync_db()
 

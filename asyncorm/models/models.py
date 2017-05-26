@@ -1,4 +1,3 @@
-from ..log import logger
 from ..fields import Field, PkField, ManyToManyField, ForeignKey
 from ..manager import ModelManager
 from ..exceptions import ModelError, FieldError, ModelDoesNotExist
@@ -74,8 +73,6 @@ class BaseModel(object, metaclass=ModelMeta):
     def __init__(self, **kwargs):
         self.table_name = ''
 
-        log_msg = 'initiating model {}'.format(self.__class__.__name__)
-        logger.debug(log_msg)
         self.objects.model = self.__class__
 
         manager = getattr(self, 'objects')
@@ -109,8 +106,6 @@ class BaseModel(object, metaclass=ModelMeta):
                 )
             else:
                 setattr(self, field_name, None)
-
-        logger.debug('... initiated')
 
     @classmethod
     def cls_tablename(cls):

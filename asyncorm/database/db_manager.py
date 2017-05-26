@@ -1,3 +1,6 @@
+from ..log import logger
+
+
 class Cursor(object):
 
     def __init__(self, conn, query, step=20, forward=0, stop=None):
@@ -211,7 +214,7 @@ class GeneralManager(object):
         query = getattr(self, res_dict['action']).format(**res_dict)
         query = self.query_clean(query)
 
-        # print('QUERY:', query)
+        logger.debug('QUERY: {}'.format(query))
         return query
 
 
