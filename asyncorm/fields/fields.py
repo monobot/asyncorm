@@ -120,6 +120,19 @@ class Field(object):
         '''to directly serialize the data field based'''
         return value
 
+    # def make_migration(self, old_state):
+    #     current_state = {arg: getattr(self, arg) for arg in self.args}
+
+    #     difference = {}
+    #     for key in self.args:
+    #         print(key)
+    #         has_attr = hasattr(old_state, '||dont||') != '||dont||'
+    #         if has_attr:
+    #             if current_state[key] != old_state[key]:
+    #             difference.update({key: current_state[key]})
+
+    #     return difference or None
+
     def set_field_name(self, db_column):
         if '__' in db_column:
             raise FieldError('db_column can not contain "__"')
@@ -133,20 +146,20 @@ class Field(object):
 class PkField(Field):
     internal_type = int
     creation_string = 'serial primary key'
+    args = ('db_column', 'unique', 'null',)
 
-    def __init__(self, db_column='id', unique=False, null=False):
-        super().__init__(db_column=db_column, unique=unique, null=null)
+    def __init__(self, db_column='id', null=False):
+        super().__init__(db_column=db_column, unique=True, null=null)
 
 
 class BooleanField(Field):
     internal_type = bool
     creation_string = 'boolean'
+    args = ('db_column', 'default', 'null', 'unique', )
 
-    def __init__(self, db_column='', default=None, max_length=0,
-                 null=False, unique=False
-                 ):
+    def __init__(self, db_column='', default=None, null=False, unique=False):
         super().__init__(db_column=db_column, default=default,
-                         max_length=max_length, null=null, unique=unique
+                         null=null, unique=unique
                          )
 
     def sanitize_data(self, value):
@@ -163,6 +176,7 @@ class CharField(Field):
     internal_type = str
     required_kwargs = ['max_length', ]
     creation_string = 'varchar({max_length})'
+    args = ('db_column', 'default', 'max_length', 'null', 'choices', 'unique')
 
     def __init__(self, db_column='', default=None, max_length=0,
                  null=False, choices=None, unique=False
@@ -197,6 +211,7 @@ class JsonField(Field):
     internal_type = dict, list, str
     required_kwargs = ['max_length', ]
     creation_string = 'varchar({max_length})'
+    args = ('db_column', 'default', 'max_length', 'null', 'choices', 'unique')
 
     def __init__(self, db_column='', default=None, max_length=0,
                  null=False, choices=None, unique=False
@@ -241,6 +256,7 @@ class NumberField(Field):
 class IntegerField(NumberField):
     internal_type = int
     creation_string = 'integer'
+    args = ('db_column', 'default', 'null', 'choices', 'unique')
 
     def __init__(self, db_column='', default=None, null=False, choices=None,
                  unique=False):
@@ -256,6 +272,8 @@ class IntegerField(NumberField):
 class DecimalField(NumberField):
     internal_type = (Decimal, float, int)
     creation_string = 'decimal({max_digits},{decimal_places})'
+    args = ('db_column', 'default', 'null', 'choices', 'unique',
+            'max_digits', 'decimal_places')
 
     def __init__(self, db_column='', default=None, null=False, choices=None,
                  unique=False, max_digits=10, decimal_places=2):
@@ -272,6 +290,8 @@ class DecimalField(NumberField):
 class DateField(Field):
     internal_type = datetime
     creation_string = 'timestamp'
+    args = ('db_column', 'default', 'auto_now', 'null', 'choices', 'unique',
+            'strftime')
 
     def __init__(self, db_column='', default=None, auto_now=False, null=False,
                  choices=None, unique=False, strftime='date %Y-%m-%d'
@@ -294,6 +314,7 @@ class ForeignKey(Field):
     internal_type = int
     required_kwargs = ['foreign_key', ]
     creation_string = 'integer references {foreign_key}'
+    args = ('db_column', 'default', 'foreign_key', 'null', 'unique')
 
     def __init__(self, db_column='', default=None, foreign_key='',
                  null=False, unique=False):
@@ -313,6 +334,7 @@ class ManyToManyField(Field):
         {own_model} INTEGER REFERENCES {own_model} NOT NULL,
         {foreign_key} INTEGER REFERENCES {foreign_key} NOT NULL
     '''
+    args = ('db_column', 'default', 'foreign_key', 'unique')
 
     def __init__(self, db_column='', foreign_key=None, default=None,
                  unique=False):
