@@ -1,3 +1,5 @@
+import os
+
 from .fields import Field, PkField, ManyToManyField, ForeignKey
 from ..manager import ModelManager
 from ..exceptions import ModelError, FieldError, ModelDoesNotExist
@@ -60,7 +62,7 @@ class ModelMeta(type):
                             '{}_display'.format(f.orm_field_name),
                             'choices_placeholder'
                             )
-
+        base_class.my_path = os.path.dirname(__file__)
         return base_class
 
 
@@ -251,15 +253,20 @@ class BaseModel(object, metaclass=ModelMeta):
         for k, v in kwargs.items():
             att_field = getattr(self.__class__, k)
             att_field.validate(v)
+
             if att_field.__class__ is PkField and v:
                 raise FieldError('Models can not be generated with forced id')
 
-    def make_migration(self):
-        resp_list = []
-        for f in self.get_fields().values():
-            resp_list.append(f.make_migration(None))
+    def migration_queries(self):
+        return ', '.join([
+            f.make_migration(None) for f in self.fields.values()
+            if not isinstance(f, ManyToManyField) and
+            not isinstance(f, ForeignKey)
+        ])
 
-        return resp_list
+    def make_migration(self):
+        migrations_dir = os.path.join(self.my_path, 'migrations')
+        os.makedirs(migrations_dir, exist_ok=True)
 
 
 class Model(BaseModel):

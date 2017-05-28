@@ -134,6 +134,13 @@ class OrmApp(object):
             asyncio.gather(self.loop.create_task(self.create_db()))
         )
 
+    def make_migrations(self):
+        for model in self.models.values():
+            model().make_migration()
+
+    # def migrate(self):
+    #     pass
+
 
 orm_app = OrmApp()
 

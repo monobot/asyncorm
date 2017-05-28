@@ -12,26 +12,39 @@ from .test_helper import AioTestCase
 
 class ManageTestMethods(AioTestCase):
 
-    async def test_save(self):
+    async def test_save_no_id_before_save(self):
         book = Book(**{
             'name': 'lord of the rings',
             'content': 'hard cover',
             'date_created': datetime.now(),
         })
-        self.assertFalse(book.id)
+        id_before_save = book.id
 
         await book.save()
+
+        self.assertFalse(id_before_save)
         self.assertTrue(book.id)
 
+    async def test_id_persitent(self):
+        book = Book(**{
+            'name': 'silmarilion',
+            'content': 'hard cover',
+            'date_created': datetime.now(),
+        })
+        await book.save()
         orig_id = book.id
 
         await book.save()
+
         self.assertEqual(orig_id, book.id)
 
+    async def test_unique_together(self):
         # we can not create new books with same name and content together
         book = Book(**{'name': 'book name 5', 'content': 'hard cover'})
+
         with self.assertRaises(ModelError) as exc:
             await book.save()
+
         self.assertTrue(
             'The model violates a unique constraint' == exc.exception.args[0]
         )
@@ -40,165 +53,182 @@ class ManageTestMethods(AioTestCase):
         book.name = 'this is a new name'
         await book.save()
 
-        # we can not create new books with same name and content together
+    async def test_unique(self):
         author = Author(**{'name': 'Mnemonic', 'age': 73})
         await author.save()
-
         # author name is unique, will raise an exception
         author2 = Author(**{'name': 'Mnemonic', 'age': 73})
+
         with self.assertRaises(ModelError) as exc:
             await author2.save()
+
         self.assertTrue(
             'The model violates a unique constraint' == exc.exception.args[0]
         )
 
-        author2.name = 'different name'
-        # now it can be correctly saved
-        await author2.save()
-
-    async def test_delete(self):
+    async def test_delete_can_not_be_saved(self):
         book = await Book.objects.all()[5]
 
         await book.delete()
         with self.assertRaises(ModelError) as exc:
             await book.save()
+
         self.assertTrue('has already been deleted!' in exc.exception.args[0])
 
+    async def test_delete_also_deletes_in_database(self):
+        book = await Book.objects.all()[5]
+
+        await book.delete()
         with self.assertRaises(ModelDoesNotExist) as exc:
             await Book.objects.get(**{'id': book.id})
+
         self.assertTrue('does not exist' in exc.exception.args[0])
 
     async def test_count(self):
         queryset = Book.objects.filter(id__lte=100)
+
         self.assertTrue(await queryset.count() == 100)
 
     async def test_filter_changed_fieldname(self):
         author = await Author.objects.filter(na__lt=5)[0]
+
         self.assertTrue(isinstance(author, Author))
         self.assertEqual(author.na, 1)
 
-    async def test_slice(self):
+    async def test_slice_correct(self):
         book = await Book.objects.filter(id__lt=25)[1]
+
         self.assertTrue(isinstance(book, Book))
+
         self.assertEqual(book.id, 23)
 
+    async def test_slice_incorrect_index(self):
         q_book = Book.objects.filter(id__lt=5)
+
         with self.assertRaises(IndexError) as exc:
-            book = await q_book[7]
+            await q_book[7]
+
         self.assertTrue(
             'index does not exist' in exc.exception.args[0]
         )
 
+    async def test_slice_iterate_over(self):
         queryset = await Book.objects.filter(id__lt=25)[5:]
 
         # you can iterate over the results
         async for itm in queryset:
             self.assertTrue(isinstance(itm, Book))
-            # I check that the first one is 19, because:
-            # id__lt=25 is id=1 to id=24, sorted -id, sliced [5:]
             self.assertEqual(itm.id, 24 - 5)
             break
         # or slice again the retrieve the index object
+            # I check that the first one is 19, because:
+            # id__lt=25 is id=1 to id=24, sorted -id, sliced [5:]
+
+    async def test_slice_first_item(self):
+        queryset = await Book.objects.filter(id__lt=25)[5:]
+
         book = await queryset[0]
+
         self.assertFalse(book.id == 24 - 5)
 
+    async def test_slice_wrong_slice(self):
         with self.assertRaises(QuerysetError) as exc:
             await Book.objects.filter(id__lte=30)[1: 2: 4]
+
         self.assertTrue(
             'step on Queryset is not allowed' == exc.exception.args[0]
         )
 
+    async def test_slice_negative_slice(self):
         with self.assertRaises(QuerysetError) as exc:
             await Book.objects.filter(id__lte=30)[-1]
+
         self.assertTrue(
             'Negative indices are not allowed' == exc.exception.args[0]
         )
 
+    async def test_slice_negative_slice_stop(self):
         with self.assertRaises(QuerysetError) as exc:
             await Book.objects.filter(id__lte=30)[:-1]
+
         self.assertTrue(
             'Negative indices are not allowed' == exc.exception.args[0]
         )
 
+    async def test_slice_negative_slice_start(self):
         with self.assertRaises(QuerysetError) as exc:
             await Book.objects.filter(id__lte=30)[-3:]
+
         self.assertTrue(
             'Negative indices are not allowed' == exc.exception.args[0]
         )
-
-        async for book in Book.objects.all():
-            pass
 
     async def test_filter(self):
         queryset = Book.objects.filter(id__lte=30)
+
         book = await queryset[0]
 
         self.assertTrue(isinstance(book, Book))
         self.assertTrue(await queryset.count() >= 20)
 
+    async def test_range(self):
         queryset = Book.objects.filter(id__range=(280, 282))
+
         self.assertEqual(await queryset.count(), 1)
 
+    async def test_range_wrong_range(self):
         # upside doesnt really makes sense but also works
         with self.assertRaises(QuerysetError) as exc:
-            queryset = Book.objects.filter(id__range={282, 280})
+            Book.objects.filter(id__range={282, 280})
+
         self.assertEqual(
             'range should be list or a tuple',
             exc.exception.args[0]
         )
 
+    async def test_range_upside_down(self):
         # upside doesnt really makes sense but also works
         queryset = Book.objects.filter(id__range=(282, 280))
+
+        # bigger than 282 and lower than 200, of course does not exist
         self.assertEqual(await queryset.count(), 0)
 
+    async def test_range_triple_tuple(self):
         # incorrect fitler tuple definition error catched
         with self.assertRaises(QuerysetError) as exc:
             await Book.objects.get(id__range=(280, 234, 23))
+
         self.assertTrue(
             ('Not a correct tuple/list definition, ') in exc.exception.args[0])
 
+    async def test_range_incorrect_tuple(self):
         # incorrect fitler tuple definition error catched
         with self.assertRaises(QuerysetError) as exc:
             await Book.objects.get(id__range=(280, ))
+
         self.assertTrue(
             ('should be of size 2') in exc.exception.args[0])
 
-        # empty queryset
-        queryset = Book.objects.filter(id__gt=2800)
-        self.assertEqual(await queryset.count(), 0)
-
     async def test_comparisons_dates(self):
         today = datetime.now()
+        yesterday = today + timedelta(days=1)
+        await Appointment.objects.create(
+            name='app1', date=today + timedelta(days=1))
+        await Appointment.objects.create(name='app2', date=today)
+        await Appointment.objects.create(
+            name='app3', date=today - timedelta(days=1))
 
-        await Appointment.objects.create(
-            name='app1', date=today + timedelta(days=1)
-        )
-        await Appointment.objects.create(
-            name='app2', date=today
-        )
-        await Appointment.objects.create(
-            name='app3', date=today - timedelta(days=1)
-        )
+        all_appointments = await Appointment.objects.all().count()
+        gt_today = await Appointment.objects.filter(date__gt=today).count()
+        gte_today = await Appointment.objects.filter(date__gte=today).count()
+        lt_today = await Appointment.objects.filter(date__lt=today).count()
+        yday = await Appointment.objects.filter(date__lte=yesterday).count()
 
-        self.assertEqual(await Appointment.objects.all().count(), 3)
-        self.assertEqual(
-            await Appointment.objects.filter(date__gt=today).count(),
-            1
-        )
-        self.assertEqual(
-            await Appointment.objects.filter(date__gte=today).count(),
-            2
-        )
-        self.assertEqual(
-            await Appointment.objects.filter(date__lt=today).count(),
-            1
-        )
-        self.assertEqual(
-            await Appointment.objects.filter(
-                date__lte=today + timedelta(days=1)
-            ).count(),
-            3
-        )
+        self.assertEqual(all_appointments, 3)
+        self.assertEqual(gt_today, 1)
+        self.assertEqual(gte_today, 2)
+        self.assertEqual(lt_today, 1)
+        self.assertEqual(yday, 3)
 
     async def test_in_lookup_integerfield(self):
         queryset = Book.objects.filter(id__in=(1, 2, 56, 456))

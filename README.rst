@@ -61,7 +61,7 @@ A number of things are needed to be able to release asyncOrm a production ready 
 - migration support (forward migration at least)
 - other databases interfaces ( `mysql`_ / `mariaDb`_ first priority)
 - `prefetch_related`_ functionality
-- maybe add some more fields like DateTimeField, `uuid4field`_
+- Missing Field types: OneToOneField, DateTimeField (and rework DateField), `uuid4field`_
 
 .. _mySql: https://www.mysql.com/
 .. _mariaDb: https://mariadb.org/

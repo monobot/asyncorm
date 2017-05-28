@@ -30,5 +30,6 @@ class MigrationTests(AioTestCase):
                'content': 'paperback'}
         )
 
-        # print(book.make_migration())
+        # print(book.migration_queries())
+        book.migration_queries()
         book.make_migration()
