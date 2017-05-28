@@ -254,6 +254,13 @@ class BaseModel(object, metaclass=ModelMeta):
             if att_field.__class__ is PkField and v:
                 raise FieldError('Models can not be generated with forced id')
 
+    def make_migration(self):
+        resp_list = []
+        for f in self.get_fields().values():
+            resp_list.append(f.make_migration(None))
+
+        return resp_list
+
 
 class Model(BaseModel):
 

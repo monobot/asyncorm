@@ -1,4 +1,3 @@
-from asyncorm.migrations import Inspector
 from asyncorm import fields
 
 from .testapp.models import Book
@@ -19,8 +18,17 @@ class MigrationTests(AioTestCase):
         }
         field = fields.DecimalField(**data)
 
-        # print(field.current_state())
-        # print(field.make_migration(data))
+        field.current_state()
+        field.make_migration(data)
 
         data.update({'unique': True})
-        # print(field.make_migration(data))
+        field.make_migration(data)
+
+    async def test_mdel_migrate(self):
+        book = await Book.objects.create(
+            **{'name': 'chusco redondo',
+               'content': 'paperback'}
+        )
+
+        # print(book.make_migration())
+        book.make_migration()
