@@ -1,4 +1,4 @@
-from asyncorm import fields
+from asyncorm.models import DecimalField
 
 from .testapp.models import Book
 from .test_helper import AioTestCase
@@ -16,7 +16,7 @@ class MigrationTests(AioTestCase):
             'db_column': '',
             'choices': None
         }
-        field = fields.DecimalField(**data)
+        field = DecimalField(**data)
 
         field.current_state()
         field.make_migration(data)

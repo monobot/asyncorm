@@ -1,6 +1,5 @@
 from asyncorm.application import get_model
-from asyncorm.exceptions import *
-from asyncorm.fields import *
+from asyncorm.exceptions import FieldError, ModelError, SerializerError
 from asyncorm.serializers import ModelSerializer, SerializerMethod
 
 from .testapp.models import Book, Author

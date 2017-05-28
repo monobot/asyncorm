@@ -1,4 +1,4 @@
-from ..fields import Field, PkField, ManyToManyField, ForeignKey
+from .fields import Field, PkField, ManyToManyField, ForeignKey
 from ..manager import ModelManager
 from ..exceptions import ModelError, FieldError, ModelDoesNotExist
 from ..application import get_model

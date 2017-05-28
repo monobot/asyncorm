@@ -1,24 +1,23 @@
-from asyncorm import fields
 from asyncorm import models
 
 
 class Organization(models.Model):
-    name = fields.CharField(max_length=50)
-    active = fields.BooleanField(default=False)
+    name = models.CharField(max_length=50)
+    active = models.BooleanField(default=False)
 
 
 class Developer(models.Model):
-    name = fields.CharField(max_length=50, unique=True)
-    age = fields.IntegerField(default=25)
-    org = fields.ManyToManyField(foreign_key='Organization')
+    name = models.CharField(max_length=50, unique=True)
+    age = models.IntegerField(default=25)
+    org = models.ManyToManyField(foreign_key='Organization')
 
 
 class Client(models.Model):
-    name = fields.CharField(max_length=10)
-    dev = fields.ForeignKey(foreign_key='Developer')
-    appoinment = fields.ForeignKey(foreign_key='Appointment', null=True)
+    name = models.CharField(max_length=10)
+    dev = models.ForeignKey(foreign_key='Developer')
+    appoinment = models.ForeignKey(foreign_key='Appointment', null=True)
 
 
 class Appointment(models.Model):
-    name = fields.CharField(max_length=50)
-    date = fields.DateField()
+    name = models.CharField(max_length=50)
+    date = models.DateField()

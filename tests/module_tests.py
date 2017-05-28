@@ -1,6 +1,5 @@
 from asyncorm.application import get_model, orm_app, configure_orm
-from asyncorm.exceptions import *
-from asyncorm.fields import *
+from asyncorm.exceptions import ModelError, ModuleError
 
 from .test_helper import AioTestCase
 

@@ -1,11 +1,12 @@
 from .models import Model
 from .fields import (
-    BooleanField, CharField, DateField, DecimalField, EmailField, Field,
-    ForeignKey, IntegerField, JsonField, ManyToManyField, NumberField, PkField,
+    Field, PkField, BooleanField, CharField, EmailField, JsonField,
+    NumberField, IntegerField, DecimalField, DateField, ForeignKey,
+    ManyToManyField
 )
 
 __all__ = (
-    'BooleanField', 'CharField', 'DateField', 'DecimalField', 'EmailField',
-    'Field', 'ForeignKey', 'IntegerField', 'JsonField', 'ManyToManyField',
-    'Model', 'NumberField', 'PkField',
+    'Model', 'PkField', 'BooleanField', 'CharField', 'EmailField', 'JsonField',
+    'NumberField', 'IntegerField', 'DecimalField', 'DateField', 'ForeignKey',
+    'ManyToManyField', 'Field'
 )

@@ -1,8 +1,9 @@
 from datetime import datetime
 from datetime import timedelta
 
-from asyncorm.exceptions import *
-from asyncorm.fields import *
+from asyncorm.exceptions import (
+    ModelError, ModelDoesNotExist, QuerysetError, MultipleObjectsReturned
+)
 
 from .testapp.models import Author, Book
 from .testapp2.models import Appointment, Developer, Client

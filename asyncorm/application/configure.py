@@ -5,7 +5,6 @@ import asyncio
 from collections import OrderedDict
 
 from ..exceptions import ModuleError, ModelError
-from ..fields import ForeignKey, ManyToManyField
 
 DEFAULT_CONFIG = {
     'db_config': None,
@@ -95,6 +94,7 @@ class OrmApp(object):
         self.set_model_orm()
 
         for name, model in self.models.items():
+            from ..models.fields import ForeignKey, ManyToManyField
 
             for f in model.fields.values():
                 if isinstance(f, ManyToManyField):

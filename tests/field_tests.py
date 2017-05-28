@@ -1,5 +1,5 @@
-from asyncorm.exceptions import *
-from asyncorm import fields
+from asyncorm.exceptions import FieldError
+from asyncorm import models
 from .testapp.models import Book, Publisher, Reader
 from .testapp2.models import Organization
 from .test_helper import AioTestCase
@@ -10,75 +10,75 @@ class FieldTests(AioTestCase):
     def test_required_kwargs(self):
 
         with self.assertRaises(FieldError) as exc:
-            fields.CharField()
+            models.CharField()
         self.assertEqual(
             exc.exception.args[0],
             '"CharField" field requires max_length'
         )
 
         with self.assertRaises(FieldError) as exc:
-            fields.CharField(max_length='gt')
+            models.CharField(max_length='gt')
         self.assertEqual(
             exc.exception.args[0],
             'Wrong value for max_length'
         )
         # correctly valuates if max_length correctly defined
-        fields.CharField(max_length=45)
+        models.CharField(max_length=45)
 
         with self.assertRaises(FieldError) as exc:
-            fields.ForeignKey()
+            models.ForeignKey()
         self.assertEqual(
             exc.exception.args[0],
             '"ForeignKey" field requires foreign_key'
         )
         with self.assertRaises(FieldError) as exc:
-            fields.ForeignKey(foreign_key=56)
+            models.ForeignKey(foreign_key=56)
         self.assertEqual(
             exc.exception.args[0],
             'Wrong value for foreign_key'
         )
         # correctly valuates if foreign_key correctly defined
-        fields.ForeignKey(foreign_key='366')
+        models.ForeignKey(foreign_key='366')
 
         with self.assertRaises(FieldError) as exc:
-            fields.ManyToManyField()
+            models.ManyToManyField()
         self.assertEqual(
             exc.exception.args[0],
             '"ManyToManyField" field requires foreign_key'
         )
         with self.assertRaises(FieldError) as exc:
-            fields.ManyToManyField(foreign_key=56)
+            models.ManyToManyField(foreign_key=56)
         self.assertEqual(
             exc.exception.args[0],
             'Wrong value for foreign_key'
         )
         # correctly valuates if foreign_key correctly defined
-        fields.ManyToManyField(foreign_key='366')
+        models.ManyToManyField(foreign_key='366')
 
     def test_field_name(self):
         with self.assertRaises(FieldError) as exc:
-            fields.CharField(max_length=35, db_column='_oneone')
+            models.CharField(max_length=35, db_column='_oneone')
         self.assertEqual(
             exc.exception.args[0],
             'db_column can not start with "_"'
         )
 
         with self.assertRaises(FieldError) as exc:
-            fields.CharField(max_length=35, db_column='oneone_')
+            models.CharField(max_length=35, db_column='oneone_')
         self.assertEqual(
             exc.exception.args[0],
             'db_column can not end with "_"'
         )
 
         with self.assertRaises(FieldError) as exc:
-            fields.CharField(max_length=35, db_column='one__one')
+            models.CharField(max_length=35, db_column='one__one')
         self.assertEqual(
             exc.exception.args[0],
             'db_column can not contain "__"'
         )
 
         # this is an allowed fieldname
-        fields.CharField(max_length=35, db_column='one_one')
+        models.CharField(max_length=35, db_column='one_one')
 
     async def test_field_max_length(self):
         reader = Reader(size='M', name='name bigger than max')
@@ -157,10 +157,10 @@ class FieldTests(AioTestCase):
         self.assertEqual(publisher.json['67'], 6)
 
     async def test_booleanfield(self):
-        fields.BooleanField(default=False).validate(True)
+        models.BooleanField(default=False).validate(True)
 
         with self.assertRaises(FieldError) as exc:
-            fields.BooleanField(default=False).validate('laadio@svgvgvcom')
+            models.BooleanField(default=False).validate('laadio@svgvgvcom')
         self.assertEqual(
             'laadio@svgvgvcom is a wrong datatype for field BooleanField',
             exc.exception.args[0]
@@ -172,34 +172,34 @@ class FieldTests(AioTestCase):
         self.assertTrue(org.active)
 
     def test_emailfield(self):
-        fields.EmailField(max_length=35).validate('laadio@s.com')
+        models.EmailField(max_length=35).validate('laadio@s.com')
 
         with self.assertRaises(FieldError) as exc:
-            fields.EmailField(
+            models.EmailField(
                 max_length=35
             ).validate('laadio@svgvgvcom')
         self.assertTrue(
             'not a valid email address' in exc.exception.args[0])
         with self.assertRaises(FieldError) as exc:
-            fields.EmailField(
+            models.EmailField(
                 max_length=35
             ).validate('@laadio@svgvgv.com')
         self.assertTrue(
             'not a valid email address' in exc.exception.args[0])
         with self.assertRaises(FieldError) as exc:
-            fields.EmailField(
+            models.EmailField(
                 max_length=35
             ).validate('laadio@svgv@gv.com')
         self.assertTrue(
             'not a valid email address' in exc.exception.args[0])
         with self.assertRaises(FieldError) as exc:
-            fields.EmailField(
+            models.EmailField(
                 max_length=35
             ).validate('.laadio@svgv@gv.com')
         self.assertTrue(
             'not a valid email address' in exc.exception.args[0])
         with self.assertRaises(FieldError) as exc:
-            fields.EmailField(
+            models.EmailField(
                 max_length=35
             ).validate('_laadio@svgv@gv.com')
         self.assertTrue(

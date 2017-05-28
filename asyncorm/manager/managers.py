@@ -5,7 +5,7 @@ from ..exceptions import (
     ModelDoesNotExist, ModelError, MultipleObjectsReturned, QuerysetError,
 )
 
-from ..fields import ManyToManyField, ForeignKey, CharField, NumberField
+from ..models.fields import ManyToManyField, ForeignKey, CharField, NumberField
 from ..database import Cursor
 # from .log import logger
 
