@@ -74,34 +74,34 @@ class Field(object):
 
     #######################################################
     #######################################################
-    def modificate_query(self):
-        modificate_string = '{db_column} ' + self.modificate_string
-        date_field = self.field_type in DATE_FIELDS
+    # def modificate_query(self):
+    #     modificate_string = '{db_column} ' + self.modificate_string
+    #     date_field = self.field_type in DATE_FIELDS
 
-        modificate_string += self.null and ' NULL' or ' NOT NULL'
+    #     modificate_string += self.null and ' NULL' or ' NOT NULL'
 
-        if hasattr(self, 'default') and self.default is not None:
-            modificate_string += ' DEFAULT '
-            default_value = self.default
-            if callable(self.default):
-                default_value = self.default()
+    #     if hasattr(self, 'default') and self.default is not None:
+    #         modificate_string += ' DEFAULT '
+    #         default_value = self.default
+    #         if callable(self.default):
+    #             default_value = self.default()
 
-            if isinstance(default_value, str):
-                modificate_string += '\'{}\''.format(default_value)
-            elif isinstance(default_value, bool):
-                modificate_string += str(default_value)
-            else:
-                modificate_string += '\'{}\''.format(
-                    self.sanitize_data(default_value)
-                )
+    #         if isinstance(default_value, str):
+    #             modificate_string += '\'{}\''.format(default_value)
+    #         elif isinstance(default_value, bool):
+    #             modificate_string += str(default_value)
+    #         else:
+    #             modificate_string += '\'{}\''.format(
+    #                 self.sanitize_data(default_value)
+    #             )
 
-        elif date_field and self.auto_now:
-            modificate_string += ' DEFAULT now()'
+    #     elif date_field and self.auto_now:
+    #         modificate_string += ' DEFAULT now()'
 
-        if self.unique:
-            modificate_string += ' UNIQUE'
+    #     if self.unique:
+    #         modificate_string += ' UNIQUE'
 
-        return modificate_string.format(**self.__dict__)
+    #     return modificate_string.format(**self.__dict__)
     #######################################################
     #######################################################
 
