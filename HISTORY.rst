@@ -2,6 +2,9 @@
 History
 =======
 
+0.2.0 (2017-05-28)
+* new module setup unit tests using AAA, select_related functional, working on migrations
+
 0.1.1 (2017-05-19)
 * increase the number of lookups, database lookup calculation, better queryset setup
 
