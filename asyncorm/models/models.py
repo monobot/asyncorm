@@ -62,7 +62,6 @@ class ModelMeta(type):
                             '{}_display'.format(f.orm_field_name),
                             'choices_placeholder'
                             )
-        base_class.my_path = os.path.dirname(__file__)
         return base_class
 
 
@@ -265,7 +264,10 @@ class BaseModel(object, metaclass=ModelMeta):
         ])
 
     def make_migration(self):
-        migrations_dir = os.path.join(self.my_path, 'migrations')
+        import inspect
+
+        module_path = os.path.dirname(inspect.getmodule(self).__file__)
+        migrations_dir = os.path.join(module_path, 'migrations')
         os.makedirs(migrations_dir, exist_ok=True)
 
 
