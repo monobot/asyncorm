@@ -1,4 +1,6 @@
+import inspect
 import os
+import json
 
 from .fields import Field, PkField, ManyToManyField, ForeignKey
 from ..manager import ModelManager
@@ -72,6 +74,12 @@ class BaseModel(object, metaclass=ModelMeta):
     deleted = False
 
     def __init__(self, **kwargs):
+        self.migrations_dir = os.path.join(
+            os.path.dirname(inspect.getmodule(self).__file__),
+            'migrations'
+        )
+        os.makedirs(self.migrations_dir, exist_ok=True)
+
         self.table_name = ''
 
         self.objects.model = self.__class__
@@ -263,12 +271,20 @@ class BaseModel(object, metaclass=ModelMeta):
             not isinstance(f, ForeignKey)
         ])
 
-    def make_migration(self):
-        import inspect
+    def next_migrationfile(self, index):
+        return os.path.join(
+            self.migrations_dir,
+            ('0000{}.py'.format(index)[-7:])
+        )
 
-        module_path = os.path.dirname(inspect.getmodule(self).__file__)
-        migrations_dir = os.path.join(module_path, 'migrations')
-        os.makedirs(migrations_dir, exist_ok=True)
+    def make_migration(self):
+        migration_file = self.next_migrationfile(1)
+        with open(migration_file, 'w+') as file:
+            file.write(
+                json.dumps({
+                    'migration': self.migration_queries(),
+                })
+            )
 
 
 class Model(BaseModel):

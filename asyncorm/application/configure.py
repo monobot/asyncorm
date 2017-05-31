@@ -30,7 +30,7 @@ class OrmApp(object):
         models_configure(): will take care of the inverse relations for
         foreignkeys and many2many
         '''
-        modules = config.pop('modules', None)
+        modules = config.pop('modules', None) or []
 
         DEFAULT_CONFIG.update(config)
 
@@ -49,8 +49,6 @@ class OrmApp(object):
         self.db_manager = manager(db_config)
 
         # we have to manually add the migrations table
-        if modules is None:
-            modules = []
         modules.append('asyncorm.models.migrations')
 
         # After the manager is set then we can build the rest of db features
