@@ -2,8 +2,6 @@ import importlib
 import inspect
 import asyncio
 
-from collections import OrderedDict
-
 from ..exceptions import ModuleError, ModelError
 
 DEFAULT_CONFIG = {
@@ -17,7 +15,7 @@ DEFAULT_CONFIG = {
 class OrmApp(object):
     db_manager = None
     loop = None
-    models = OrderedDict()
+    models = {}
     modules = {}
 
     def configure(self, config):
@@ -32,7 +30,7 @@ class OrmApp(object):
         models_configure(): will take care of the inverse relations for
         foreignkeys and many2many
         '''
-        self.get_declared_models(config.pop('modules', None))
+        modules = config.pop('modules', None)
 
         DEFAULT_CONFIG.update(config)
 
@@ -50,13 +48,18 @@ class OrmApp(object):
         manager = getattr(database_module, DEFAULT_CONFIG['manager'])
         self.db_manager = manager(db_config)
 
+        # we have to manually add the migrations table
+        if modules is None:
+            modules = []
+        modules.append('asyncorm.models.migrations')
+
         # After the manager is set then we can build the rest of db features
+        self.get_declared_models(modules)
         self.models_configure()
 
     def get_declared_models(self, modules):
-        if modules is None:
-            self.models = OrderedDict()
-            return None
+        if len(modules) == 1:
+            self.models = {}
 
         from asyncorm import models
         for m in modules:
@@ -72,7 +75,7 @@ class OrmApp(object):
             self.modules.update({m.split('.')[-1]: module_list})
 
     def get_model(self, model_name):
-        if not bool(self.models):
+        if len(self.models) == 1:
             raise ModuleError('There are no modules declared in the orm')
 
         try:

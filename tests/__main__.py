@@ -18,10 +18,10 @@ orm_app = configure_orm({
 
 loop = orm_app.loop
 
-drop_tables = ['Publisher', 'Author', 'library', 'Organization', 'Developer',
-               'Client', 'Developer_Organization', 'Author_Publisher',
-               'Appointment', 'Reader'
-               ]
+drop_tables = [
+    'Publisher', 'Author', 'library', 'Organization', 'Developer', 'Client',
+    'Developer_Organization', 'Author_Publisher', 'Appointment', 'Reader'
+]
 
 
 async def clear_table(table_name):
