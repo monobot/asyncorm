@@ -117,7 +117,6 @@ class OrmApp(object):
         """
         We  create all tables for each of the declared models
         """
-
         for model in self.models.values():
             await model().objects.create_table()
 

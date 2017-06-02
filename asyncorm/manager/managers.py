@@ -16,7 +16,7 @@ LOOKUP_OPERATOR = {
     'lt': '{t_n}.{k} < {v}',
     'gte': '{t_n}.{k} >= {v}',
     'lte': '{t_n}.{k} <= {v}',
-    'range': '({t_n}.{k}>{min} AND {t_n}.{k}<{max})',
+    'range': '({t_n}.{k}>={min} AND {t_n}.{k}<={max})',
     'in': '{t_n}.{k} = ANY (array[{v}])',
     'exact': '{t_n}.{k} LIKE \'{v}\'',
     'iexact': '{t_n}.{k} ILIKE \'{v}\'',
@@ -320,7 +320,7 @@ class Queryset(object):
                 'k': field.db_column,
                 'v': v
             }
-            if operator == '({t_n}.{k}>{min} AND {t_n}.{k}<{max})':
+            if operator == '({t_n}.{k}>={min} AND {t_n}.{k}<={max})':
                 if not isinstance(v, (tuple, list)):
                     raise QuerysetError(
                         '{} should be list or a tuple'.format(lookup)

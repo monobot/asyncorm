@@ -1,1 +1,1 @@
-{"migration": "quantity integer NOT NULL DEFAULT '1', content varchar(255) NOT NULL, name varchar(50) NOT NULL, price decimal(10,2) NOT NULL DEFAULT '25', id serial primary key NOT NULL UNIQUE, date_created timestamp NOT NULL DEFAULT now()"}
+{"migration": "price decimal(10,2) NOT NULL DEFAULT '25', id serial primary key NOT NULL UNIQUE, name varchar(50) NOT NULL, content varchar(255) NOT NULL, quantity integer NOT NULL DEFAULT '1', date_created timestamp NOT NULL DEFAULT now()"}

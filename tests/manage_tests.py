@@ -174,7 +174,7 @@ class ManageTestMethods(AioTestCase):
     async def test_range(self):
         queryset = Book.objects.filter(id__range=(280, 282))
 
-        self.assertEqual(await queryset.count(), 1)
+        self.assertEqual(await queryset.count(), 3)
 
     async def test_range_wrong_range(self):
         # upside doesnt really makes sense but also works
@@ -571,3 +571,13 @@ class ManageTestMethods(AioTestCase):
 
         self.assertTrue(isinstance(client.dev, Developer))
         self.assertTrue(isinstance(client.appoinment, Appointment))
+
+    async def test_double_queryset(self):
+        q_books = Book.objects.filter(id__gt=220).order_by('id')
+        q_books_excluded = q_books.exclude(id__range=(200, 250)).order_by('id')
+
+        book_a = await q_books[0]
+        book_b = await q_books_excluded[0]
+
+        self.assertEqual(book_a.id, 221)
+        self.assertEqual(book_b.id, 251)
