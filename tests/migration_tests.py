@@ -14,4 +14,4 @@ class MigrationTests(AioTestCase):
 
         # print(book.migration_queries())
         book.migration_queries()
-        book.make_migration()
+        await book.make_migration()

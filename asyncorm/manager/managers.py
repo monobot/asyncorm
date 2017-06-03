@@ -416,6 +416,21 @@ class Queryset(object):
 
         return queryset
 
+    async def latest_migration(self):
+        kwargs = {
+            'select': '*',
+            'table_name': 'asyncorm_migrations',
+            'join': '',
+            'ordering': 'ORDER BY  -id',
+            'condition': "app = '{}'".format(self.model().app_name)
+        }
+
+        results = await self.db_manager.request(
+            self.db_manager.db__select.format(**kwargs)
+        )
+
+        return results
+
     #               DB RELAED METHODS
     async def db_request(self, db_request):
         db_request = deepcopy(db_request)

@@ -74,8 +74,10 @@ class BaseModel(object, metaclass=ModelMeta):
     deleted = False
 
     def __init__(self, **kwargs):
+        dir_name = os.path.dirname(inspect.getmodule(self).__file__)
+        self.app_name = dir_name.split(os.path.sep)[-1]
         self.migrations_dir = os.path.join(
-            os.path.dirname(inspect.getmodule(self).__file__),
+            dir_name,
             'migrations'
         )
         os.makedirs(self.migrations_dir, exist_ok=True)
@@ -282,7 +284,7 @@ class BaseModel(object, metaclass=ModelMeta):
         migration_queries.append(self.objects.unique_together_builder())
         return migration_queries
 
-    def next_migrationfile(self, prev_migration=None):
+    async def next_migrationfile(self):
         index = 1
         filenames = next(os.walk(self.migrations_dir))[2]
 
@@ -299,13 +301,18 @@ class BaseModel(object, metaclass=ModelMeta):
                     'Wrong filename for migration {}'.format(prev_migration)
                 )
 
+        # PENDING
+        # here i can get the latest migration name for this app
+        rs = await self.objects.latest_migration()
+        # PENDING
+
         return os.path.join(
             self.migrations_dir,
             ('0000{}.py'.format(index)[-7:])
         )
 
-    def make_migration(self):
-        migration_file = self.next_migrationfile('002')
+    async def make_migration(self):
+        migration_file = await self.next_migrationfile()
         with open(migration_file, 'w+') as file:
             pprint(
                 {
