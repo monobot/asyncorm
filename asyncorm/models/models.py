@@ -284,7 +284,7 @@ class BaseModel(object, metaclass=ModelMeta):
         migration_queries.append(self.objects.unique_together_builder())
         return migration_queries
 
-    async def next_migrationfile(self):
+    async def check_migration(self):
         index = 1
         filenames = next(os.walk(self.migrations_dir))[2]
 
@@ -295,24 +295,25 @@ class BaseModel(object, metaclass=ModelMeta):
 
         if prev_migration is not None:
             try:
-                index = int(prev_migration.split('.')[0]) + 1
+                index = int(prev_migration.split('.')[0])
             except AttributeError:
                 raise ModelError(
                     'Wrong filename for migration {}'.format(prev_migration)
                 )
 
-        # PENDING
         # here i can get the latest migration name for this app
-        rs = await self.objects.latest_migration()
-        # PENDING
+        db_migration = await self.objects.latest_migration()
+
+        if db_migration is not None and int(db_migration) > index:
+            return
 
         return os.path.join(
             self.migrations_dir,
-            ('0000{}.py'.format(index)[-7:])
+            ('0000{}.py'.format(index + 1)[-7:])
         )
 
     async def make_migration(self):
-        migration_file = await self.next_migrationfile()
+        migration_file = await self.check_migration()
         with open(migration_file, 'w+') as file:
             pprint(
                 {

@@ -429,7 +429,9 @@ class Queryset(object):
             self.db_manager.db__select.format(**kwargs)
         )
 
-        return results
+        for k, v in results.items():
+            if k == 'name':
+                return int(v)
 
     #               DB RELAED METHODS
     async def db_request(self, db_request):
