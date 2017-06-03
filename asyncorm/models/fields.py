@@ -156,24 +156,24 @@ class Field(object):
     def current_state(self):
         return {arg: getattr(self, arg) for arg in self.args}
 
-    def make_migration(self, old_state):
-        if old_state is None:
-            return self.creation_query()
+    # def make_migration(self, old_state):
+    #     if old_state is None:
+    #         return self.creation_query()
 
-        current_state = self.current_state()
+    #     current_state = self.current_state()
 
-        if set(old_state.keys()) != set(current_state.keys()):
-            raise ModuleError(
-                'imposible to migrate, you should do that manually!'
-            )
+    #     if set(old_state.keys()) != set(current_state.keys()):
+    #         raise ModuleError(
+    #             'imposible to migrate, you should do that manually!'
+    #         )
 
-        difference = {}
-        for key in self.args:
+    #     difference = {}
+    #     for key in self.args:
 
-            if current_state[key] != old_state[key]:
-                difference.update({key: current_state[key]})
+    #         if current_state[key] != old_state[key]:
+    #             difference.update({key: current_state[key]})
 
-        return difference or None
+    #     return difference or None
 
     def set_field_name(self, db_column):
         if '__' in db_column:

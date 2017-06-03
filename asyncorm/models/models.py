@@ -1,6 +1,6 @@
 import inspect
 import os
-import json
+from pprint import pprint
 
 from .fields import Field, PkField, ManyToManyField, ForeignKey
 from ..manager import ModelManager
@@ -265,26 +265,69 @@ class BaseModel(object, metaclass=ModelMeta):
                 raise FieldError('Models can not be generated with forced id')
 
     def migration_queries(self):
-        return ', '.join([
-            f.make_migration(None) for f in self.fields.values()
-            if not isinstance(f, ManyToManyField) and
-            not isinstance(f, ForeignKey)
-        ])
+        migration_queries = [self.objects.create_table_builder(), ]
 
-    def next_migrationfile(self, index):
+        for f in self.fields.values():
+            if isinstance(f, ForeignKey):
+                migration_queries.append(
+                    self.objects.add_fk_field_builder(f)
+                )
+
+        for f in self.fields.values():
+            if isinstance(f, ManyToManyField):
+                migration_queries.append(
+                    self.objects.add_m2m_columns_builder(f)
+                )
+
+        migration_queries.append(self.objects.unique_together_builder())
+        return migration_queries
+
+    def next_migrationfile(self, prev_migration=None):
+        index = 1
+        filenames = next(os.walk(self.migrations_dir))[2]
+
+        if filenames:
+            prev_migration = (sorted(filenames))[-1]
+        else:
+            prev_migration = None
+
+        if prev_migration is not None:
+            try:
+                index = int(prev_migration.split('.')[0]) + 1
+            except AttributeError:
+                raise ModelError(
+                    'Wrong filename for migration {}'.format(prev_migration)
+                )
+
         return os.path.join(
             self.migrations_dir,
             ('0000{}.py'.format(index)[-7:])
         )
 
     def make_migration(self):
-        migration_file = self.next_migrationfile(1)
+        migration_file = self.next_migrationfile('002')
         with open(migration_file, 'w+') as file:
-            file.write(
-                json.dumps({
-                    'migration': self.migration_queries(),
-                })
+            pprint(
+                {
+                    'migrations': self.migration_queries(),
+                    'state': self.__class__.current_state(),
+                },
+                stream=file,
+                width=79
             )
+
+    @classmethod
+    def current_state(cls):
+        from copy import deepcopy
+
+        fields = deepcopy(cls.get_fields())
+        for f_n, field in fields.items():
+            fields[f_n] = field.current_state()
+
+        return {
+            'fields': fields,
+            'meta': {}
+        }
 
 
 class Model(BaseModel):

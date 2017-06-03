@@ -89,17 +89,22 @@ class Queryset(object):
         '''Builds the table without the m2m_fields and fks'''
         await self.db_request(self.create_table_builder())
 
-    async def unique_together(self):
-        '''Builds the unique together constraint'''
+    def unique_together_builder(self):
         unique_together = self.get_unique_together()
 
         if unique_together:
-            db_request = [{
+            return [{
                 'table_name': self.model.cls_tablename(),
                 'action': 'db__constrain_table',
                 'constrain': unique_together,
             }]
+        return None
 
+    async def unique_together(self):
+        '''Builds the unique together constraint'''
+        db_request = self.unique_together_builder()
+
+        if db_request:
             await self.db_request(db_request)
 
     def add_fk_field_builder(self, field):
