@@ -76,10 +76,7 @@ class BaseModel(object, metaclass=ModelMeta):
     def __init__(self, **kwargs):
         dir_name = os.path.dirname(inspect.getmodule(self).__file__)
         self.app_name = dir_name.split(os.path.sep)[-1]
-        self.migrations_dir = os.path.join(
-            dir_name,
-            'migrations'
-        )
+        self.migrations_dir = os.path.join(dir_name, 'migrations')
         os.makedirs(self.migrations_dir, exist_ok=True)
 
         self.table_name = ''

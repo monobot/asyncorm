@@ -1,6 +1,7 @@
+import asyncio
 import importlib
 import inspect
-import asyncio
+import os
 
 from ..exceptions import ModuleError, ModelError
 
@@ -30,6 +31,8 @@ class OrmApp(object):
         models_configure(): will take care of the inverse relations for
         foreignkeys and many2many
         '''
+        os.getcwd()
+
         modules = config.pop('modules', None) or []
 
         DEFAULT_CONFIG.update(config)
