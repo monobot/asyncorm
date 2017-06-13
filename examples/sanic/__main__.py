@@ -14,24 +14,9 @@ app = Sanic(name=__name__)
 
 @app.listener('before_server_start')
 def orm_configure(sanic, loop):
-    db_config = {'database': 'sanic_example',
-                 'host': 'localhost',
-                 'user': 'ormdbuser',
-                 'password': 'ormDbPass',
-                 }
-
-    # configure_orm needs a dictionary with:
-    #    * the database configuration
-    #    * the application/s where the models are defined
-    orm_app = configure_orm({'loop': loop,  # always use the sanic loop!
-                             'db_config': db_config,
-                             'modules': ['library', ],  # list of apps
-                             })
-
-    # orm_app is the object that orchestrates the whole ORM
-    # sync_db should be run only once, better do that as external command
-    # it creates the tables in the database!!!!
-    # orm_app.sync_db()
+    # configure_orm defaults to the asyncorm.ini in same directory
+    # the loop is required tho
+    configure_orm(loop=loop)
 
 
 # for all the 404 lets handle the exceptions

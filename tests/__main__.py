@@ -1,20 +1,13 @@
 import asyncio
 import unittest
+import os
 
 from .testapp.models import Author, Book
 
 from asyncorm.application import configure_orm
 
-db_config = {
-    'database': 'asyncorm',
-    'host': 'localhost',
-    'user': 'ormdbuser',
-    'password': 'ormDbPass',
-}
-orm_app = configure_orm({
-    'db_config': db_config,
-    'modules': ['tests.testapp', 'tests.testapp2'],
-})
+config_file = os.path.join(os.getcwd(), 'tests', 'asyncorm.ini')
+orm_app = configure_orm(config_file)
 
 loop = orm_app.loop
 

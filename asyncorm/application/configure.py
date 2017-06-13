@@ -1,9 +1,10 @@
 import asyncio
+import configparser
 import importlib
 import inspect
 import os
 
-from ..exceptions import ModuleError, ModelError
+from ..exceptions import ConfigError, ModuleError, ModelError
 
 DEFAULT_CONFIG = {
     'db_config': None,
@@ -31,7 +32,6 @@ class OrmApp(object):
         models_configure(): will take care of the inverse relations for
         foreignkeys and many2many
         '''
-        os.getcwd()
 
         modules = config.pop('modules', None) or []
 
@@ -148,9 +148,44 @@ class OrmApp(object):
 orm_app = OrmApp()
 
 
-def configure_orm(config):
+def parse_config(config_file):
+    parsed_file = configparser.ConfigParser()
+
+    parsed_file.read(config_file)
+
+    # check all sections exist
+    for section in ['db_config', 'orm']:
+        if section not in parsed_file.sections():
+            raise ConfigError(
+                'the file {} does not contain {} section!'.format(
+                    config_file, section
+                )
+            )
+
+    return {
+        'db_config': {
+            'database': parsed_file.get('db_config', 'database') or None,
+            'host': parsed_file.get('db_config', 'host') or None,
+            'user': parsed_file.get('db_config', 'user') or None,
+            'password': parsed_file.get('db_config', 'password') or None,
+        },
+        'modules': parsed_file.get('orm', 'modules').split() or []
+    }
+
+
+def configure_orm(config=None, loop=None):
     # configure and return the already configured orm
     global orm_app
+
+    if config is None:
+        config = parse_config(os.path.join(os.getcwd(), 'asyncorm.ini'))
+    elif not isinstance(config, dict):
+        config = parse_config(config)
+
+    if loop is None:
+        loop = asyncio.get_event_loop()
+
+    config.update({'loop': loop})
     orm_app.configure(config)
     return orm_app
 
