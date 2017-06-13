@@ -7,6 +7,8 @@ configure
 To be able to use asyncOrm you have to provide database, the loop and the modules where the models are defined.
 For that we provide a **configure_orm** function that will return the already configured orm you will use on the whole application
 
+Asyncorm can be configured like this, using a simple dictionary and so passing forward the data needed.
+
 .. code-block:: python
 
     from asyncorm import configure_orm
@@ -17,10 +19,19 @@ For that we provide a **configure_orm** function that will return the already co
                  'password': 'ormDbPass',
                  }
 
-    orm_app = configure_orm({'loop': loop,  # always use the whole application loop!
+    configure_orm({'loop': loop,  # always use the whole application loop!
                              'db_config': db_config,
                              'modules': ['library', ],  # list of apps
                              })
+
+But it is recomended to use the .ini approach, so if you dont pass the configuration as a dictionary it will expect it to be the absolute path to the .ini file that contents that data, the reason for that .ini file.
+If None is provided then will default to same directory and "asyncorm.ini".
+
+.. code-block:: python
+
+    from asyncorm import configure_orm
+
+    configure_orm('/path/to/asyncorm.ini')
 
 **AsyncOrm should be configured once and only once in every project**, and preferibly before everything really starts. Also make sure that the async loop is be the same your application uses.
 
