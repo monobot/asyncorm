@@ -2,6 +2,9 @@
 History
 =======
 
+0.2.6 (2017-06-14)
+* Remove log from distribution package
+
 0.2.5 (2017-06-14)
 * Many changes, paving the migration system, modify configure to allow .ini files
 
