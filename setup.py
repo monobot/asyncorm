@@ -25,12 +25,8 @@ setup(
     author="Héctor Alvarez (monobot)",
     author_email='monobot.soft@gmail.com',
     url='https://github.com/monobot/asyncorm',
-    packages=[
-        'asyncorm',
-    ],
-    package_dir={'asyncorm':
-                 'asyncorm'},
-    package_data={'asyncorm': ['log/*']},
+    packages=['asyncorm', ],
+    package_dir={'asyncorm': 'asyncorm'},
     include_package_data=True,
     install_requires=requirements,
     license="Apache Software License 2.0",
