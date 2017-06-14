@@ -2,6 +2,18 @@
 History
 =======
 
+0.3.0 (2017-06-14)
+* solving package problem
+
+0.2.9 (2017-06-14)
+* solving package problem
+
+0.2.8 (2017-06-14)
+* solving package problem
+
+0.2.7 (2017-06-14)
+* solving package problem
+
 0.2.6 (2017-06-14)
 * Remove log from distribution package
 
