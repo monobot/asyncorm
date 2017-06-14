@@ -2,6 +2,9 @@
 History
 =======
 
+0.2.5 (2017-06-14)
+* Many changes, paving the migration system, modify configure to allow .ini files
+
 0.2.0 (2017-05-28)
 * new module setup unit tests using AAA, select_related functional, working on migrations
 
