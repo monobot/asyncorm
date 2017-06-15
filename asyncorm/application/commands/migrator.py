@@ -40,7 +40,7 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    'app', type=str, nargs='?',
+    'app', type=str, nargs='?', default='*',
     help=('app you want to migrate')
 )
 
@@ -57,7 +57,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 # check that the arguments are correctly sent
-if args.command == 'makemigrations' and args.app is not None:
+if args.command == 'makemigrations' and args.app != '*':
     raise CommandException(
         'You can not specify the app when making migrations'
     )
@@ -68,6 +68,12 @@ if not os.path.isfile(config_filename):
         'the configuration file does not exist'
     )
 
+orm = configure_orm(config=config_filename)
+if args.command == 'migrate':
+    if args.app != '*':
+        if args.app not in orm.modules.keys():
+            raise CommandException('Module not defined in the orm')
+
 
 def migrator():
-    configure_orm(config=config_filename)
+    print('value, ...')
