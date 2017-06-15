@@ -65,7 +65,12 @@ class OrmApp(object):
         from asyncorm import models
         for m in modules:
             module_list = {}
-            module = importlib.import_module('{}.models'.format(m))
+            try:
+                module = importlib.import_module('{}.models'.format(m))
+            except ImportError:
+                importlib.import_module('sanic2')
+                module = importlib.import_module('sanic2.{}.models'.format(m))
+
             for k, v in inspect.getmembers(module):
                 try:
                     if issubclass(v, models.Model) and v is not models.Model:
