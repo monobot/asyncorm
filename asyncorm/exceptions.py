@@ -1,11 +1,15 @@
 __all__ = (
     'AsyncormException', 'FieldError', 'ManagerError', 'ModelDoesNotExist',
     'ModelError', 'ModuleError', 'MultipleObjectsReturned', 'QuerysetError',
-    'SerializerError', 'ConfigError'
+    'SerializerError', 'ConfigError', 'CommandException'
 )
 
 
 class AsyncormException(Exception):
+    pass
+
+
+class CommandException(AsyncormException):
     pass
 
 

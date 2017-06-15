@@ -193,7 +193,3 @@ def configure_orm(config=None, loop=None):
 def get_model(model_name):
     # wrapper around the orm method
     return orm_app.get_model(model_name)
-
-
-def runme():
-    print('its been run')

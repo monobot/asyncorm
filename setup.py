@@ -44,7 +44,7 @@ setup(
     tests_require=test_requirements,
     entry_points={
         'console_scripts': [
-            'asyncorm=asyncorm.application.configure:runme',
+            'asyncorm=asyncorm.application.asyncorm_command:manage',
         ],
     },
 )
