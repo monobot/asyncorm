@@ -2,15 +2,12 @@ import argparse
 import textwrap
 import os
 
-from .configure import configure_orm
-from ..exceptions import CommandException
+from ..configure import configure_orm
+from ...exceptions import CommandException
 
 cwd = os.getcwd()
 
-parser = argparse.ArgumentParser(
-    formatter_class=argparse.RawDescriptionHelpFormatter,
-    description=textwrap.dedent(
-        '''\
+help_text = '''
 -------------------------------------------------------------------------------
                          asyncorm migration management
 -------------------------------------------------------------------------------
@@ -30,21 +27,28 @@ parser = argparse.ArgumentParser(
         > asyncorm migrate library 0002
 
 -------------------------------------------------------------------------------
-        '''
-    )
+help_text = '''
+
+parser = argparse.ArgumentParser(
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description=textwrap.dedent(help_text)
 )
+
 parser.add_argument(
     'command', type=str, choices=('makemigrations', 'migrate'),
     help=('makemigrations or migrate')
 )
+
 parser.add_argument(
     'app', type=str, nargs='?',
     help=('app you want to migrate')
 )
+
 parser.add_argument(
     'migration', type=str, nargs='?',
     help=('migration_name you want the app to migrate to')
 )
+
 parser.add_argument(
     '--config', type=str, nargs=1, default=['asyncorm.ini', ],
     help=('configuration file (defaults to asyncorm.ini)')
@@ -65,5 +69,5 @@ if not os.path.isfile(config_filename):
     )
 
 
-def manage():
+def migrator():
     configure_orm(config=config_filename)
