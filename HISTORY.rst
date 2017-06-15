@@ -2,6 +2,9 @@
 History
 =======
 
+0.3.1 (2017-06-14)
+* setup process drafted
+
 0.3.0 (2017-06-14)
 * solving package problem
 
