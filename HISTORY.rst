@@ -2,6 +2,9 @@
 History
 =======
 
+0.3.2 (2017-06-16)
+* setup process drafted
+
 0.3.1 (2017-06-15)
 * setup process drafted
 
