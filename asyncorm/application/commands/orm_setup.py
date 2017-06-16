@@ -12,17 +12,23 @@ parser = argparse.ArgumentParser(
                                 asyncorm setup
 -------------------------------------------------------------------------------
 
+    asyncorm setup
 
 -------------------------------------------------------------------------------
         '''
     )
 )
+
 parser.add_argument(
     'command', type=str, choices=('setup', ),
-    help=('sets up the manage command and asyncorm.ini in the same diectory')
+    help=(
+        'sets up the orm_migrator.py command and also an empty asyncorm.ini '
+        'in the same directory')
 )
 
-ini = """
+args = parser.parse_args()
+
+ini = """\
 [db_config]
 database =
 host =
@@ -34,7 +40,7 @@ modules =
 
 """
 
-man = """
+man = """\
 from asyncorm.application.commands.migrator import migrator
 
 
@@ -43,14 +49,12 @@ migrator()
 
 
 def file_creator(filename):
-    data_dict = {
-        'asyncorm.ini': ini,
-        'orm_migrator.py': man,
-    }
+    content_dict = {'asyncorm.ini': ini, 'orm_migrator.py': man}
     file_path = os.path.join(os.getcwd(), filename)
+
     if not os.path.isfile(file_path):
         with open(file_path, 'w') as f:
-            f.write(data_dict[filename])
+            f.write(content_dict[filename])
 
 
 def setup():
