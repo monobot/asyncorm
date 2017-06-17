@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import textwrap
 import os
 
@@ -69,11 +70,15 @@ if not os.path.isfile(config_filename):
     )
 
 orm = configure_orm(config=config_filename)
-if args.command == 'migrate':
-    if args.app != '*':
-        if args.app not in orm.modules.keys():
-            raise CommandException('Module not defined in the orm')
 
 
-def migrator():
-    print('value, ...')
+async def migrator():
+    if args.command == 'migrate':
+        if args.app != '*':
+            if args.app not in orm.modules.keys():
+                raise CommandException('Module not defined in the orm')
+
+        for module_name in orm.modules.keys():
+            for model_name in orm.modules[module_name]:
+                model = orm.get_model(model_name)
+                print(await model.latest_migration())

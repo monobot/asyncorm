@@ -281,6 +281,10 @@ class BaseModel(object, metaclass=ModelMeta):
         migration_queries.append(self.objects.unique_together_builder())
         return migration_queries
 
+    @classmethod
+    async def latest_migration(cls):
+        return await cls.objects.latest_migration()
+
     async def check_migration(self):
         index = 1
         filenames = next(os.walk(self.migrations_dir))[2]
@@ -299,7 +303,7 @@ class BaseModel(object, metaclass=ModelMeta):
                 )
 
         # here i can get the latest migration name for this app
-        db_migration = await self.objects.latest_migration()
+        db_migration = await self.latest_migration()
 
         if db_migration is not None and int(db_migration) > index:
             return
