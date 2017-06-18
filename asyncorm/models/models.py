@@ -282,48 +282,51 @@ class BaseModel(object, metaclass=ModelMeta):
         return migration_queries
 
     @classmethod
-    async def latest_migration(cls):
-        return await cls.objects.latest_migration()
+    async def latest_db_migration(cls):
+        return await cls.objects.latest_db_migration()
 
-    async def check_migration(self):
-        index = 1
+    def latest_fs_migration(self):
         filenames = next(os.walk(self.migrations_dir))[2]
 
         if filenames:
             prev_migration = (sorted(filenames))[-1]
         else:
-            prev_migration = None
+            return None
 
         if prev_migration is not None:
             try:
-                index = int(prev_migration.split('.')[0])
+                return prev_migration.split('.')[0]
             except AttributeError:
                 raise ModelError(
                     'Wrong filename for migration {}'.format(prev_migration)
                 )
 
-        # here i can get the latest migration name for this app
-        db_migration = await self.latest_migration()
+    # async def check_migration(self):
+    #     index = 1
 
-        if db_migration is not None and int(db_migration) > index:
-            return
+    #     # here i can get the latest migration name for this app
+    #     db_migration = await self.__class__.latest_db_migration()
 
-        return os.path.join(
-            self.migrations_dir,
-            ('0000{}.py'.format(index + 1)[-7:])
-        )
+    #     print(prev_migration, db_migration)
 
-    async def make_migration(self):
-        migration_file = await self.check_migration()
-        with open(migration_file, 'w+') as file:
-            pprint(
-                {
-                    'migrations': self.migration_queries(),
-                    'state': self.__class__.current_state(),
-                },
-                stream=file,
-                width=79
-            )
+    #     if db_migration is not None and int(db_migration) > index:
+    #         return
+
+    #     return os.path.join(
+    #         self.migrations_dir,
+    #         ('0000{}.py'.format(index + 1)[-7:])
+    #     )
+
+    # async def make_migration(self, migration_file):
+    #     with open(migration_file, 'w+') as file:
+    #         pprint(
+    #             {
+    #                 'migrations': self.migration_queries(),
+    #                 'state': self.__class__.current_state(),
+    #             },
+    #             stream=file,
+    #             width=79
+    #         )
 
     @classmethod
     def current_state(cls):

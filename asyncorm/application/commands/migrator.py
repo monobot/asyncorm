@@ -6,7 +6,7 @@ from asyncpg.exceptions import UndefinedTableError
 from asyncorm.models.migrations.models import AsyncormMigrations
 
 from ..configure import configure_orm
-from ...exceptions import CommandException
+from ...exceptions import CommandError, MigrationError
 
 cwd = os.getcwd()
 
@@ -61,13 +61,13 @@ args = parser.parse_args()
 
 # check that the arguments are correctly sent
 if args.command == 'makemigrations' and args.app != '*':
-    raise CommandException(
+    raise CommandError(
         'You can not specify the app when making migrations'
     )
 
 config_filename = os.path.join(cwd, args.config[0])
 if not os.path.isfile(config_filename):
-    raise CommandException(
+    raise CommandError(
         'the configuration file does not exist'
     )
 
@@ -80,13 +80,36 @@ async def migrator():
 
     if args.app != '*':
         if args.app not in orm.modules.keys():
-            raise CommandException('Module not defined in the orm')
+            raise CommandError('Module not defined in the orm')
 
     for module_name in orm.modules.keys():
         try:
             for model_name in orm.modules[module_name]:
                 model = orm.get_model(model_name)
-                db_migration = await model.latest_migration()
-                # fs_migration =
+
+                latest_db_migration = await model().latest_db_migration()
+                latest_fs_migration = model().latest_fs_migration()
+
+                print(
+                    '{}:'.format(model.__name__),
+                    'latest_db_migration:', latest_db_migration,
+                    'latest_fs_migration:', latest_fs_migration
+                )
+                db_migration_isNone = latest_db_migration is None
+                fs_migration_isNone = latest_fs_migration is None
+
+                if fs_migration_isNone and not db_migration_isNone:
+                    raise MigrationError(
+                        'Database with migrations not represented in the '
+                        'migration files'
+                    )
+
+                if not db_migration_isNone and not fs_migration_isNone:
+                    if int(latest_db_migration) > int(latest_fs_migration):
+                        raise MigrationError(
+                            'Database with migrations not represented in the '
+                            'migration files'
+                        )
+
         except UndefinedTableError:
             print(module_name)

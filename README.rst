@@ -8,17 +8,17 @@ asyncOrm
 .. image:: https://img.shields.io/pypi/pyversions/asyncorm.svg
     :target: https://pypi.python.org/pypi/asyncorm
     :alt: Python versions
+
 .. image:: https://api.codacy.com/project/badge/Grade/86ee891909654fc0a294849d0a436109
     :target: https://www.codacy.com/app/monobot/asyncorm?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=monobot/asyncorm&amp;utm_campaign=Badge_Grade
     :alt: Code quality
+.. image:: https://api.codacy.com/project/badge/Coverage/86ee891909654fc0a294849d0a436109
+    :target: https://www.codacy.com/app/monobot/asyncorm?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=monobot/asyncorm&amp;utm_campaign=Badge_Coverage
+    :alt: Coverage
 
 .. image:: https://pyup.io/repos/github/monobot/asyncorm/shield.svg
     :target: https://pyup.io/account/repos/github/monobot/asyncorm/
     :alt: Packages status
-
-.. image:: https://api.codacy.com/project/badge/Coverage/86ee891909654fc0a294849d0a436109
-    :target: https://www.codacy.com/app/monobot/asyncorm?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=monobot/asyncorm&amp;utm_campaign=Badge_Coverage
-    :alt: Coverage
 
 .. image:: https://travis-ci.org/monobot/asyncorm.svg?branch=development
     :target: https://travis-ci.org/monobot/asyncorm

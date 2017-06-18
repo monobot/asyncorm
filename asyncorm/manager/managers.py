@@ -416,7 +416,7 @@ class Queryset(object):
 
         return queryset
 
-    async def latest_migration(self):
+    async def latest_db_migration(self):
         kwargs = {
             'select': '*',
             'table_name': 'asyncorm_migrations',

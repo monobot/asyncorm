@@ -1,7 +1,7 @@
 __all__ = (
     'AsyncormException', 'FieldError', 'ManagerError', 'ModelDoesNotExist',
     'ModelError', 'ModuleError', 'MultipleObjectsReturned', 'QuerysetError',
-    'SerializerError', 'ConfigError', 'CommandException'
+    'SerializerError', 'ConfigError', 'CommandError', 'MigrationError'
 )
 
 
@@ -9,7 +9,7 @@ class AsyncormException(Exception):
     pass
 
 
-class CommandException(AsyncormException):
+class CommandError(AsyncormException):
     pass
 
 
@@ -29,6 +29,11 @@ class ModelError(AsyncormException):
 
 
 class ConfigError(AsyncormException):
+    '''to be raised when there are configuration errors detected'''
+    pass
+
+
+class MigrationError(AsyncormException):
     '''to be raised when there are configuration errors detected'''
     pass
 
