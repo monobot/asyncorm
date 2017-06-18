@@ -1,7 +1,9 @@
 import argparse
-import asyncio
 import textwrap
 import os
+
+from asyncpg.exceptions import UndefinedTableError
+from asyncorm.models.migrations.models import AsyncormMigrations
 
 from ..configure import configure_orm
 from ...exceptions import CommandException
@@ -73,12 +75,18 @@ orm = configure_orm(config=config_filename)
 
 
 async def migrator():
-    if args.command == 'migrate':
-        if args.app != '*':
-            if args.app not in orm.modules.keys():
-                raise CommandException('Module not defined in the orm')
+    # create if not exists the migration table!!
+    await AsyncormMigrations().objects.create_table()
 
-        for module_name in orm.modules.keys():
+    if args.app != '*':
+        if args.app not in orm.modules.keys():
+            raise CommandException('Module not defined in the orm')
+
+    for module_name in orm.modules.keys():
+        try:
             for model_name in orm.modules[module_name]:
                 model = orm.get_model(model_name)
-                print(await model.latest_migration())
+                db_migration = await model.latest_migration()
+                # fs_migration =
+        except UndefinedTableError:
+            print(module_name)

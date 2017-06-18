@@ -429,11 +429,15 @@ class Queryset(object):
             self.db_manager.db__select.format(**kwargs)
         )
 
+        # shortcircuit if No migration return None
+        if results is None:
+            return results
+
         for k, v in results.items():
             if k == 'name':
                 return int(v)
 
-    #               DB RELAED METHODS
+    #               DB RELATED METHODS
     async def db_request(self, db_request):
         db_request = deepcopy(db_request)
         db_request[0].update({
@@ -453,7 +457,7 @@ class Queryset(object):
             if key.stop is not None and key.stop < 0:
                 raise QuerysetError('Negative indices are not allowed')
             if key.step is not None:
-                raise QuerysetError('step on Queryset is not allowed')
+                raise QuerysetError('Step on Queryset is not allowed')
 
             # asign forward and stop to the modelmanager and return it
             self.forward = key.start
