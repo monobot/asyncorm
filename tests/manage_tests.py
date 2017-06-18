@@ -135,8 +135,9 @@ class ManageTestMethods(AioTestCase):
         with self.assertRaises(QuerysetError) as exc:
             await Book.objects.filter(id__lte=30)[1: 2: 4]
 
+        print(exc.exception.args[0])
         self.assertTrue(
-            'step on Queryset is not allowed' == exc.exception.args[0]
+            'Step on Queryset is not allowed' == exc.exception.args[0]
         )
 
     async def test_slice_negative_slice(self):
