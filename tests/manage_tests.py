@@ -135,7 +135,6 @@ class ManageTestMethods(AioTestCase):
         with self.assertRaises(QuerysetError) as exc:
             await Book.objects.filter(id__lte=30)[1: 2: 4]
 
-        print(exc.exception.args[0])
         self.assertTrue(
             'Step on Queryset is not allowed' == exc.exception.args[0]
         )

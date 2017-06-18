@@ -45,7 +45,8 @@ class Book(models.Model):
     price = models.DecimalField(default=25)
     quantity = models.IntegerField(default=1)
 
-    def its_a_2(self):
+    @staticmethod
+    def its_a_2():
         return 2
 
     class Meta():

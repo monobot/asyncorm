@@ -15,9 +15,11 @@ asyncOrm
 .. image:: https://pyup.io/repos/github/monobot/asyncorm/shield.svg
     :target: https://pyup.io/account/repos/github/monobot/asyncorm/
     :alt: Packages status
-.. image:: https://codecov.io/github/monobot/asyncorm/development.svg
-    :target: https://codecov.io/github/monobot/asyncorm/
-    :alt: Code coverage
+
+.. image:: https://api.codacy.com/project/badge/Coverage/86ee891909654fc0a294849d0a436109
+    :target: https://www.codacy.com/app/monobot/asyncorm?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=monobot/asyncorm&amp;utm_campaign=Badge_Coverage
+    :alt: Coverage
+
 .. image:: https://travis-ci.org/monobot/asyncorm.svg?branch=development
     :target: https://travis-ci.org/monobot/asyncorm
     :alt: Build status

@@ -141,7 +141,7 @@ class ModelTests(AioTestCase):
     async def test_m2m(self):
         # new organization
         org_list = []
-        for x in range(1, 6):
+        for _ in range(1, 6):
             org = Organization(name='ong molona')
             await org.save()
             org_list.append(org.id)
