@@ -1,7 +1,9 @@
+from datetime import date, datetime, time
+
 from asyncorm.exceptions import FieldError
 from asyncorm import models
 from .testapp.models import Book, Publisher, Reader
-from .testapp2.models import Organization
+from .testapp2.models import Organization, Appointment
 from .test_helper import AioTestCase
 
 
@@ -218,3 +220,25 @@ class FieldTests(AioTestCase):
 
     def test_emailfield_correct(self):
         models.EmailField(max_length=35).validate('laadio@s.com')
+
+    async def test_datetimefield_correct(self):
+        org = await Organization.objects.create(
+            date=datetime.now(),
+            name='nonameneeded')
+
+        self.assertTrue(isinstance(org.date, datetime))
+
+    async def test_datefield_correct(self):
+        appmnt = await Appointment.objects.create(
+            date=date.today(),
+            name='nonameneeded')
+
+        self.assertTrue(isinstance(appmnt.date, date))
+
+    async def test_timefield_correct(self):
+        appmnt = await Appointment.objects.create(
+            date=date.today(),
+            time=datetime.now().timetz(),
+            name='nonameneeded2')
+
+        self.assertTrue(isinstance(appmnt.time, time))

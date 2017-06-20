@@ -4,8 +4,8 @@ import re
 from decimal import Decimal
 from json.decoder import JSONDecodeError
 
-from datetime import datetime
-from ..exceptions import FieldError, ModuleError
+from datetime import datetime, date, time
+from ..exceptions import FieldError  # , ModuleError
 
 DATE_FIELDS = ['DateField', ]
 
@@ -330,13 +330,13 @@ class DecimalField(NumberField):
 
 
 class DateField(Field):
-    internal_type = datetime
-    creation_string = 'timestamp'
+    internal_type = date
+    creation_string = 'date'
     args = ('db_column', 'default', 'auto_now', 'null', 'choices', 'unique',
             'strftime')
 
     def __init__(self, db_column='', default=None, auto_now=False, null=False,
-                 choices=None, unique=False, strftime='date %Y-%m-%d'
+                 choices=None, unique=False, strftime='%Y-%m-%d'
                  ):
         super().__init__(db_column=db_column, default=default,
                          auto_now=auto_now, null=null, choices=choices,
@@ -350,6 +350,36 @@ class DateField(Field):
 
     def serialize_data(self, value):
         return value.strftime(self.strftime)
+
+
+class DateTimeField(DateField):
+    internal_type = datetime
+    creation_string = 'timestamp'
+    args = ('db_column', 'default', 'auto_now', 'null', 'choices', 'unique',
+            'strftime')
+
+    def __init__(self, db_column='', default=None, auto_now=False, null=False,
+                 choices=None, unique=False, strftime='%Y-%m-%d  %H:%s'
+                 ):
+        super().__init__(db_column=db_column, default=default,
+                         auto_now=auto_now, null=null, choices=choices,
+                         unique=unique, strftime=strftime
+                         )
+
+
+class TimeField(DateField):
+    internal_type = time
+    creation_string = 'time'
+    args = ('db_column', 'default', 'auto_now', 'null', 'choices', 'unique',
+            'strftime')
+
+    def __init__(self, db_column='', default=None, auto_now=False, null=False,
+                 choices=None, unique=False, strftime='%H:%s'
+                 ):
+        super().__init__(db_column=db_column, default=default,
+                         auto_now=auto_now, null=null, choices=choices,
+                         unique=unique, strftime=strftime
+                         )
 
 
 class ForeignKey(Field):
