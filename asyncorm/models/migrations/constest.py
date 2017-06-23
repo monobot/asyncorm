@@ -4,4 +4,5 @@ import os
 
 filename = os.path.join('hola.py')
 
-MigrationConstructor(filename)
+mc = MigrationConstructor(filename)
+mc.set_models({'totorota': {'2': 1}})
