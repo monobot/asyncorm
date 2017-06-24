@@ -1,6 +1,6 @@
 class MigrationBase(object):
     depends = []
-    operations = {
+    fw_operations = {
         'stage1': [],
         'stage2': [],
         'stage3': [],

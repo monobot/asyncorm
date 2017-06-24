@@ -285,6 +285,11 @@ class BaseModel(object, metaclass=ModelMeta):
     async def latest_db_migration(cls):
         return await cls.objects.latest_db_migration()
 
+    @classmethod
+    async def next_db_migration(cls):
+        latest = await cls.latest_db_migration()
+        return '000{}'.format(int(latest) + 1)[-4:] if latest else '0001'
+
     def latest_fs_migration(self):
         filenames = next(os.walk(self.migrations_dir))[2]
 
@@ -295,11 +300,15 @@ class BaseModel(object, metaclass=ModelMeta):
 
         if prev_migration is not None:
             try:
-                return prev_migration.split('.')[0]
+                return prev_migration.split('.')[0].split('__')[0]
             except AttributeError:
                 raise ModelError(
                     'Wrong filename for migration {}'.format(prev_migration)
                 )
+
+    def next_fs_migration(self):
+        latest = self.latest_fs_migration()
+        return '000{}'.format(int(latest) + 1)[-4:] if latest else '0001'
 
     # async def check_migration(self):
     #     index = 1

@@ -1,14 +1,18 @@
 import argparse
-import textwrap
+import logging
 import os
+import textwrap
 
 from asyncpg.exceptions import UndefinedTableError
 from asyncorm.models.migrations.models import AsyncormMigrations
+from asyncorm.models.migrations.constructor import MigrationConstructor
 
 from ..configure import configure_orm
 from ...exceptions import CommandError, MigrationError
 
 cwd = os.getcwd()
+
+logger = logging.getLogger('asyncorm')
 
 help_text = '''
 -------------------------------------------------------------------------------
@@ -84,17 +88,13 @@ async def migrator():
 
     for module_name in orm.modules.keys():
         try:
+            models_dict = {}
             for model_name in orm.modules[module_name]:
                 model = orm.get_model(model_name)
 
                 latest_db_migration = await model().latest_db_migration()
                 latest_fs_migration = model().latest_fs_migration()
 
-                print(
-                    '{}:'.format(model.__name__),
-                    'latest_db_migration:', latest_db_migration,
-                    'latest_fs_migration:', latest_fs_migration
-                )
                 db_migration_isNone = latest_db_migration is None
                 fs_migration_isNone = latest_fs_migration is None
 
@@ -111,5 +111,18 @@ async def migrator():
                             'migration files'
                         )
 
+                models_dict[model_name] = model.current_state()
+
+            next_fs_migration = os.path.join(
+                model().migrations_dir,
+                '{}.py'.format(model().next_fs_migration())
+            )
+            mc = MigrationConstructor(next_fs_migration)
+            mc.set_models(models_dict)
+
         except UndefinedTableError:
-            print(module_name)
+            logger.error(
+                'asyncorm raised "UndefinedTableError" in app "{}"'.format(
+                    module_name
+                )
+            )

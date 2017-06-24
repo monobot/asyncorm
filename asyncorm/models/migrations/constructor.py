@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 TEMPLATE_TEXT = '''\
 from asyncorm.models.migrations.migration import MigrationBase
 
@@ -19,6 +21,30 @@ class MigrationConstructor(object):
         with open(self.file_name, 'a') as myfile:
             myfile.write(self.tabulation(tab_level) + txt)
 
+    def write_dictformater(self, tab_level, name, content, notrail=False):
+        end_singleline = notrail and '\'{}\': {{}}\n' or'\'{}\': {{}},\n'
+        end_multistr = notrail and '\'{}\': \'{}\'\n' or '\'{}\': \'{}\',\n'
+        end_multinostr = notrail and '\'{}\': {}\n' or '\'{}\': {},\n'
+
+        isNone = content is None
+
+        if isinstance(content, dict):
+            if content:
+                self.write(tab_level, '\'{}\': {{\n'.format(name))
+                for f, v in content.items():
+                    self.write_dictformater(tab_level + 1, f, v)
+                self.write(tab_level, '},\n')
+            else:
+                self.write(tab_level, end_singleline.format(name))
+        elif isinstance(content, str):
+            self.write(
+                tab_level, end_multistr.format(name, content)
+            )
+        elif isinstance(content, (bool, int, float, Decimal)) or isNone:
+            self.write(
+                tab_level, end_multinostr.format(name, content)
+            )
+
     @staticmethod
     def tabulation(tab_level):
         if tab_level:
@@ -29,9 +55,13 @@ class MigrationConstructor(object):
         tab_level = 1
         self.write(tab_level, 'def __init__(self):\n')
 
-    def attr_writer(self, name, value):
+    def set_models(self, models_dict):
         tab_level = 2
-        self.write(tab_level, 'self.' + name + ' = ' + value + '\n\n')
-
-    def set_models(self, model_dict):
-        self.attr_writer('models', str(model_dict))
+        self.write(tab_level, 'self.models = {\n')
+        for model_name, model_dict in models_dict.items():
+            self.write_dictformater(
+                tab_level + 1,
+                model_name,
+                model_dict,
+            )
+        self.write(tab_level, '}\n\n')
