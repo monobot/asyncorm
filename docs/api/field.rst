@@ -36,6 +36,12 @@ DecimalField
 DateField
 ~~~~~~~~~
 
+DateTimeField
+~~~~~~~~~
+
+TimeField
+~~~~~~~~~
+
 ForeignKey
 ~~~~~~~~~~
 

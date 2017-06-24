@@ -194,6 +194,26 @@ class PkField(Field):
         super().__init__(db_column=db_column, unique=True, null=null)
 
 
+# class Uuid4Field(Field):
+#     required_before = 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
+#     internal_type = str
+#     args = ('db_column', 'unique', 'null', 'uuid_type')
+
+#     def __init__(
+#             self, db_column='id', null=False, uuid_type='v4'):
+#         super().__init__(
+#             db_column=db_column, unique=True, null=null, uuid_type=uuid_type
+#         )
+
+#     @property
+#     def creation_string(self):
+#         uuid_types = {
+#             'v1': 'uuid_generate_v1mc',
+#             'v4': 'uuid_generate_v4',
+#         }
+#         return 'UUID DEFAULT {}()'.format(uuid_types[self.uuid_type])
+
+
 class BooleanField(Field):
     internal_type = bool
     creation_string = 'boolean'
