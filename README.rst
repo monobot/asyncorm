@@ -10,7 +10,7 @@ asyncOrm
     :target: https://pypi.python.org/pypi/asyncorm
     :alt: Python versions
 
-.. image:: https://travis-ci.org/monobot/asyncorm.svg?branch=master
+.. image:: https://travis-ci.org/monobot/asyncorm.svg?branch=development
     :target: https://travis-ci.org/monobot/asyncorm
     :alt: build status
 
