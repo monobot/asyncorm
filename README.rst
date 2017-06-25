@@ -5,9 +5,14 @@ asyncOrm
 .. image:: https://img.shields.io/pypi/v/asyncorm.svg
     :target: https://pypi.python.org/pypi/asyncorm
     :alt: Pypi package
+
 .. image:: https://img.shields.io/pypi/pyversions/asyncorm.svg
     :target: https://pypi.python.org/pypi/asyncorm
     :alt: Python versions
+
+.. image:: https://travis-ci.org/monobot/asyncorm.svg?branch=master
+    :target: https://travis-ci.org/monobot/asyncorm
+    :alt: build status
 
 .. image:: https://api.codacy.com/project/badge/Grade/86ee891909654fc0a294849d0a436109
     :target: https://www.codacy.com/app/monobot/asyncorm?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=monobot/asyncorm&amp;utm_campaign=Badge_Grade
@@ -27,8 +32,6 @@ asyncOrm
 .. image:: https://readthedocs.org/projects/asyncorm/badge/?version=development
     :target: http://asyncorm.readthedocs.io/en/development/
     :alt: Documentation Status
-
-
 
 A fully asynchronous python ORM
 
