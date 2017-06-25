@@ -2,6 +2,9 @@
 History
 =======
 
+0.3.3 (2017-06-25)
+* DateField, DateTimeField, TimeField, UuidField and more work on migrations
+
 0.3.2 (2017-06-16)
 * setup process drafted
 
