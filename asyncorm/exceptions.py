@@ -1,5 +1,5 @@
 __all__ = (
-    'AsyncormException', 'FieldError', 'ManagerError', 'ModelDoesNotExist',
+    'AsyncormException', 'FieldError', 'ModelDoesNotExist',
     'ModelError', 'ModuleError', 'MultipleObjectsReturned', 'QuerysetError',
     'SerializerError', 'ConfigError', 'CommandError', 'MigrationError'
 )
@@ -10,6 +10,7 @@ class AsyncormException(Exception):
 
 
 class CommandError(AsyncormException):
+    '''Exceptions to be raised when command errors'''
     pass
 
 
@@ -18,13 +19,13 @@ class FieldError(AsyncormException):
     pass
 
 
-class ManagerError(AsyncormException):
-    '''to be raised when there are queryset errors detected'''
+class ModelError(AsyncormException):
+    '''to be raised when there are model errors detected'''
     pass
 
 
-class ModelError(AsyncormException):
-    '''to be raised when there are model errors detected'''
+class QuerysetError(AsyncormException):
+    '''to be raised when there are queryset errors detected'''
     pass
 
 
@@ -55,9 +56,4 @@ class SerializerError(AsyncormException):
 
 class ModuleError(AsyncormException):
     '''to be raised when there are model module or config errors detected'''
-    pass
-
-
-class QuerysetError(AsyncormException):
-    '''to be raised when there are queryset errors detected'''
     pass

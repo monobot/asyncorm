@@ -5,6 +5,7 @@ before_script:
   - psql -c "create user ormdbuser with password 'ormDbPass';" -U postgres
   - psql -c "create database asyncorm;" -U postgres
   - psql -c "grant all privileges on database asyncorm to ormdbuser;" -U postgres
+  - psql -c "alter user ormdbuser with superuser;" -U postgres
 
 services:
   - postgresql

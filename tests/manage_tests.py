@@ -224,11 +224,11 @@ class ManageTestMethods(AioTestCase):
         lt_today = await Appointment.objects.filter(date__lt=today).count()
         yday = await Appointment.objects.filter(date__lte=yesterday).count()
 
-        self.assertEqual(all_appointments, 5)
+        self.assertEqual(all_appointments, 6)
         self.assertEqual(gt_today, 1)
-        self.assertEqual(gte_today, 4)
+        self.assertEqual(gte_today, 5)
         self.assertEqual(lt_today, 1)
-        self.assertEqual(yday, 5)
+        self.assertEqual(yday, 6)
 
     async def test_in_lookup_integerfield(self):
         queryset = Book.objects.filter(id__in=(1, 2, 56, 456))

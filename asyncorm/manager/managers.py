@@ -1,4 +1,4 @@
-from asyncpg.exceptions import UniqueViolationError
+from asyncpg.exceptions import UniqueViolationError, InsufficientPrivilegeError
 from copy import deepcopy
 
 from ..exceptions import (
@@ -88,6 +88,17 @@ class Queryset(object):
     async def create_table(self):
         '''Builds the table without the m2m_fields and fks'''
         await self.db_request(self.create_table_builder())
+
+    async def set_requirements(self):
+        '''Add to the database the table requirements if needed'''
+        try:
+            for query in self.model.field_requirements:
+                await self.db_manager.request(query)
+        except InsufficientPrivilegeError:
+            raise ModelError(
+                'Not enought privileges to add the needed requirement '
+                'in the database'
+            )
 
     def unique_together_builder(self):
         unique_together = self.get_unique_together()

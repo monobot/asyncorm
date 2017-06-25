@@ -2,6 +2,7 @@ import json
 import re
 
 from decimal import Decimal
+from uuid import UUID
 from json.decoder import JSONDecodeError
 
 from datetime import datetime, date, time
@@ -11,6 +12,7 @@ DATE_FIELDS = ['DateField', ]
 
 KWARGS_TYPES = {
     'db_column': str,
+    'uuid_type': str,
     'default': object,
     'null': bool,
     'max_length': int,
@@ -194,24 +196,29 @@ class PkField(Field):
         super().__init__(db_column=db_column, unique=True, null=null)
 
 
-# class Uuid4Field(Field):
-#     required_before = 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
-#     internal_type = str
-#     args = ('db_column', 'unique', 'null', 'uuid_type')
+class Uuid4Field(Field):
+    internal_type = UUID
+    args = ('db_column', 'unique', 'null', 'uuid_type')
 
-#     def __init__(
-#             self, db_column='id', null=False, uuid_type='v4'):
-#         super().__init__(
-#             db_column=db_column, unique=True, null=null, uuid_type=uuid_type
-#         )
+    def __init__(
+            self, db_column='', null=False, uuid_type='v4'):
+        self.field_requirement = 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
 
-#     @property
-#     def creation_string(self):
-#         uuid_types = {
-#             'v1': 'uuid_generate_v1mc',
-#             'v4': 'uuid_generate_v4',
-#         }
-#         return 'UUID DEFAULT {}()'.format(uuid_types[self.uuid_type])
+        if uuid_type not in ['v1', 'v4']:
+            raise FieldError('{} is not a recognized type'.format(uuid_type))
+
+        super().__init__(
+            db_column=db_column, unique=True, default=None, null=null,
+            uuid_type=uuid_type
+        )
+
+    @property
+    def creation_string(self):
+        uuid_types = {
+            'v1': 'uuid_generate_v1mc',
+            'v4': 'uuid_generate_v4',
+        }
+        return 'UUID DEFAULT {}()'.format(uuid_types[self.uuid_type])
 
 
 class BooleanField(Field):

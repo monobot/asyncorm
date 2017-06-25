@@ -1,6 +1,5 @@
 import inspect
 import os
-from pprint import pprint
 
 from .fields import Field, PkField, ManyToManyField, ForeignKey
 from ..manager import ModelManager
@@ -72,6 +71,7 @@ class BaseModel(object, metaclass=ModelMeta):
 
     objects = None
     deleted = False
+    field_requirements = []
 
     def __init__(self, **kwargs):
         dir_name = os.path.dirname(inspect.getmodule(self).__file__)
@@ -220,6 +220,10 @@ class BaseModel(object, metaclass=ModelMeta):
 
                 if not isinstance(field.__class__, PkField):
                     cls.attr_names.update({f_n: field.db_column})
+
+                if hasattr(field, 'field_requirement'):
+                    if field.field_requirement not in cls.field_requirements:
+                        cls.field_requirements.append(field.field_requirement)
 
                 fields[f_n] = field
 

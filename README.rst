@@ -63,12 +63,11 @@ A number of things are needed to be able to release asyncOrm a production ready 
 - migration support (forward migration at least)
 - other databases interfaces ( `mysql`_ / `mariaDb`_ first priority)
 - `prefetch_related`_ functionality
-- Missing Field types: OneToOneField, `uuid4field`_
+- Missing Field types: OneToOneField
 
 .. _mySql: https://www.mysql.com/
 .. _mariaDb: https://mariadb.org/
 .. _prefetch_related: https://docs.djangoproject.com/en/1.11/ref/models/querysets/#prefetch_related support
-.. _uuid4field: https://www.postgresql.org/docs/9.5/static/datatype-uuid.html
 
 Dependencies
 ------------

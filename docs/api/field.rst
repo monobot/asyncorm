@@ -47,3 +47,6 @@ ForeignKey
 
 ManyToManyField
 ~~~~~~~~~~~~~~~
+
+UuidField
+~~~~~~~~~~~~~~~

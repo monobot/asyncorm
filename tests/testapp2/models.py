@@ -5,6 +5,7 @@ class Organization(models.Model):
     name = models.CharField(max_length=50)
     active = models.BooleanField(default=False)
     date = models.DateTimeField(null=True)
+    uuid = models.Uuid4Field(uuid_type='v1')
 
 
 class Developer(models.Model):
@@ -23,3 +24,4 @@ class Appointment(models.Model):
     name = models.CharField(max_length=50)
     date = models.DateField()
     time = models.TimeField(null=True)
+    uuid = models.Uuid4Field()

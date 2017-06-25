@@ -1,4 +1,5 @@
 from datetime import date, datetime, time
+from uuid import UUID
 
 from asyncorm.exceptions import FieldError
 from asyncorm import models
@@ -242,3 +243,23 @@ class FieldTests(AioTestCase):
             name='nonameneeded2')
 
         self.assertTrue(isinstance(appmnt.time, time))
+
+    async def test_uuidv1field_correct(self):
+        org = await Organization.objects.create(
+            name='nonamen22'
+        )
+
+        self.assertTrue(isinstance(org.uuid, UUID))
+        self.assertEqual(len(str(org.uuid).split('-')), 5)
+        self.assertTrue(len(str(org.uuid)), 36)
+
+    async def test_uuidv4field_correct(self):
+        appmnt = await Appointment.objects.create(
+            date=date.today(),
+            time=datetime.now().timetz(),
+            name='nonam34'
+        )
+
+        self.assertTrue(isinstance(appmnt.uuid, UUID))
+        self.assertEqual(len(str(appmnt.uuid).split('-')), 5)
+        self.assertEqual(len(str(appmnt.uuid)), 36)
