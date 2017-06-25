@@ -263,3 +263,12 @@ class FieldTests(AioTestCase):
         self.assertTrue(isinstance(appmnt.uuid, UUID))
         self.assertEqual(len(str(appmnt.uuid).split('-')), 5)
         self.assertEqual(len(str(appmnt.uuid)), 36)
+
+    async def test_uuidv4field_(self):
+        with self.assertRaises(FieldError) as exc:
+            models.Uuid4Field(uuid_type='mn')
+
+        self.assertEqual(
+            exc.exception.args[0],
+            '{} is not a recognized type'.format('mn')
+        )
