@@ -34,95 +34,110 @@ help_text = '''
         > asyncorm migrate library 0002
 
 -------------------------------------------------------------------------------
-help_text = '''
-
-parser = argparse.ArgumentParser(
-    formatter_class=argparse.RawDescriptionHelpFormatter,
-    description=textwrap.dedent(help_text)
-)
-
-parser.add_argument(
-    'command', type=str, choices=('makemigrations', 'migrate'),
-    help=('makemigrations or migrate')
-)
-
-parser.add_argument(
-    'app', type=str, nargs='?', default='*',
-    help=('app you want to migrate')
-)
-
-parser.add_argument(
-    'migration', type=str, nargs='?',
-    help=('migration_name you want the app to migrate to')
-)
-
-parser.add_argument(
-    '--config', type=str, nargs=1, default=['asyncorm.ini', ],
-    help=('configuration file (defaults to asyncorm.ini)')
-)
-
-args = parser.parse_args()
-
-# check that the arguments are correctly sent
-if args.command == 'makemigrations' and args.app != '*':
-    raise CommandError(
-        'You can not specify the app when making migrations'
-    )
-
-config_filename = os.path.join(cwd, args.config[0])
-if not os.path.isfile(config_filename):
-    raise CommandError(
-        'the configuration file does not exist'
-    )
-
-orm = configure_orm(config=config_filename)
+'''
 
 
-async def migrator():
-    # create if not exists the migration table!!
-    await AsyncormMigrations().objects.create_table()
+class Migrator(object):
 
-    if args.app != '*':
-        if args.app not in orm.modules.keys():
-            raise CommandError('Module not defined in the orm')
+    def __init__(self):
+        parser = argparse.ArgumentParser(
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+            description=textwrap.dedent(help_text)
+        )
 
-    for module_name in orm.modules.keys():
-        try:
-            models_dict = {}
-            for model_name in orm.modules[module_name]:
-                model = orm.get_model(model_name)
+        parser.add_argument(
+            'command', type=str, choices=('makemigrations', 'migrate'),
+            help=('makemigrations or migrate')
+        )
 
-                latest_db_migration = await model().latest_db_migration()
-                latest_fs_migration = model().latest_fs_migration()
+        parser.add_argument(
+            'app', type=str, nargs='?', default='*',
+            help=('app you want to migrate')
+        )
 
-                db_migration_isNone = latest_db_migration is None
-                fs_migration_isNone = latest_fs_migration is None
+        parser.add_argument(
+            'migration', type=str, nargs='?',
+            help=('migration_name you want the app to migrate to')
+        )
 
-                if fs_migration_isNone and not db_migration_isNone:
-                    raise MigrationError(
-                        'Database with migrations not represented in the '
-                        'migration files'
-                    )
+        parser.add_argument(
+            '--config', type=str, nargs=1, default=['asyncorm.ini', ],
+            help=('configuration file (defaults to asyncorm.ini)')
+        )
 
-                if not db_migration_isNone and not fs_migration_isNone:
-                    if int(latest_db_migration) > int(latest_fs_migration):
+        self.args = parser.parse_args()
+        self.check_args()
+
+        self.orm = self.configure_orm()
+
+    def check_args(self):
+        # check that the arguments are correctly sent
+        if self.args.command == 'makemigrations' and self.args.app != '*':
+            raise CommandError(
+                'You can not specify the app when making migrations'
+            )
+
+    def configure_orm(self):
+        config_filename = os.path.join(cwd, self.args.config[0])
+        if not os.path.isfile(config_filename):
+            raise CommandError('the configuration file does not exist')
+        return configure_orm(config=config_filename)
+
+    async def run(self):
+        # create if not exists the migration table!!
+        await AsyncormMigrations().objects.create_table()
+
+        if self.args.app != '*':
+            if self.args.app not in self.orm.modules.keys():
+                raise CommandError('Module not defined in the orm')
+
+        for module_name in self.orm.modules.keys():
+            try:
+                models_dict = {}
+                for model_name in self.orm.modules[module_name]:
+                    model = self.orm.get_model(model_name)
+
+                    latest_db_migration = await model().latest_db_migration()
+                    latest_fs_migration = model().latest_fs_migration()
+
+                    db_migration_isNone = latest_db_migration is None
+                    fs_migration_isNone = latest_fs_migration is None
+
+                    if fs_migration_isNone and not db_migration_isNone:
                         raise MigrationError(
                             'Database with migrations not represented in the '
                             'migration files'
                         )
 
-                models_dict[model_name] = model.current_state()
+                    if not db_migration_isNone and not fs_migration_isNone:
+                        if int(latest_db_migration) > int(latest_fs_migration):
+                            raise MigrationError(
+                                'Database with migrations not represented in '
+                                'the migration files'
+                            )
 
-            next_fs_migration = os.path.join(
-                model().migrations_dir,
-                '{}.py'.format(model().next_fs_migration())
-            )
-            mc = MigrationConstructor(next_fs_migration)
-            mc.set_models(models_dict)
+                    models_dict[model_name] = model.current_state()
 
-        except UndefinedTableError:
-            logger.error(
-                'asyncorm raised "UndefinedTableError" in app "{}"'.format(
-                    module_name
+                next_fs_migration = os.path.join(
+                    model().migrations_dir,
+                    '{}.py'.format(model().next_fs_migration())
                 )
-            )
+                mc = MigrationConstructor(next_fs_migration)
+                mc.set_models(models_dict)
+
+            except UndefinedTableError:
+                logger.error(
+                    'asyncorm raised "UndefinedTableError" in app "{}"'.format(
+                        module_name
+                    )
+                )
+
+        command = getattr(self, self.args.command)
+
+        command()
+
+    def makemigrations(self):
+        print('makemigrations')
+
+    def migrate(self):
+        print('migrate')
