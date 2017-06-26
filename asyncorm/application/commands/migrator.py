@@ -62,7 +62,10 @@ class Migrator(object):
 
         parser.add_argument(
             '--config', type=str, nargs=1, default=['asyncorm.ini', ],
-            help=('configuration file (defaults to asyncorm.ini)')
+            help=(
+                'configuration file (defaults to asyncorm.ini in the same '
+                'directory)'
+            )
         )
 
         self.args = parser.parse_args()
@@ -115,6 +118,10 @@ class Migrator(object):
                                 'Database with migrations not represented in '
                                 'the migration files'
                             )
+                        if int(latest_db_migration) < int(latest_fs_migration):
+                            raise MigrationError(
+                                'Migrations generated but noy applied!'
+                            )
 
                     models_dict[model_name] = model.current_state()
 
@@ -136,8 +143,10 @@ class Migrator(object):
 
         command()
 
+    @staticmethod
     def makemigrations(self):
         print('makemigrations')
 
+    @staticmethod
     def migrate(self):
         print('migrate')
