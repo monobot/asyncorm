@@ -144,9 +144,9 @@ class Migrator(object):
         command()
 
     @staticmethod
-    def makemigrations(self):
+    def makemigrations():
         print('makemigrations')
 
     @staticmethod
-    def migrate(self):
+    def migrate():
         print('migrate')
