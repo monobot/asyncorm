@@ -64,4 +64,4 @@ class MigrationConstructor(object):
                 model_name,
                 model_dict,
             )
-        self.write(tab_level, '}\n\n')
+        self.write(tab_level, '}\n')

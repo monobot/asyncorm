@@ -14,7 +14,7 @@ cwd = os.getcwd()
 
 logger = logging.getLogger('asyncorm')
 
-help_text = '''
+help_text = '''\
 -------------------------------------------------------------------------------
                          asyncorm migration management
 -------------------------------------------------------------------------------
@@ -30,7 +30,8 @@ help_text = '''
         you can optionally specify what app  to migrate
         > asyncorm migrate library
 
-        or even app and what specific migration name
+        or even app and what specific migration name you want to go to
+        forwards and backwards
         > asyncorm migrate library 0002
 
 -------------------------------------------------------------------------------
