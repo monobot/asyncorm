@@ -1,5 +1,7 @@
 language: python
-python: 3.5
+python:
+  - "3.5"
+  - "3.6"
 
 before_script:
   - psql -c "create user ormdbuser with password 'ormDbPass';" -U postgres
@@ -10,12 +12,14 @@ before_script:
 services:
   - postgresql
 
-# command to install dependencies
-install: "pip install -r requirements.txt"
+#env:
+#  - SANIC_VERSION=0.5.4
+#  - SANIC_VERSION=0.5.5
 
-env:
-  - sanic=0.5.4
-  - sanic=0.5.5
+# command to install dependencies
+install:
+  # - pip install -q sanic==$SANIC_VERSION
+  - pip install -r requirements.txt
 
 # command to run tests
 script: python -m tests
