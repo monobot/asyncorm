@@ -1,5 +1,3 @@
-from decimal import Decimal
-
 TEMPLATE_TEXT = '''\
 from asyncorm.models.migrations.migrator import MigrationBase
 
