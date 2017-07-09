@@ -26,8 +26,6 @@ class MigrationConstructor(object):
         end_multistr = notrail and '\'{}\': \'{}\'\n' or '\'{}\': \'{}\',\n'
         end_multinostr = notrail and '\'{}\': {}\n' or '\'{}\': {},\n'
 
-        isNone = content is None
-
         if isinstance(content, dict):
             if content:
                 self.write(tab_level, '\'{}\': {{\n'.format(name))
@@ -40,7 +38,7 @@ class MigrationConstructor(object):
             self.write(
                 tab_level, end_multistr.format(name, content)
             )
-        elif isinstance(content, (bool, int, float, Decimal)) or isNone:
+        else:
             self.write(
                 tab_level, end_multinostr.format(name, content)
             )
@@ -56,6 +54,7 @@ class MigrationConstructor(object):
         self.write(tab_level, 'def __init__(self):\n')
 
     def set_models(self, models_dict):
+        print(models_dict)
         tab_level = 2
         self.write(tab_level, 'self.models = {\n')
         for model_name, model_dict in models_dict.items():

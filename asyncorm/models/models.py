@@ -22,12 +22,14 @@ class ModelMeta(type):
             {"model": base_class}
         )(base_class)
 
+        # Meta manage
         defined_meta = clsdict.pop('Meta', None)
 
         base_class.ordering = None
         base_class.unique_together = []
         base_class.table_name = ''
         base_class.DoesNotExist = ModelDoesNotExist
+        base_class.meta_items = ('ordering', 'unique_together', 'table_name')
 
         if defined_meta:
             if hasattr(defined_meta, 'ordering'):
@@ -346,12 +348,16 @@ class BaseModel(object, metaclass=ModelMeta):
         from copy import deepcopy
 
         fields = deepcopy(cls.get_fields())
+        meta = {}
         for f_n, field in fields.items():
             fields[f_n] = field.current_state()
 
+        for m in cls.meta_items:
+            meta[m] = getattr(cls, m)
+
         return {
             'fields': fields,
-            'meta': {}
+            'meta': meta,
         }
 
 

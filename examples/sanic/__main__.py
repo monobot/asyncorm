@@ -17,6 +17,7 @@ def orm_configure(sanic, loop):
     # configure_orm defaults to the asyncorm.ini in same directory
     # the loop is required tho
     configure_orm(loop=loop)
+    # orm.sync_db()
 
 
 # for all the 404 lets handle the exceptions
