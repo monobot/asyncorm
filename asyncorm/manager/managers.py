@@ -232,23 +232,25 @@ class Queryset(object):
     async def get(self, **kwargs):
         queryset = self.queryset().filter(**kwargs)
 
-        count = await queryset.count()
-
-        if count > 1:
-            raise MultipleObjectsReturned(
-                'More than one {} where returned, there are {}!'.format(
-                    self.model.__name__,
-                    count,
+        count = 0
+        found = []
+        async for itm in queryset.filter(**kwargs):
+            found.append(itm)
+            count += 1
+            if count > 1:
+                raise MultipleObjectsReturned(
+                    'More than one {} where returned, there are {}!'.format(
+                        self.model.__name__,
+                        count,
+                    )
                 )
-            )
-        elif not count:
+
+        if count == 0:
             raise self.model.DoesNotExist(
                 'That {} does not exist'.format(self.model.__name__)
             )
-
-        queryset = self.queryset()
-        async for itm in queryset.filter(**kwargs):
-            return itm
+        else:
+            return found[0]
 
     #               CHAINABLE QUERYSET METHODS
     def queryset(self):
