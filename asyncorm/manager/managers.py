@@ -233,7 +233,7 @@ class Queryset(object):
         count = 0
         queryset = self.queryset().filter(**kwargs)
 
-        async for itm in queryset.filter(**kwargs):
+        async for itm in queryset:
             count += 1
 
         if count > 1:
