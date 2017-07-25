@@ -362,7 +362,7 @@ class ManageTestMethods(AioTestCase):
     async def test_get_multiple_error(self):
         # now try to get using wrong arguments (more than one)
         with self.assertRaises(MultipleObjectsReturned) as exc:
-            await Book.objects.get(id__gt=280)
+            await Book.objects.get(id__in=[280, 281])
         self.assertTrue(
             'More than one Book where returned, there are' in
             exc.exception.args[0]
@@ -373,6 +373,8 @@ class ManageTestMethods(AioTestCase):
         with self.assertRaises(ModelDoesNotExist) as exc:
             await Book.objects.get(id=2800)
         self.assertTrue('does not exist' in exc.exception.args[0])
+        count = await Book.objects.filter(id=2800).count()
+        self.assertEqual(count, 0)
 
     async def test_create(self):
         create_dict = {'name': 'Juanito', 'age': 73}

@@ -225,6 +225,7 @@ class Queryset(object):
         found = []
         async for itm in queryset.filter(**kwargs):
             found.append(itm)
+            count += 1
             if count > 1:
                 raise MultipleObjectsReturned(
                     'More than one {} where returned, there are {}!'.format(
@@ -232,7 +233,6 @@ class Queryset(object):
                         count,
                     )
                 )
-            count += 1
 
         if count == 0:
             raise self.model.DoesNotExist(
