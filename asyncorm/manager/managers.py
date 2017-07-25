@@ -230,27 +230,25 @@ class Queryset(object):
         return await self.calculate(field_name, 'STDDEV')
 
     async def get(self, **kwargs):
+        count = 0
         queryset = self.queryset().filter(**kwargs)
 
-        count = 0
-        found = []
         async for itm in queryset.filter(**kwargs):
-            found.append(itm)
             count += 1
-            if count > 1:
-                raise MultipleObjectsReturned(
-                    'More than one {} where returned, there are {}!'.format(
-                        self.model.__name__,
-                        count,
-                    )
-                )
 
-        if count == 0:
+        if count > 1:
+            raise MultipleObjectsReturned(
+                'More than one "{}" were returned, there are {}!'.format(
+                    self.model.__name__,
+                    count,
+                )
+            )
+        elif count == 0:
             raise self.model.DoesNotExist(
                 'That {} does not exist'.format(self.model.__name__)
             )
-        else:
-            return found[0]
+
+        return itm
 
     #               CHAINABLE QUERYSET METHODS
     def queryset(self):

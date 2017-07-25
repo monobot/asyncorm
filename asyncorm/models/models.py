@@ -1,3 +1,4 @@
+import importlib
 import inspect
 import os
 
@@ -76,9 +77,9 @@ class BaseModel(object, metaclass=ModelMeta):
     field_requirements = []
 
     def __init__(self, **kwargs):
-        dir_name = os.path.dirname(inspect.getmodule(self).__file__)
-        self.app_name = dir_name.split(os.path.sep)[-1]
-        self.migrations_dir = os.path.join(dir_name, 'migrations')
+        self.dir_name = os.path.dirname(inspect.getmodule(self).__file__)
+        self.app_name = self.dir_name.split(os.path.sep)[-1]
+        self.migrations_dir = os.path.join(self.dir_name, 'migrations')
         os.makedirs(self.migrations_dir, exist_ok=True)
 
         self.table_name = ''
@@ -295,6 +296,12 @@ class BaseModel(object, metaclass=ModelMeta):
     async def next_db_migration(cls):
         latest = await cls.latest_db_migration()
         return '000{}'.format(int(latest) + 1)[-4:] if latest else '0001'
+
+    async def latest_db_fs_state(cls):
+        f_name = await cls.latest_db_migration()
+        fullpath = os.join(cls.dir_name, f_name)
+
+        module = importlib.import_module(fullpath)
 
     def latest_fs_migration(self):
         filenames = next(os.walk(self.migrations_dir))[2]

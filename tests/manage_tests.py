@@ -362,9 +362,9 @@ class ManageTestMethods(AioTestCase):
     async def test_get_multiple_error(self):
         # now try to get using wrong arguments (more than one)
         with self.assertRaises(MultipleObjectsReturned) as exc:
-            await Book.objects.get(id__in=[280, 281])
+            await Book.objects.get(id__range=[10, 25])
         self.assertTrue(
-            'More than one Book where returned, there are' in
+            'More than one "Book" were returned, there are 16' in
             exc.exception.args[0]
         )
 

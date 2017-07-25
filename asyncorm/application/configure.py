@@ -61,6 +61,7 @@ class OrmApp(object):
         if len(modules) == 1:
             self.models = {}
 
+        # this import should be here otherwise causes problems
         from asyncorm import models
         for m in modules:
             module_list = {}
