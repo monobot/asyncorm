@@ -1,3 +1,5 @@
+import re
+
 from asyncpg.exceptions import UniqueViolationError, InsufficientPrivilegeError
 from copy import deepcopy
 
@@ -328,7 +330,8 @@ class Queryset(object):
             string_lookups = [
                 'exact', 'iexact',
                 'contains', 'icontains',
-                'startswith', 'istartswith', 'endswith', 'iendswith',
+                'startswith', 'istartswith',
+                'endswith', 'iendswith',
             ]
 
             operator_formater = {
