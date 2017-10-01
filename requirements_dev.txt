@@ -5,5 +5,5 @@ watchdog==0.8.3
 flake8==3.4.1
 tox==2.8.2
 coverage==4.4.1
-Sphinx==1.6.3
+Sphinx==1.6.4
 asyncpg==0.12.0
