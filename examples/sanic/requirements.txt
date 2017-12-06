@@ -1,2 +1,2 @@
 asyncorm>=0.3.3
-sanic==0.6.0
+sanic==0.7.0
