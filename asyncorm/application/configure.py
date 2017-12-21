@@ -13,6 +13,7 @@ DEFAULT_CONFIG = {
     'modules': None,
 }
 
+DEFAULT_CONFIG_FILE = 'asyncorm.ini'
 
 class OrmApp(object):
     db_manager = None
@@ -44,7 +45,7 @@ class OrmApp(object):
 
         db_config['loop'] = self.loop = DEFAULT_CONFIG.get('loop')
 
-        database_module = importlib.import_module('asyncorm.database')
+        database_module = importlib.import_module('asyncorm.database') # NOTE Why? Move it out
 
         # we get the manager defined in the config file
         manager = getattr(database_module, DEFAULT_CONFIG['manager'])
@@ -62,7 +63,7 @@ class OrmApp(object):
             self.models = {}
 
         # this import should be here otherwise causes problems
-        from asyncorm import models
+        from asyncorm import models # NOTE this sucks!
         for m in modules:
             module_list = {}
             try:
@@ -149,9 +150,6 @@ class OrmApp(object):
         for model in self.models.values():
             model().make_migration()
 
-    # def migrate(self):
-    #     pass
-
 
 orm_app = OrmApp()
 
@@ -186,7 +184,7 @@ def configure_orm(config=None, loop=None):
     global orm_app
 
     if config is None:
-        config = parse_config(os.path.join(os.getcwd(), 'asyncorm.ini'))
+        config = parse_config(os.path.join(os.getcwd(), DEFAULT_CONFIG_FILE))
     elif not isinstance(config, dict):
         config = parse_config(config)
 

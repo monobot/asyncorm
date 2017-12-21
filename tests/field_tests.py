@@ -4,11 +4,18 @@ from uuid import UUID
 from asyncorm.exceptions import FieldError
 from asyncorm import models
 from .testapp.models import Book, Publisher, Reader
-from .testapp2.models import Organization, Appointment
+from .testapp2.models import Organization, Appointment, Skill, Developer
 from .test_helper import AioTestCase
 
 
 class FieldTests(AioTestCase):
+    def test_class_definition(self):
+        with self.assertRaises(AttributeError) as exc:
+            models.Field()
+        self.assertEqual(
+            exc.exception.args[0],
+            'Missing "internal_type" attribute from class definition'
+        )
 
     def test_required_kwargs_not_sent(self):
 
@@ -272,3 +279,58 @@ class FieldTests(AioTestCase):
             exc.exception.args[0],
             '{} is not a recognized type'.format('mn')
         )
+
+    async def test_arrayfield_correct(self):
+        dev = Developer(name='oldscholl', age=38)
+        await dev.save()
+        skill = await Skill.objects.create(
+            dev=dev.id,
+            name='Python',
+            specialization=['backend', 'frontend']
+        )
+
+        self.assertIsInstance(skill.specialization, list)
+        self.assertIn('backend', skill.specialization)
+        self.assertIn('frontend', skill.specialization)
+        self.assertEqual(2, len(skill.specialization))
+
+    async def test_arrayfield_multidimensional(self):
+        dev = Developer(name='multitalent', age=22)
+        await dev.save()
+        skill = await Skill.objects.create(
+            dev=dev.id,
+            name='Rust',
+            specialization=[['backend', 'web'], ['sql', 'postgres']]
+        )
+        self.assertIsInstance(skill.specialization, list)
+        self.assertIsInstance(skill.specialization[0], list)
+
+    async def test_arrayfield_wrong_dimensions_size(self):
+        with self.assertRaises(FieldError) as exc:
+            models.ArrayField().validate([['backend', 'nodejs'], ['frontend']])
+
+        self.assertEqual(
+            exc.exception.args[0],
+            'Multi-dimensional arrays must have items of the same size'
+        )
+
+    async def test_arrayfield_wrong_dimensions_type(self):
+        with self.assertRaises(FieldError) as exc:
+            models.ArrayField().validate([['backend', 'nodejs'], 'frontend'])
+
+        self.assertEqual(
+            exc.exception.args[0],
+            'Array elements are not of the same type'
+        )
+
+    async def test_text_field_correct(self):
+        dev = Developer(name='talkie', age=33)
+        await dev.save()
+        skill = await Skill.objects.create(
+            dev=dev.id,
+            name='Ruby',
+            specialization=['Rails'],
+            notes='Wish I could help you developing something cool'
+        )
+
+        self.assertIsInstance(skill.notes, str)

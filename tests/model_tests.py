@@ -125,14 +125,14 @@ class ModelTests(AioTestCase):
         # a client that has assigned developer
         client = Client(name='devman', dev=dev.id)
         await client.save()
-        # get all the developer clients
+        # get all of the developer clients
         clients_returned = dev.client_set()
         client_set = await clients_returned[0]
 
         # the client has the dev correctly set
-        self.assertTrue(client.dev == client.id)
+        self.assertTrue(client.dev == dev.id)
         # and is correct comming back for the other model
-        self.assertTrue(client_set.id == dev.id)
+        self.assertTrue(client_set.dev == dev.id)
 
     async def test_m2m_inverse_relation_exists(self):
         # the inverse relation is correctly set (not instantiated model)

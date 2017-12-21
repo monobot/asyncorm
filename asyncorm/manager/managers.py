@@ -9,7 +9,8 @@ from ..exceptions import (
 
 from ..models.fields import ManyToManyField, ForeignKey, CharField, NumberField
 from ..database import Cursor
-# from .log import logger
+from ..log import logger
+
 
 __all__ = ['ModelManager', 'Queryset']
 
@@ -178,8 +179,6 @@ class Queryset(object):
         instance.construct(data, subitems=self.query)
         return instance
 
-    #               QUERYSET METHODS
-    #               ENDING QUERYSETS
     async def count(self):
         query = self.query_copy()
         query[0]['select'] = 'COUNT(*)'
@@ -451,7 +450,7 @@ class Queryset(object):
             if k == 'name':
                 return int(v)
 
-    #               DB RELATED METHODS
+    # DB RELATED METHODS
     async def db_request(self, db_request):
         db_request = deepcopy(db_request)
         db_request[0].update({
@@ -461,6 +460,7 @@ class Queryset(object):
             ),
         })
         query = self.db_manager.construct_query(db_request)
+        logger.debug(query)
         return await self.db_manager.request(query)
 
     async def __getitem__(self, key):
