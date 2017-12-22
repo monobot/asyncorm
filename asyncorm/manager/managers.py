@@ -9,7 +9,6 @@ from ..exceptions import (
 
 from ..models.fields import ManyToManyField, ForeignKey, CharField, NumberField
 from ..database import Cursor
-from ..log import logger
 
 
 __all__ = ['ModelManager', 'Queryset']
@@ -460,7 +459,6 @@ class Queryset(object):
             ),
         })
         query = self.db_manager.construct_query(db_request)
-        logger.debug(query)
         return await self.db_manager.request(query)
 
     async def __getitem__(self, key):

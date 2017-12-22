@@ -407,16 +407,21 @@ class ArrayField(Field):
 
     def sanitize_data(self, value):
         value = super().sanitize_data(value)
-        return 'ARRAY{}'.format(value)
+        if value:
+            return 'ARRAY{}'.format(value)
+        return 'ARRAY[]::{}[]'.format(self.value_type)
 
     def validate(self, value):
         super().validate(value)
-        items_type = self.homogeneous_type(value)
-        if not items_type:
-            raise FieldError('Array elements are not of the same type')
-        if items_type == list:
-            if not all(len(item) == len(value[0]) for item in value):
-                raise FieldError('Multi-dimensional arrays must have items of the same size')
+        if value:
+            items_type = self.homogeneous_type(value)
+            if not items_type:
+                raise FieldError('Array elements are not of the same type')
+            if items_type == list:
+                if not all(len(item) == len(value[0]) for item in value):
+                    raise FieldError('Multi-dimensional arrays must have items of the same size')
+        return value
+
 
     @staticmethod
     def homogeneous_type(value):

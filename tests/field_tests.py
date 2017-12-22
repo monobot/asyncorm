@@ -323,7 +323,19 @@ class FieldTests(AioTestCase):
             'Array elements are not of the same type'
         )
 
-    async def test_text_field_correct(self):
+    async def test_arrayfield_empty_array(self):
+        dev = Developer(name='walkie', age=43)
+        await dev.save()
+        skill = await Skill.objects.create(
+            dev=dev.id,
+            name='C/CPP',
+            specialization=[],
+        )
+
+        self.assertIsInstance(skill.specialization, list)
+        self.assertEqual(skill.specialization, [])
+
+    async def test_textfield_correct(self):
         dev = Developer(name='talkie', age=33)
         await dev.save()
         skill = await Skill.objects.create(
