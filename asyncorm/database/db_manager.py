@@ -202,7 +202,7 @@ class GeneralManager(object):
                             model_join['fields_formatter']
                         )
 
-        # if we are not counting, then we can asign ordering
+        # if we are not counting, then we can assign ordering
         operations = ['COUNT', 'MAX', 'MIN', 'SUM', 'AVG', 'STDDEV']
         if res_dict.get('select', '').split('(')[0] not in operations:
             res_dict['ordering'] = self.ordering_syntax(

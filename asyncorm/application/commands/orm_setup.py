@@ -2,6 +2,8 @@ import argparse
 import textwrap
 import os
 
+from .. configure import DEFAULT_CONFIG_FILE
+
 cwd = os.getcwd()
 
 parser = argparse.ArgumentParser(
@@ -54,7 +56,7 @@ loop.run_until_complete(asyncio.gather(task))
 
 
 def file_creator(filename):
-    content_dict = {'asyncorm.ini': ini, 'orm_migrator.py': man}
+    content_dict = {DEFAULT_CONFIG_FILE: ini, 'orm_migrator.py': man}
     file_path = os.path.join(os.getcwd(), filename)
 
     if not os.path.isfile(file_path):
@@ -63,5 +65,5 @@ def file_creator(filename):
 
 
 def setup():
-    file_creator('asyncorm.ini')
+    file_creator(DEFAULT_CONFIG_FILE)
     file_creator('orm_migrator.py')
