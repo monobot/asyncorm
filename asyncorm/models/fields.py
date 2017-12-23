@@ -28,8 +28,15 @@ KWARGS_TYPES = {
 
 
 class Field(object):
+    internal_type = None
+    creation_string = None
     required_kwargs = []
     table_name = None
+
+    def __new__(mcs, **kwargs):
+        if not getattr(mcs, 'internal_type'):
+            raise AttributeError('Missing "internal_type" attribute from class definition')
+        return super().__new__(mcs)
 
     def __init__(self, **kwargs):
         self.validate_kwargs(kwargs)
@@ -74,39 +81,6 @@ class Field(object):
 
         return creation_string.format(**self.__dict__)
 
-    #######################################################
-    #######################################################
-    # def modificate_query(self):
-    #     modificate_string = '{db_column} ' + self.modificate_string
-    #     date_field = self.field_type in DATE_FIELDS
-
-    #     modificate_string += self.null and ' NULL' or ' NOT NULL'
-
-    #     if hasattr(self, 'default') and self.default is not None:
-    #         modificate_string += ' DEFAULT '
-    #         default_value = self.default
-    #         if callable(self.default):
-    #             default_value = self.default()
-
-    #         if isinstance(default_value, str):
-    #             modificate_string += '\'{}\''.format(default_value)
-    #         elif isinstance(default_value, bool):
-    #             modificate_string += str(default_value)
-    #         else:
-    #             modificate_string += '\'{}\''.format(
-    #                 self.sanitize_data(default_value)
-    #             )
-
-    #     elif date_field and self.auto_now:
-    #         modificate_string += ' DEFAULT now()'
-
-    #     if self.unique:
-    #         modificate_string += ' UNIQUE'
-
-    #     return modificate_string.format(**self.__dict__)
-    #######################################################
-    #######################################################
-
     def validate_kwargs(self, kwargs):
         for kw in self.required_kwargs:
             if not kwargs.get(kw, None):
@@ -150,25 +124,6 @@ class Field(object):
 
     def current_state(self):
         return {arg: getattr(self, arg) for arg in self.args}
-
-    # def make_migration(self, old_state):
-    #     if old_state is None:
-    #         return self.creation_query()
-
-    #     current_state = self.current_state()
-
-    #     if set(old_state.keys()) != set(current_state.keys()):
-    #         raise ModuleError(
-    #             'imposible to migrate, you should do that manually!'
-    #         )
-
-    #     difference = {}
-    #     for key in self.args:
-
-    #         if current_state[key] != old_state[key]:
-    #             difference.update({key: current_state[key]})
-
-    #     return difference or None
 
     def set_field_name(self, db_column):
         if '__' in db_column:
@@ -438,3 +393,51 @@ class ManyToManyField(Field):
                 super().validate(i)
         else:
             super().validate(value)
+
+
+class ArrayField(Field):
+    internal_type = list
+    creation_string = '{value_type} ARRAY'
+    args = ('db_column', 'default', 'null', 'unique', 'value_type',)
+    value_types = ('text', 'varchar', 'integer')
+
+    def __init__(self, db_column='', default=None, null=True, unique=False, value_type='text'):
+        super().__init__(db_column=db_column, default=default, unique=unique, null=null)
+        self.value_type = value_type
+
+    def sanitize_data(self, value):
+        value = super().sanitize_data(value)
+        if value:
+            return 'ARRAY{}'.format(value)
+        return 'ARRAY[]::{}[]'.format(self.value_type)
+
+    def validate(self, value):
+        super().validate(value)
+        if value:
+            items_type = self.homogeneous_type(value)
+            if not items_type:
+                raise FieldError('Array elements are not of the same type')
+            if items_type == list:
+                if not all(len(item) == len(value[0]) for item in value):
+                    raise FieldError('Multi-dimensional arrays must have items of the same size')
+        return value
+
+
+    @staticmethod
+    def homogeneous_type(value):
+        iseq = iter(value)
+        first_type = type(next(iseq))
+        return first_type if all(isinstance(x, first_type) for x in iseq) else False
+
+
+class TextField(Field):
+    internal_type = str
+    creation_string = 'text'
+    args = ('db_column', 'default', 'null', 'choices', )
+
+    def __init__(self, db_column='', default=None, null=False, unique=False, choices=None):
+        super().__init__(db_column=db_column, default=default, null=null, unique=unique, choices=choices)
+
+    def sanitize_data(self, value):
+        value = super().sanitize_data(value)
+        return "'{0}'".format(value)
