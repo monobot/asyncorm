@@ -554,7 +554,7 @@ class ManageTestMethods(AioTestCase):
 
     async def test_select_related_multiple(self):
         # get the last book id
-        appoinment = await Appointment.objects.create(
+        appointment = await Appointment.objects.create(
             name='totorota',
             date=datetime.now(),
         )
@@ -565,14 +565,14 @@ class ManageTestMethods(AioTestCase):
         n_c = await Client.objects.create(**{
             'name': 'awesome cl',
             'dev': dev.id,
-            'appoinment': appoinment.id,
+            'appointment': appointment.id,
         })
 
-        client = await Client.objects.select_related('dev', 'appoinment'
+        client = await Client.objects.select_related('dev', 'appointment'
                                                      ).get(id=n_c.id)
 
         self.assertTrue(isinstance(client.dev, Developer))
-        self.assertTrue(isinstance(client.appoinment, Appointment))
+        self.assertTrue(isinstance(client.appointment, Appointment))
 
     async def test_double_queryset(self):
         q_books = Book.objects.filter(id__gt=220).order_by('id')

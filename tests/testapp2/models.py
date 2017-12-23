@@ -17,7 +17,7 @@ class Developer(models.Model):
 class Client(models.Model):
     name = models.CharField(max_length=10)
     dev = models.ForeignKey(foreign_key='Developer')
-    appoinment = models.ForeignKey(foreign_key='Appointment', null=True)
+    appointment = models.ForeignKey(foreign_key='Appointment', null=True)
 
 
 class Appointment(models.Model):
@@ -25,3 +25,10 @@ class Appointment(models.Model):
     date = models.DateField()
     time = models.TimeField(null=True)
     uuid = models.Uuid4Field()
+
+
+class Skill(models.Model):
+    dev = models.ForeignKey(foreign_key='Developer')
+    name = models.CharField(max_length=64)
+    specialization = models.ArrayField(null=True, value_type='text')
+    notes = models.TextField(null=True)

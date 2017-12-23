@@ -323,33 +323,6 @@ class BaseModel(object, metaclass=ModelMeta):
         latest = self.latest_fs_migration()
         return '000{}'.format(int(latest) + 1)[-4:] if latest else '0001'
 
-    # async def check_migration(self):
-    #     index = 1
-
-    #     # here i can get the latest migration name for this app
-    #     db_migration = await self.__class__.latest_db_migration()
-
-    #     print(prev_migration, db_migration)
-
-    #     if db_migration is not None and int(db_migration) > index:
-    #         return
-
-    #     return os.path.join(
-    #         self.migrations_dir,
-    #         ('0000{}.py'.format(index + 1)[-7:])
-    #     )
-
-    # async def make_migration(self, migration_file):
-    #     with open(migration_file, 'w+') as file:
-    #         pprint(
-    #             {
-    #                 'migrations': self.migration_queries(),
-    #                 'state': self.__class__.current_state(),
-    #             },
-    #             stream=file,
-    #             width=79
-    #         )
-
     @classmethod
     def current_state(cls):
         from copy import deepcopy
@@ -371,7 +344,7 @@ class BaseModel(object, metaclass=ModelMeta):
 class Model(BaseModel):
 
     def construct(self, data, deleted=False, subitems=None):
-        # poblates the model with the data
+        # populates the model with the data
         internal_objects = {}
         for k, v in data.items():
             k_splitted = k.split('€$$€')
