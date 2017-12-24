@@ -104,7 +104,10 @@ class Field(object):
 
         if not isinstance(value, self.internal_type):
             raise FieldError(
-                '{value} is a wrong datatype for field {cls}'.format(value=value, cls=self.__class__.__name__)
+                '{value} is a wrong datatype for field {cls}'.format(
+                    value=value,
+                    cls=self.__class__.__name__,
+                )
             )
 
     @classmethod
@@ -203,7 +206,12 @@ class CharField(Field):
 
     def __init__(self, db_column='', default=None, max_length=0, null=False, choices=None, unique=False):
         super().__init__(
-            db_column=db_column, default=default, max_length=max_length, null=null, choices=choices, unique=unique
+            db_column=db_column,
+            default=default,
+            max_length=max_length,
+            null=null,
+            choices=choices,
+            unique=unique,
         )
 
     @classmethod
@@ -215,7 +223,9 @@ class CharField(Field):
     def sanitize_data(self, value):
         value = super().sanitize_data(value)
         if len(value) > self.max_length:
-            raise FieldError('The string entered is bigger than the "max_length" defined ({})'.format(self.max_length))
+            raise FieldError(
+                'The string entered is bigger than the "max_length" defined ({})'.format(self.max_length)
+            )
         if value is not None:
             value = value.replace(';', '\;').replace('--', '\--')
         return '\'{}\''.format(value)
@@ -239,7 +249,12 @@ class JsonField(Field):
 
     def __init__(self, db_column='', default=None, max_length=0, null=False, choices=None, unique=False):
         super().__init__(
-            db_column=db_column, default=default, max_length=max_length, null=null, choices=choices, unique=unique
+            db_column=db_column,
+            default=default,
+            max_length=max_length,
+            null=null,
+            choices=choices,
+            unique=unique,
         )
 
     @classmethod
@@ -260,7 +275,9 @@ class JsonField(Field):
             value = json.dumps(value)
 
         if len(value) > self.max_length:
-            raise FieldError('The string entered is bigger than the "max_length" defined ({})'.format(self.max_length))
+            raise FieldError(
+                'The string entered is bigger than the "max_length" defined ({})'.format(self.max_length)
+            )
 
         return '\'{}\''.format(value)
 
@@ -293,11 +310,11 @@ class DecimalField(NumberField):
             'max_digits', 'decimal_places')
 
     def __init__(
-            self, db_column='', default=None, null=False, choices=None, unique=False, max_digits=10, decimal_places=2):
+            self, db_column='',
+            default=None, null=False, choices=None, unique=False, max_digits=10, decimal_places=2):
         super().__init__(
-            db_column=db_column, default=default, null=null, choices=choices, unique=unique, max_digits=max_digits,
-            decimal_places=decimal_places
-        )
+            db_column=db_column, default=default, null=null, choices=choices, unique=unique,
+            max_digits=max_digits, decimal_places=decimal_places)
 
     def sanitize_data(self, value):
         value = super().sanitize_data(value)
@@ -315,8 +332,8 @@ class DateField(Field):
             self, db_column='', default=None, auto_now=False, null=False, choices=None, unique=False,
             strftime='%Y-%m-%d'):
         super().__init__(
-            db_column=db_column, default=default, auto_now=auto_now, null=null, choices=choices, unique=unique,
-            strftime=strftime)
+            db_column=db_column, default=default, auto_now=auto_now, null=null, choices=choices,
+            unique=unique, strftime=strftime)
 
     def sanitize_data(self, value):
         value = super().sanitize_data(value)
@@ -337,9 +354,8 @@ class DateTimeField(DateField):
             self, db_column='', default=None, auto_now=False, null=False, choices=None, unique=False,
             strftime='%Y-%m-%d  %H:%s'):
         super().__init__(
-            db_column=db_column, default=default, auto_now=auto_now, null=null, choices=choices, unique=unique,
-            strftime=strftime
-        )
+            db_column=db_column, default=default, auto_now=auto_now, null=null, choices=choices,
+            unique=unique, strftime=strftime)
 
 
 class TimeField(DateField):
@@ -352,9 +368,8 @@ class TimeField(DateField):
             self, db_column='', default=None, auto_now=False, null=False, choices=None, unique=False,
             strftime='%H:%s'):
         super().__init__(
-            db_column=db_column, default=default, auto_now=auto_now, null=null, choices=choices, unique=unique,
-            strftime=strftime
-        )
+            db_column=db_column, default=default, auto_now=auto_now, null=null, choices=choices,
+            unique=unique, strftime=strftime)
 
 
 class ForeignKey(Field):
@@ -363,9 +378,9 @@ class ForeignKey(Field):
     creation_string = 'integer references {foreign_key}'
     args = ('db_column', 'default', 'foreign_key', 'null', 'unique')
 
-    def __init__(
-            self, db_column='', default=None, foreign_key='', null=False, unique=False):
-        super().__init__(db_column=db_column, default=default, foreign_key=foreign_key, null=null, unique=unique)
+    def __init__(self, db_column='', default=None, foreign_key='', null=False, unique=False):
+        super().__init__(
+            db_column=db_column, default=default, foreign_key=foreign_key, null=null, unique=unique)
 
     def sanitize_data(self, value):
         value = super().sanitize_data(value)
@@ -421,7 +436,6 @@ class ArrayField(Field):
                 if not all(len(item) == len(value[0]) for item in value):
                     raise FieldError('Multi-dimensional arrays must have items of the same size')
         return value
-
 
     @staticmethod
     def homogeneous_type(value):

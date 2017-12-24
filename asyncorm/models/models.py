@@ -110,10 +110,7 @@ class BaseModel(object, metaclass=ModelMeta):
                 setattr(
                     self,
                     field_name,
-                    kwargs.get(
-                        field_name,
-                        getattr(self.__class__, field_name).default
-                    )
+                    kwargs.get(field_name, getattr(self.__class__, field_name).default)
                 )
             else:
                 setattr(self, field_name, None)
@@ -127,9 +124,7 @@ class BaseModel(object, metaclass=ModelMeta):
         def fk_set(self):
             model = get_model(model_name)
 
-            return model.objects.filter(
-                **{field_name: getattr(self, self.orm_pk)}
-            )
+            return model.objects.filter(**{field_name: getattr(self, self.orm_pk)})
 
         setattr(cls, '{}_set'.format(model_name.lower()), fk_set)
 
@@ -232,9 +227,7 @@ class BaseModel(object, metaclass=ModelMeta):
 
         if len(cls.attr_names) != len(set(cls.attr_names)):
             raise ModelError(
-                'Models should have unique attribute names and '
-                'field_name if explicitly edited!'
-            )
+                'Models should have unique attribute names and field_name if explicitly edited!')
 
         return fields
 
@@ -275,15 +268,11 @@ class BaseModel(object, metaclass=ModelMeta):
 
         for f in self.fields.values():
             if isinstance(f, ForeignKey):
-                migration_queries.append(
-                    self.objects.add_fk_field_builder(f)
-                )
+                migration_queries.append(self.objects.add_fk_field_builder(f))
 
         for f in self.fields.values():
             if isinstance(f, ManyToManyField):
-                migration_queries.append(
-                    self.objects.add_m2m_columns_builder(f)
-                )
+                migration_queries.append(self.objects.add_m2m_columns_builder(f))
 
         migration_queries.append(self.objects.unique_together_builder())
         return migration_queries
@@ -315,9 +304,7 @@ class BaseModel(object, metaclass=ModelMeta):
             try:
                 return prev_migration.split('.')[0].split('__')[0]
             except AttributeError:
-                raise ModelError(
-                    'Wrong filename for migration {}'.format(prev_migration)
-                )
+                raise ModelError('Wrong filename for migration {}'.format(prev_migration))
 
     def next_fs_migration(self):
         latest = self.latest_fs_migration()
@@ -335,10 +322,7 @@ class BaseModel(object, metaclass=ModelMeta):
         for m in cls.meta_items:
             meta[m] = getattr(cls, m)
 
-        return {
-            'fields': fields,
-            'meta': meta,
-        }
+        return {'fields': fields, 'meta': meta}
 
 
 class Model(BaseModel):
@@ -364,10 +348,7 @@ class Model(BaseModel):
                 setattr(self, k, v)
             else:
                 # itself or empty dict
-                internal_objects[k_splitted[0]] = internal_objects.get(
-                    k_splitted[0],
-                    {}
-                )
+                internal_objects[k_splitted[0]] = internal_objects.get(k_splitted[0], {})
 
                 # update the new value
                 internal_objects[k_splitted[0]].update({k_splitted[1]: v})
@@ -383,16 +364,10 @@ class Model(BaseModel):
                 else:
                     for join in subitems[0]['fields']:
                         if join['right_table'] == attr_name:
-                            field = getattr(
-                                self.__class__,
-                                join['orm_fieldname']
-                            )
+                            field = getattr(self.__class__, join['orm_fieldname'])
                             model = get_model(field.foreign_key)
 
-                            setattr(
-                                self, join['orm_fieldname'],
-                                model().construct(data)
-                            )
+                            setattr(self, join['orm_fieldname'], model().construct(data))
                             break
 
         self.deleted = deleted
@@ -402,10 +377,7 @@ class Model(BaseModel):
         # external save method
         if self.deleted:
             raise ModelError(
-                'That {model_name} has already been deleted!'.format(
-                    model_name=self.__class__.__name__
-                )
-            )
+                'That {model_name} has already been deleted!'.format(model_name=self.__class__.__name__))
         await self.objects.save(self)
 
     async def delete(self):

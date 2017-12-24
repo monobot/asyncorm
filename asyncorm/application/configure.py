@@ -15,6 +15,7 @@ DEFAULT_CONFIG = {
 
 DEFAULT_CONFIG_FILE = 'asyncorm.ini'
 
+
 class OrmApp(object):
     db_manager = None
     loop = None
@@ -45,7 +46,7 @@ class OrmApp(object):
 
         db_config['loop'] = self.loop = DEFAULT_CONFIG.get('loop')
 
-        database_module = importlib.import_module('asyncorm.database') # NOTE Why? Move it out
+        database_module = importlib.import_module('asyncorm.database')
 
         # we get the manager defined in the config file
         manager = getattr(database_module, DEFAULT_CONFIG['manager'])
@@ -63,7 +64,7 @@ class OrmApp(object):
             self.models = {}
 
         # this import should be here otherwise causes problems
-        from asyncorm import models # NOTE this sucks!
+        from asyncorm import models
         for m in modules:
             module_list = {}
             try:
