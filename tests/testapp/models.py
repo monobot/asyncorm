@@ -30,7 +30,7 @@ class Publisher(models.Model):
 
 
 class Author(models.Model):
-    na = models.PkField(db_column='uid')
+    na = models.AutoField(db_column='uid')
     name = models.CharField(max_length=50, unique=True, db_index=True)
     email = models.EmailField(max_length=100, null=True, db_index=True)
     age = models.IntegerField()

@@ -2,7 +2,7 @@ import importlib
 import inspect
 import os
 
-from .fields import Field, PkField, ManyToManyField, ForeignKey
+from .fields import Field, AutoField, ManyToManyField, ForeignKey
 from ..manager import ModelManager
 from ..exceptions import ModelError, FieldError, ModelDoesNotExist
 from ..application import get_model
@@ -42,14 +42,14 @@ class ModelMeta(type):
 
         base_class.fields = base_class.get_fields()
 
-        if PkField not in [f.__class__ for f in base_class.fields.values()]:
-            base_class.id = PkField()
+        if AutoField not in [f.__class__ for f in base_class.fields.values()]:
+            base_class.id = AutoField()
             base_class.fields['id'] = base_class.id
 
             base_class.db_pk = 'id'
             base_class.orm_pk = 'id'
         else:
-            pk_fields = [f for f in base_class.fields.values() if isinstance(f, PkField)]
+            pk_fields = [f for f in base_class.fields.values() if isinstance(f, AutoField)]
             base_class.db_pk = pk_fields[0].db_column
             base_class.orm_pk = pk_fields[0].orm_field_name
 
@@ -205,7 +205,7 @@ class BaseModel(object, metaclass=ModelMeta):
                         foreign_key=field.foreign_key,
                     )
 
-                if not isinstance(field.__class__, PkField):
+                if not isinstance(field.__class__, AutoField):
                     cls.attr_names.update({f_n: field.db_column})
 
                 if hasattr(field, 'field_requirement'):
@@ -246,7 +246,7 @@ class BaseModel(object, metaclass=ModelMeta):
             att_field = getattr(self.__class__, k)
             att_field.validate(v)
 
-            if att_field.__class__ is PkField and v:
+            if att_field.__class__ is AutoField and v:
                 raise FieldError('Models can not be generated with forced id')
 
     def migration_queries(self):

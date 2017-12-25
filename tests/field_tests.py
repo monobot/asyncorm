@@ -180,9 +180,7 @@ class FieldTests(AioTestCase):
         )
 
     async def test_booleanfield_correct(self):
-        org = await Organization.objects.create(
-            **{'name': 'chapulin', 'active': True, }
-        )
+        org = await Organization.objects.create(**{'name': 'chapulin', 'active': True, })
 
         self.assertTrue(org.active)
 
@@ -212,9 +210,7 @@ class FieldTests(AioTestCase):
 
     def test_emailfield_wrong_starting_char_3(self):
         with self.assertRaises(FieldError) as exc:
-            models.EmailField(
-                max_length=35
-            ).validate('_laadio@svgv@gv.com')
+            models.EmailField(max_length=35).validate('_laadio@svgv@gv.com')
 
         self.assertTrue(
             'not a valid email address' in exc.exception.args[0])
@@ -230,16 +226,12 @@ class FieldTests(AioTestCase):
         models.EmailField(max_length=35).validate('laadio@s.com')
 
     async def test_datetimefield_correct(self):
-        org = await Organization.objects.create(
-            date=datetime.now(),
-            name='nonameneeded')
+        org = await Organization.objects.create(date=datetime.now(), name='nonameneeded')
 
         self.assertTrue(isinstance(org.date, datetime))
 
     async def test_datefield_correct(self):
-        appmnt = await Appointment.objects.create(
-            date=date.today(),
-            name='nonameneeded')
+        appmnt = await Appointment.objects.create(date=date.today(), name='nonameneeded')
 
         self.assertTrue(isinstance(appmnt.date, date))
 
@@ -252,9 +244,7 @@ class FieldTests(AioTestCase):
         self.assertTrue(isinstance(appmnt.time, time))
 
     async def test_uuidv1field_correct(self):
-        org = await Organization.objects.create(
-            name='nonamen22'
-        )
+        org = await Organization.objects.create(name='nonamen22')
 
         self.assertTrue(isinstance(org.uuid, UUID))
         self.assertEqual(len(str(org.uuid).split('-')), 5)
@@ -275,10 +265,7 @@ class FieldTests(AioTestCase):
         with self.assertRaises(FieldError) as exc:
             models.Uuid4Field(uuid_type='mn')
 
-        self.assertEqual(
-            exc.exception.args[0],
-            '{} is not a recognized type'.format('mn')
-        )
+        self.assertEqual(exc.exception.args[0], '{} is not a recognized type'.format('mn'))
 
     async def test_arrayfield_correct(self):
         dev = Developer(name='oldscholl', age=38)
@@ -315,10 +302,7 @@ class FieldTests(AioTestCase):
         with self.assertRaises(FieldError) as exc:
             models.ArrayField().validate([['backend', 'nodejs'], ['frontend']])
 
-        self.assertEqual(
-            exc.exception.args[0],
-            'Multi-dimensional arrays must have items of the same size'
-        )
+        self.assertEqual(exc.exception.args[0], 'Multi-dimensional arrays must have items of the same size')
 
     async def test_arrayfield_wrong_dimensions_type(self):
         with self.assertRaises(FieldError) as exc:
@@ -356,7 +340,7 @@ class FieldTests(AioTestCase):
         for m in (Book, Publisher, Reader, Author, Organization, Client, Appointment, Skill, Developer):
             for field in m.fields.values():
                 if field.db_index:
-                    field_index = '{}_{}_index'.format(field.table_name, field.orm_field_name).lower()
+                    field_index = 'idx_{}_{}'.format(field.table_name, field.orm_field_name).lower()[:30]
                     self.assertTrue(
                         await Developer.objects.db_manager.request(
                             "SELECT * FROM pg_indexes WHERE indexname = '{}'".format(field_index)))

@@ -73,10 +73,7 @@ class ModelTests(AioTestCase):
             book = Book()
             book.validate_kwargs(kwargs)
 
-        self.assertEqual(
-            exc.exception.args[0],
-            'Models can not be generated with forced id'
-        )
+        self.assertEqual(exc.exception.args[0], 'Models can not be generated with forced id')
 
     def test_validate_kwargs_with_wrong_fieldname(self):
         kwargs = {'name': 'name', 'volume': 23}
@@ -86,10 +83,7 @@ class ModelTests(AioTestCase):
             book.validate_kwargs(kwargs)
 
         # its a list because we validate all kwargs
-        self.assertEqual(
-            exc.exception.args[0],
-            ['"volume" is not an attribute for Book', ]
-        )
+        self.assertEqual(exc.exception.args[0], ['"volume" is not an attribute for Book'])
 
     def test_validate_kwargs_no_error(self):
         kwargs = {'name': 'name'}
@@ -192,10 +186,7 @@ class ModelTests(AioTestCase):
                 class Meta:
                     fields = ['name', 'content', ]
 
-        self.assertEqual(
-            'The serializer has to define the model it\'s serializing',
-            exc.exception.args[0]
-        )
+        self.assertEqual('The serializer has to define the model it\'s serializing', exc.exception.args[0])
 
     async def test_wrong_serializer_no_fields(self):
         # complains if we have a model serializer without model
@@ -206,10 +197,7 @@ class ModelTests(AioTestCase):
                 class Meta:
                     model = Book
 
-        self.assertEqual(
-            'The serializer has to define the fields\'s to serialize',
-            exc.exception.args[0]
-        )
+        self.assertEqual('The serializer has to define the fields\'s to serialize', exc.exception.args[0])
 
     async def test_wrong_serializer_not_defined_methodfield(self):
         # complains if we have a model serializer without model

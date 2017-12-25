@@ -13,7 +13,7 @@ from .fields import (
     JsonField,
     ManyToManyField,
     NumberField,
-    PkField,
+    AutoField,
     TextField,
     TimeField,
     Uuid4Field,
@@ -21,6 +21,6 @@ from .fields import (
 
 __all__ = (
     'ArrayField', 'BooleanField', 'CharField', 'DateField', 'DateTimeField', 'DecimalField', 'EmailField',
-    'Field', 'ForeignKey', 'IntegerField', 'JsonField', 'ManyToManyField', 'Model', 'NumberField', 'PkField',
+    'Field', 'ForeignKey', 'IntegerField', 'JsonField', 'ManyToManyField', 'Model', 'NumberField', 'AutoField',
     'TextField', 'TimeField', 'Uuid4Field',
 )

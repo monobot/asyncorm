@@ -9,7 +9,7 @@ You can define your own Field types, they should in that case subclass ``asyncor
 
 There are a number of already existing FieldTypes:
 
-PkField
+AutoField
 ~~~~~~~
 
 BooleanField

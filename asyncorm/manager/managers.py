@@ -139,7 +139,7 @@ class Queryset(object):
     @staticmethod
     def _add_table_indices_builder(field):
         return [{
-            'index_name': '{}_{}_index'.format(field.table_name, field.orm_field_name),
+            'index_name': 'idx_{}_{}'.format(field.table_name, field.orm_field_name)[:30],
             'table_name': field.table_name,
             'action': 'db__create_field_index',
             'colum_name': field.orm_field_name,

@@ -45,9 +45,7 @@ class ManageTestMethods(AioTestCase):
         with self.assertRaises(ModelError) as exc:
             await book.save()
 
-        self.assertTrue(
-            'The model violates a unique constraint' == exc.exception.args[0]
-        )
+        self.assertEqual('The model violates a unique constraint', exc.exception.args[0])
 
         # but when any of them are different there is no problem
         book.name = 'this is a new name'
@@ -62,7 +60,7 @@ class ManageTestMethods(AioTestCase):
         with self.assertRaises(ModelError) as exc:
             await author2.save()
 
-        self.assertTrue('The model violates a unique constraint' == exc.exception.args[0])
+        self.assertEqual('The model violates a unique constraint', exc.exception.args[0])
 
     async def test_delete_can_not_be_saved(self):
         book = await Book.objects.all()[5]
@@ -85,18 +83,18 @@ class ManageTestMethods(AioTestCase):
     async def test_count(self):
         queryset = Book.objects.filter(id__lte=100)
 
-        self.assertTrue(await queryset.count() == 100)
+        self.assertEqual(await queryset.count(), 100)
 
     async def test_filter_changed_fieldname(self):
         author = await Author.objects.filter(na__lt=5)[0]
 
-        self.assertTrue(isinstance(author, Author))
+        self.assertIsInstance(author, Author)
         self.assertEqual(author.na, 1)
 
     async def test_slice_correct(self):
         book = await Book.objects.filter(id__lt=25)[1]
 
-        self.assertTrue(isinstance(book, Book))
+        self.assertIsInstance(book, Book)
 
         self.assertEqual(book.id, 23)
 
@@ -113,11 +111,10 @@ class ManageTestMethods(AioTestCase):
 
         # you can iterate over the results
         async for itm in queryset:
-            self.assertTrue(isinstance(itm, Book))
+            self.assertIsInstance(itm, Book)
             self.assertEqual(itm.id, 24 - 5)
             break
-        # or slice again the retrieve the index object
-            # I check that the first one is 19, because:
+            # The first one is 19, because:
             # id__lt=25 is id=1 to id=24, sorted -id, sliced [5:]
 
     async def test_slice_first_item(self):
@@ -125,38 +122,38 @@ class ManageTestMethods(AioTestCase):
 
         book = await queryset[0]
 
-        self.assertFalse(book.id == 24 - 5)
+        self.assertNotEqual(book.id, 24 - 5)
 
     async def test_slice_wrong_slice(self):
         with self.assertRaises(QuerysetError) as exc:
             await Book.objects.filter(id__lte=30)[1: 2: 4]
 
-        self.assertTrue('Step on Queryset is not allowed' == exc.exception.args[0])
+        self.assertEqual('Step on Queryset is not allowed', exc.exception.args[0])
 
     async def test_slice_negative_slice(self):
         with self.assertRaises(QuerysetError) as exc:
             await Book.objects.filter(id__lte=30)[-1]
 
-        self.assertTrue('Negative indices are not allowed' == exc.exception.args[0])
+        self.assertEqual('Negative indices are not allowed', exc.exception.args[0])
 
     async def test_slice_negative_slice_stop(self):
         with self.assertRaises(QuerysetError) as exc:
             await Book.objects.filter(id__lte=30)[:-1]
 
-        self.assertTrue('Negative indices are not allowed' == exc.exception.args[0])
+        self.assertEqual('Negative indices are not allowed', exc.exception.args[0])
 
     async def test_slice_negative_slice_start(self):
         with self.assertRaises(QuerysetError) as exc:
             await Book.objects.filter(id__lte=30)[-3:]
 
-        self.assertTrue('Negative indices are not allowed' == exc.exception.args[0])
+        self.assertEqual('Negative indices are not allowed', exc.exception.args[0])
 
     async def test_filter(self):
         queryset = Book.objects.filter(id__lte=30)
 
         book = await queryset[0]
 
-        self.assertTrue(isinstance(book, Book))
+        self.assertIsInstance(book, Book)
         self.assertTrue(await queryset.count() >= 20)
 
     async def test_range(self):
@@ -169,10 +166,7 @@ class ManageTestMethods(AioTestCase):
         with self.assertRaises(QuerysetError) as exc:
             Book.objects.filter(id__range={282, 280})
 
-        self.assertEqual(
-            'range should be list or a tuple',
-            exc.exception.args[0]
-        )
+        self.assertEqual('range should be list or a tuple', exc.exception.args[0])
 
     async def test_range_upside_down(self):
         # upside doesnt really makes sense but also works
@@ -301,7 +295,7 @@ class ManageTestMethods(AioTestCase):
 
         book = await queryset[0]
 
-        self.assertTrue(isinstance(book, Book))
+        self.assertIsInstance(book, Book)
         self.assertTrue(await queryset.count() >= 20)
 
     async def test_exclude_range(self):
@@ -319,7 +313,7 @@ class ManageTestMethods(AioTestCase):
 
         book = await queryset[0]
 
-        self.assertTrue(isinstance(book, Book))
+        self.assertIsInstance(book, Book)
         self.assertEqual(book.id, 1)
 
     async def test_order_by_descending(self):
@@ -327,7 +321,7 @@ class ManageTestMethods(AioTestCase):
 
         book = await queryset[0]
 
-        self.assertTrue(isinstance(book, Book))
+        self.assertIsInstance(book, Book)
         self.assertEqual(book.id, 280)
 
     async def test_none(self):
@@ -340,7 +334,7 @@ class ManageTestMethods(AioTestCase):
     async def test_get_correct(self):
         book = await Book.objects.get(id=280)
 
-        self.assertTrue(isinstance(book, Book))
+        self.assertIsInstance(book, Book)
 
     async def test_get_multiple_error(self):
         # now try to get using wrong arguments (more than one)
@@ -361,22 +355,22 @@ class ManageTestMethods(AioTestCase):
 
         author = await Author.objects.create(**create_dict)
 
-        self.assertTrue(isinstance(author, Author))
-        self.assertTrue(isinstance(author.na, int))
+        self.assertIsInstance(author, Author)
+        self.assertIsInstance(author.na, int)
 
     async def test_get_or_create_exists(self):
         kwargs = {'name': 'Raulito', 'age': 73}
 
         author, created = await Author.objects.get_or_create(**kwargs)
 
-        self.assertTrue(isinstance(author, Author))
+        self.assertIsInstance(author, Author)
         self.assertTrue(created)
 
     async def test_get_or_create_created(self):
         kwargs = {'id': 73}
         book, created = await Book.objects.get_or_create(**kwargs)
 
-        self.assertTrue(isinstance(book, Book))
+        self.assertIsInstance(book, Book)
         self.assertFalse(created)
 
     async def test_only_with_filter(self):
@@ -491,7 +485,7 @@ class ManageTestMethods(AioTestCase):
 
         book = await Book.objects.select_related('author').get(id=book.id)
 
-        self.assertTrue(isinstance(book.author, Author))
+        self.assertIsInstance(book.author, Author)
 
     async def test_select_related_fieldtype_exists_get(self):
         author = await Author.objects.create(
@@ -505,7 +499,7 @@ class ManageTestMethods(AioTestCase):
 
         book = await Book.objects.select_related('author').get(id=book.id)
 
-        self.assertTrue(isinstance(book.author, Author))
+        self.assertIsInstance(book.author, Author)
 
     async def test_select_related_fieldtype_exists_filter(self):
         # get the last book id
@@ -527,7 +521,7 @@ class ManageTestMethods(AioTestCase):
 
         async for book in q_books:
             # we check each of them has the author prepopulated
-            self.assertTrue(isinstance(book.author, Author))
+            self.assertIsInstance(book.author, Author)
 
     async def test_select_related_multiple(self):
         # get the last book id
@@ -548,8 +542,8 @@ class ManageTestMethods(AioTestCase):
         client = await Client.objects.select_related('dev', 'appointment'
                                                      ).get(id=n_c.id)
 
-        self.assertTrue(isinstance(client.dev, Developer))
-        self.assertTrue(isinstance(client.appointment, Appointment))
+        self.assertIsInstance(client.dev, Developer)
+        self.assertIsInstance(client.appointment, Appointment)
 
     async def test_double_queryset(self):
         q_books = Book.objects.filter(id__gt=220).order_by('id')

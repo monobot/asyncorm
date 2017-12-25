@@ -138,45 +138,6 @@ class Field(object):
         self.db_column = db_column
 
 
-class PkField(Field):
-    internal_type = int
-    creation_string = 'serial primary key'
-    args = ('db_column', 'unique', 'null',)
-
-    def __init__(self, db_column='id', null=False):
-        super().__init__(db_column=db_column, unique=True, null=null)
-
-
-class Uuid4Field(Field):
-    internal_type = UUID
-    args = ('db_column', 'unique', 'null', 'uuid_type', 'db_index')
-
-    def __init__(
-            self, db_column='', null=False, uuid_type='v4', db_index=False):
-        self.field_requirement = 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
-
-        if uuid_type not in ['v1', 'v4']:
-            raise FieldError('{} is not a recognized type'.format(uuid_type))
-
-        super().__init__(
-            db_column=db_column, unique=True, db_index=db_index, default=None, null=null,
-            uuid_type=uuid_type)
-
-    @property
-    def creation_string(self):
-        uuid_types = {
-            'v1': 'uuid_generate_v1mc',
-            'v4': 'uuid_generate_v4',
-        }
-        return 'UUID DEFAULT {}()'.format(uuid_types[self.uuid_type])
-
-    def sanitize_data(self, value):
-        exp = r'^[a-zA-Z0-9\-\b]{36}$'
-        if re.match(exp, value):
-            return value
-        raise FieldError('The expresion doesn\'t validate as a correct {}'.format(self.__class__.__name__))
-
-
 class BooleanField(Field):
     internal_type = bool
     creation_string = 'boolean'
@@ -244,6 +205,139 @@ class EmailField(CharField):
             raise FieldError('"{}" not a valid email address'.format(value))
 
 
+class TextField(Field):
+    internal_type = str
+    creation_string = 'text'
+    args = ('db_column', 'default', 'null', 'unique', 'db_index', 'choices')
+
+    def __init__(self, db_column='', default=None, null=False, unique=False, db_index=False, choices=None):
+        super().__init__(
+                db_column=db_column, default=default, null=null, unique=unique, db_index=db_index,
+                choices=choices)
+
+    def sanitize_data(self, value):
+        return "'{}'".format(super().sanitize_data(value))
+
+
+# numeric fields
+class NumberField(Field):
+    pass
+
+
+class IntegerField(NumberField):
+    internal_type = int
+    creation_string = 'integer'
+    args = ('db_column', 'default', 'null', 'choices', 'unique', 'db_index')
+
+    def __init__(self, db_column='', default=None, null=False, choices=None, unique=False, db_index=False):
+        super().__init__(
+            db_column=db_column, default=default, null=null, choices=choices, unique=unique,
+            db_index=db_index)
+
+    def sanitize_data(self, value):
+        return '{}'.format(super().sanitize_data(value))
+
+
+class DecimalField(NumberField):
+    internal_type = (Decimal, float, int)
+    creation_string = 'decimal({max_digits},{decimal_places})'
+    args = ('db_column', 'default', 'null', 'choices', 'unique', 'max_digits', 'decimal_places', 'db_index')
+
+    def __init__(
+            self, db_column='', default=None, null=False, choices=None,
+            unique=False, db_index=False, max_digits=10, decimal_places=2):
+        super().__init__(
+            db_column=db_column, default=default, null=null, choices=choices, unique=unique,
+            db_index=db_index, max_digits=max_digits, decimal_places=decimal_places)
+
+    def sanitize_data(self, value):
+        return '{}'.format(super().sanitize_data(value))
+
+
+# time fields
+class AutoField(IntegerField):
+    creation_string = 'serial primary key'
+    args = ('db_column', 'default', 'null', 'choices', 'unique', 'db_index')
+
+    def __init__(self, db_column='id'):
+        super().__init__(db_column=db_column, unique=True, null=False)
+
+
+class DateTimeField(Field):
+    internal_type = datetime
+    creation_string = 'timestamp'
+    strftime = '%Y-%m-%d  %H:%s'
+
+    def sanitize_data(self, value):
+        return "'{}'".format(super().sanitize_data(value))
+
+    def serialize_data(self, value):
+        return value.strftime(self.strftime)
+
+    def __init__(
+            self, db_column='', default=None, auto_now=False, null=False, choices=None,
+            unique=False, db_index=False, strftime=None):
+        super().__init__(
+            db_column=db_column, default=default, auto_now=auto_now, null=null, choices=choices,
+            unique=unique, db_index=db_index, strftime=strftime or self.strftime)
+
+
+class DateField(DateTimeField):
+    internal_type = date
+    creation_string = 'date'
+    args = ('db_column', 'default', 'auto_now', 'null', 'choices', 'unique', 'strftime', 'db_index')
+    strftime = '%Y-%m-%d'
+
+
+class TimeField(DateTimeField):
+    internal_type = time
+    creation_string = 'time'
+    strftime = '%H:%s'
+
+
+# relational fields
+class ForeignKey(Field):
+    internal_type = int
+    required_kwargs = ['foreign_key', ]
+    creation_string = 'integer references {foreign_key}'
+    args = ('db_column', 'default', 'foreign_key', 'null', 'unique', 'db_index')
+
+    def __init__(self, db_column='', default=None, foreign_key='', null=False, unique=False, db_index=False):
+        super().__init__(
+            db_column=db_column, default=default, foreign_key=foreign_key, null=null,
+            unique=unique, db_index=db_index)
+
+    def sanitize_data(self, value):
+        return str(super().sanitize_data(value))
+
+
+class ManyToManyField(Field):
+    internal_type = list, int
+    required_kwargs = ['foreign_key', ]
+    creation_string = '''
+        {own_model} INTEGER REFERENCES {own_model} NOT NULL,
+        {foreign_key} INTEGER REFERENCES {foreign_key} NOT NULL
+    '''
+    args = ('db_column', 'default', 'foreign_key', 'unique', 'db_index')
+
+    def __init__(self, db_column='', foreign_key=None, default=None, unique=False, db_index=False):
+        super().__init__(
+            db_column=db_column, foreign_key=foreign_key, default=default, unique=unique, db_index=db_index)
+
+    def creation_query(self):
+        return self.creation_string.format(**self.__dict__)
+
+    def validate(self, value):
+        if isinstance(value, list):
+            for i in value:
+                super().validate(i)
+        else:
+            super().validate(value)
+
+
+# composite fields
+
+
 class JsonField(Field):
     internal_type = dict, list, str
     required_kwargs = ['max_length', ]
@@ -286,130 +380,34 @@ class JsonField(Field):
         return '\'{}\''.format(value)
 
 
-class NumberField(Field):
-    pass
-
-
-class IntegerField(NumberField):
-    internal_type = int
-    creation_string = 'integer'
-    args = ('db_column', 'default', 'null', 'choices', 'unique', 'db_index')
-
-    def __init__(self, db_column='', default=None, null=False, choices=None, unique=False, db_index=False):
-        super().__init__(
-            db_column=db_column, default=default, null=null, choices=choices, unique=unique,
-            db_index=db_index)
-
-    def sanitize_data(self, value):
-        value = super().sanitize_data(value)
-
-        return '{}'.format(value)
-
-
-class DecimalField(NumberField):
-    internal_type = (Decimal, float, int)
-    creation_string = 'decimal({max_digits},{decimal_places})'
-    args = ('db_column', 'default', 'null', 'choices', 'unique', 'max_digits', 'decimal_places', 'db_index')
+class Uuid4Field(Field):
+    internal_type = UUID
+    args = ('db_column', 'unique', 'null', 'uuid_type', 'db_index')
 
     def __init__(
-            self,
-            db_column='', default=None, null=False, choices=None,
-            unique=False, db_index=False, max_digits=10, decimal_places=2):
+            self, db_column='', null=False, uuid_type='v4', db_index=False):
+        self.field_requirement = 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
+
+        if uuid_type not in ['v1', 'v4']:
+            raise FieldError('{} is not a recognized type'.format(uuid_type))
+
         super().__init__(
-            db_column=db_column, default=default, null=null, choices=choices, unique=unique,
-            db_index=db_index, max_digits=max_digits, decimal_places=decimal_places)
+            db_column=db_column, unique=True, db_index=db_index, default=None, null=null,
+            uuid_type=uuid_type)
+
+    @property
+    def creation_string(self):
+        uuid_types = {
+            'v1': 'uuid_generate_v1mc',
+            'v4': 'uuid_generate_v4',
+        }
+        return 'UUID DEFAULT {}()'.format(uuid_types[self.uuid_type])
 
     def sanitize_data(self, value):
-        value = super().sanitize_data(value)
-
-        return '{}'.format(value)
-
-
-class DateField(Field):
-    internal_type = date
-    creation_string = 'date'
-    args = ('db_column', 'default', 'auto_now', 'null', 'choices', 'unique', 'strftime', 'db_index')
-
-    def __init__(
-            self, db_column='', default=None, auto_now=False, null=False, choices=None,
-            unique=False, db_index=False, strftime='%Y-%m-%d'):
-        super().__init__(
-            db_column=db_column, default=default, auto_now=auto_now, null=null, choices=choices,
-            unique=unique, db_index=db_index, strftime=strftime)
-
-    def sanitize_data(self, value):
-        value = super().sanitize_data(value)
-
-        return "'{}'".format(value)
-
-    def serialize_data(self, value):
-        return value.strftime(self.strftime)
-
-
-class DateTimeField(DateField):
-    internal_type = datetime
-    creation_string = 'timestamp'
-    args = ('db_column', 'default', 'auto_now', 'null', 'choices', 'unique', 'strftime', 'db_index')
-
-    def __init__(
-            self, db_column='', default=None, auto_now=False, null=False, choices=None,
-            unique=False, db_index=False, strftime='%Y-%m-%d  %H:%s'):
-        super().__init__(
-            db_column=db_column, default=default, auto_now=auto_now, null=null, choices=choices,
-            unique=unique, db_index=db_index, strftime=strftime)
-
-
-class TimeField(DateField):
-    internal_type = time
-    creation_string = 'time'
-    args = ('db_column', 'default', 'auto_now', 'null', 'choices', 'unique', 'strftime', 'db_index')
-
-    def __init__(
-            self, db_column='', default=None, auto_now=False, null=False, choices=None,
-            unique=False, db_index=False, strftime='%H:%s'):
-        super().__init__(
-            db_column=db_column, default=default, auto_now=auto_now, null=null, choices=choices,
-            unique=unique, db_index=db_index, strftime=strftime)
-
-
-class ForeignKey(Field):
-    internal_type = int
-    required_kwargs = ['foreign_key', ]
-    creation_string = 'integer references {foreign_key}'
-    args = ('db_column', 'default', 'foreign_key', 'null', 'unique', 'db_index')
-
-    def __init__(self, db_column='', default=None, foreign_key='', null=False, unique=False, db_index=False):
-        super().__init__(
-            db_column=db_column, default=default, foreign_key=foreign_key, null=null,
-            unique=unique, db_index=db_index)
-
-    def sanitize_data(self, value):
-        value = super().sanitize_data(value)
-        return str(value)
-
-
-class ManyToManyField(Field):
-    internal_type = list, int
-    required_kwargs = ['foreign_key', ]
-    creation_string = '''
-        {own_model} INTEGER REFERENCES {own_model} NOT NULL,
-        {foreign_key} INTEGER REFERENCES {foreign_key} NOT NULL
-    '''
-    args = ('db_column', 'default', 'foreign_key', 'unique', 'db_index')
-
-    def __init__(self, db_column='', foreign_key=None, default=None, unique=False, db_index=False):
-        super().__init__(
-            db_column=db_column, foreign_key=foreign_key, default=default, unique=unique, db_index=db_index)
-
-    def creation_query(self):
-        return self.creation_string.format(**self.__dict__)
-
-    def validate(self, value):
-        if isinstance(value, list):
-            for i in value:
-                super().validate(i)
-        else:
-            super().validate(value)
+        exp = r'^[a-zA-Z0-9\-\b]{36}$'
+        if re.match(exp, value):
+            return value
+        raise FieldError('The expresion doesn\'t validate as a correct {}'.format(self.__class__.__name__))
 
 
 class ArrayField(Field):
@@ -445,18 +443,3 @@ class ArrayField(Field):
         iseq = iter(value)
         first_type = type(next(iseq))
         return first_type if all(isinstance(x, first_type) for x in iseq) else False
-
-
-class TextField(Field):
-    internal_type = str
-    creation_string = 'text'
-    args = ('db_column', 'default', 'null', 'choices', 'db_index')
-
-    def __init__(self, db_column='', default=None, null=False, unique=False, db_index=False, choices=None):
-        super().__init__(
-                db_column=db_column, default=default, null=null, unique=unique, db_index=db_index,
-                choices=choices)
-
-    def sanitize_data(self, value):
-        value = super().sanitize_data(value)
-        return "'{0}'".format(value)
