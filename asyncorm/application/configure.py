@@ -135,6 +135,9 @@ class OrmApp(object):
             await model().objects.add_m2m_columns()
 
         for model in self.models.values():
+            await model().objects.add_table_indices()
+
+        for model in self.models.values():
             await model().objects.unique_together()
 
     def sync_db(self):

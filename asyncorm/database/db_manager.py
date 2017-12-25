@@ -129,6 +129,10 @@ class GeneralManager(object):
     def db__delete(self):
         return 'DELETE FROM {table_name} WHERE {id_data} '
 
+    @property
+    def db__create_field_index(self):
+        return 'CREATE INDEX {index_name} ON {table_name} ({colum_name}) '
+
     @staticmethod
     def query_clean(query):
         '''Here we clean the queryset'''

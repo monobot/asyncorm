@@ -18,9 +18,7 @@ drop_tables = [
 
 
 async def clear_table(table_name):
-    query = orm_app.db_manager.construct_query(
-        [{'action': 'db__drop_table', 'table_name': table_name}]
-    )
+    query = orm_app.db_manager.construct_query([{'action': 'db__drop_table', 'table_name': table_name}])
     await orm_app.db_manager.request(query)
 
 for table_name in drop_tables:

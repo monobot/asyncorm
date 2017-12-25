@@ -25,14 +25,14 @@ def weight():
 
 
 class Publisher(models.Model):
-    name = models.CharField(max_length=50)
-    json = models.JsonField(max_length=50, null=True)
+    name = models.CharField(max_length=50, index=True)
+    json = models.JsonField(max_length=50, null=True, index=True)
 
 
 class Author(models.Model):
     na = models.PkField(db_column='uid')
-    name = models.CharField(max_length=50, unique=True)
-    email = models.EmailField(max_length=100, null=True)
+    name = models.CharField(max_length=50, unique=True, index=True)
+    email = models.EmailField(max_length=100, null=True, index=True)
     age = models.IntegerField()
     publisher = models.ManyToManyField(foreign_key='Publisher')
 

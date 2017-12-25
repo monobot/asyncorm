@@ -129,11 +129,20 @@ class Queryset(object):
                 await self.db_request(self.add_fk_field_builder(f))
 
     @staticmethod
-    def add_m2m_columns_builder(field):
+    def _add_m2m_columns_builder(field):
         return [{
             'table_name': field.table_name,
             'action': 'db__create_table',
             'field_queries': field.creation_query(),
+        }]
+
+    @staticmethod
+    def _add_table_indices_builder(field):
+        return [{
+            'index_name': '{}_{}_index'.format(field.table_name, field.orm_field_name),
+            'table_name': field.table_name,
+            'action': 'db__create_field_index',
+            'colum_name': field.orm_field_name,
         }]
 
     async def add_m2m_columns(self):
@@ -142,7 +151,12 @@ class Queryset(object):
         '''
         for f in self.model.fields.values():
             if isinstance(f, ManyToManyField):
-                await self.db_request(self.add_m2m_columns_builder(f))
+                await self.db_request(self._add_m2m_columns_builder(f))
+
+    async def add_table_indices(self):
+        for f in self.model.fields.values():
+            if f.index:
+                await self.db_request(self._add_table_indices_builder(f))
 
     def get_unique_together(self):
         # builds the table with all its fields definition
