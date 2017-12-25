@@ -21,9 +21,7 @@ class ModuleTests(AioTestCase):
         with self.assertRaises(ModuleError) as exc:
             orm.get_model('here.there.what')
 
-        self.assertTrue(
-            'There are no modules declared in the orm' == exc.exception.args[0]
-        )
+        self.assertTrue('There are no modules declared in the orm' == exc.exception.args[0])
 
     def test_ormconfigure_no_db_config(self):
         with self.assertRaises(ModuleError) as exc:
@@ -32,9 +30,7 @@ class ModuleTests(AioTestCase):
                 'modules': ['tests.testapp', 'tests.testapp2'],
             })
 
-        self.assertTrue(
-            'Imposible to configure without database' in exc.exception.args[0]
-        )
+        self.assertIn('Imposible to configure without database', exc.exception.args[0])
 
     def test_get_model_not_correct_format(self):
         orm = configure_orm({
@@ -45,15 +41,13 @@ class ModuleTests(AioTestCase):
         with self.assertRaises(ModelError) as exc:
             orm.get_model('here.there.what')
 
-        self.assertTrue(
-            'The string declared should be in format ' in exc.exception.args[0]
-        )
+        self.assertIn('The string declared should be in format ', exc.exception.args[0])
 
     def test_get_model_model_does_not_exist(self):
         with self.assertRaises(ModuleError) as exc:
             get_model('Tato')
 
-        self.assertTrue('The model does not exists' in exc.exception.args[0])
+        self.assertIn('The model does not exists', exc.exception.args[0])
 
     def test_the_data_is_persistent_db_manager(self):
         # the orm is configure on the start of tests, but the data is kept

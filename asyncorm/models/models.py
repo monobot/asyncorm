@@ -36,13 +36,9 @@ class ModelMeta(type):
             if hasattr(defined_meta, 'ordering'):
                 base_class.ordering = getattr(defined_meta, 'ordering')
             if hasattr(defined_meta, 'unique_together'):
-                base_class.unique_together = getattr(
-                    defined_meta, 'unique_together'
-                )
+                base_class.unique_together = getattr(defined_meta, 'unique_together')
             if hasattr(defined_meta, 'table_name'):
-                base_class.table_name = getattr(
-                    defined_meta, 'table_name'
-                )
+                base_class.table_name = getattr(defined_meta, 'table_name')
 
         base_class.fields = base_class.get_fields()
 
@@ -53,19 +49,14 @@ class ModelMeta(type):
             base_class.db_pk = 'id'
             base_class.orm_pk = 'id'
         else:
-            pk_fields = [
-                f for f in base_class.fields.values() if isinstance(f, PkField)
-            ]
+            pk_fields = [f for f in base_class.fields.values() if isinstance(f, PkField)]
             base_class.db_pk = pk_fields[0].db_column
             base_class.orm_pk = pk_fields[0].orm_field_name
 
         for f in base_class.fields.values():
             if hasattr(f, 'choices'):
                 if f.choices:
-                    setattr(base_class,
-                            '{}_display'.format(f.orm_field_name),
-                            'choices_placeholder'
-                            )
+                    setattr(base_class, '{}_display'.format(f.orm_field_name), 'choices_placeholder')
         return base_class
 
 
@@ -142,9 +133,7 @@ class BaseModel(object, metaclass=ModelMeta):
                 'm2m_tablename': table_name,
                 'other_tablename': other_column,
                 'otherdb_pk': other_model.db_pk,
-                'id_data': '{}={}'.format(
-                    my_column, getattr(self, self.orm_pk)
-                ),
+                'id_data': '{}={}'.format(my_column, getattr(self, self.orm_pk)),
             }]
             return queryset
 
@@ -250,10 +239,7 @@ class BaseModel(object, metaclass=ModelMeta):
 
         if attr_errors:
             err_string = '"{}" is not an attribute for {}'
-            error_list = [
-                err_string.format(k, self.__class__.__name__)
-                for k in attr_errors
-            ]
+            error_list = [err_string.format(k, self.__class__.__name__) for k in attr_errors]
             raise ModelError(error_list)
 
         for k, v in kwargs.items():
@@ -290,7 +276,7 @@ class BaseModel(object, metaclass=ModelMeta):
         f_name = await cls.latest_db_migration()
         fullpath = os.join(cls.dir_name, f_name)
 
-        module = importlib.import_module(fullpath)
+        importlib.import_module(fullpath)
 
     def latest_fs_migration(self):
         filenames = next(os.walk(self.migrations_dir))[2]

@@ -77,9 +77,7 @@ class Migrator(object):
     def check_args(self):
         # check that the arguments are correctly sent
         if self.args.command == 'makemigrations' and self.args.app != '*':
-            raise CommandError(
-                'You can not specify the app when making migrations'
-            )
+            raise CommandError('You can not specify the app when making migrations')
 
     def configure_orm(self):
         config_filename = os.path.join(cwd, self.args.config[0])
@@ -109,20 +107,14 @@ class Migrator(object):
 
                     if fs_migration_isNone and not db_migration_isNone:
                         raise MigrationError(
-                            'Database with migrations not represented in the '
-                            'migration files'
-                        )
+                            'Database with migrations not represented in the migration files')
 
                     if not db_migration_isNone and not fs_migration_isNone:
                         if int(latest_db_migration) > int(latest_fs_migration):
                             raise MigrationError(
-                                'Database with migrations not represented in '
-                                'the migration files'
-                            )
+                                'Database with migrations not represented in the migration files')
                         if int(latest_db_migration) < int(latest_fs_migration):
-                            raise MigrationError(
-                                'Migrations generated but noy applied!'
-                            )
+                            raise MigrationError('Migrations generated but noy applied!')
 
                     models_dict[model_name] = model.current_state()
 
@@ -134,11 +126,7 @@ class Migrator(object):
                 mc.set_models(models_dict)
 
             except UndefinedTableError:
-                logger.error(
-                    'asyncorm raised "UndefinedTableError" in app "{}"'.format(
-                        module_name
-                    )
-                )
+                logger.error('asyncorm raised "UndefinedTableError" in app "{}"'.format(module_name))
 
         command = getattr(self, self.args.command)
 

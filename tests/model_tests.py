@@ -30,10 +30,7 @@ class ModelTests(AioTestCase):
         self.assertEqual(len(fields), 7)
         self.assertEqual(
             sorted(list(fields.keys())),
-            sorted(
-                ['id', 'content', 'name', 'author', 'date_created', 'price',
-                 'quantity']
-            )
+            sorted(['id', 'content', 'name', 'author', 'date_created', 'price', 'quantity'])
         )
 
     def test_get_fields_with_changed_db_column(self):
@@ -66,9 +63,7 @@ class ModelTests(AioTestCase):
             book = Book()
             book.validate_kwargs(kwargs)
 
-        self.assertTrue(
-            'is a wrong datatype for field' in exc.exception.args[0]
-        )
+        self.assertIn('is a wrong datatype for field', exc.exception.args[0])
 
     def test_validate_kwargs_with_forced_id(self):
         kwargs = {'id': 34, 'name': 'name'}
@@ -158,7 +153,7 @@ class ModelTests(AioTestCase):
 
         # and they are correct
         self.assertEqual(developer_set.id, dev.id)
-        self.assertTrue(organization_set.id in org_list)
+        self.assertIn(organization_set.id, org_list)
 
     async def test_serialize_wrong_argument(self):
         # the inverse relation is correctly set
@@ -169,9 +164,7 @@ class ModelTests(AioTestCase):
         with self.assertRaises(SerializerError) as exc:
             BookSerializer().serialize(book)
 
-        self.assertTrue(
-            'is not a correct argument for model' in exc.exception.args[0]
-        )
+        self.assertIn('is not a correct argument for model', exc.exception.args[0])
 
     async def test_serialize_wrong_model(self):
         # complains if we try to serialize an incorrect model
@@ -179,9 +172,7 @@ class ModelTests(AioTestCase):
             author = Author()
             BookSerializer2().serialize(author)
 
-        self.assertTrue(
-            'That model is not an instance of' in exc.exception.args[0]
-        )
+        self.assertIn('That model is not an instance of', exc.exception.args[0])
 
     async def test_serialize_correct(self):
         # the inverse relation is correctly set
@@ -235,10 +226,7 @@ class ModelTests(AioTestCase):
 
             BookSerializerNew().serialize(await Book.objects.get(id=3))
 
-        self.assertTrue(
-            'its_a_3 is not a correct argument for model' in
-            exc.exception.args[0]
-        )
+        self.assertIn('its_a_3 is not a correct argument for model', exc.exception.args[0])
 
     async def test_serializer_correctly_defined_methodfield(self):
         class BookSerializerNew(ModelSerializer):

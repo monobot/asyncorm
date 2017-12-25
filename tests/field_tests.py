@@ -297,13 +297,19 @@ class FieldTests(AioTestCase):
     async def test_arrayfield_multidimensional(self):
         dev = Developer(name='multitalent', age=22)
         await dev.save()
+
         skill = await Skill.objects.create(
             dev=dev.id,
             name='Rust',
             specialization=[['backend', 'web'], ['sql', 'postgres']]
         )
+
         self.assertIsInstance(skill.specialization, list)
         self.assertIsInstance(skill.specialization[0], list)
+        self.assertIn('backend', skill.specialization[0])
+        self.assertIn('web', skill.specialization[0])
+        self.assertIn('sql', skill.specialization[1])
+        self.assertIn('postgres', skill.specialization[1])
 
     async def test_arrayfield_wrong_dimensions_size(self):
         with self.assertRaises(FieldError) as exc:
@@ -318,14 +324,12 @@ class FieldTests(AioTestCase):
         with self.assertRaises(FieldError) as exc:
             models.ArrayField().validate([['backend', 'nodejs'], 'frontend'])
 
-        self.assertEqual(
-            exc.exception.args[0],
-            'Array elements are not of the same type'
-        )
+        self.assertEqual(exc.exception.args[0], 'Array elements are not of the same type')
 
     async def test_arrayfield_empty_array(self):
         dev = Developer(name='walkie', age=43)
         await dev.save()
+
         skill = await Skill.objects.create(
             dev=dev.id,
             name='C/CPP',
@@ -338,6 +342,7 @@ class FieldTests(AioTestCase):
     async def test_textfield_correct(self):
         dev = Developer(name='talkie', age=33)
         await dev.save()
+
         skill = await Skill.objects.create(
             dev=dev.id,
             name='Ruby',

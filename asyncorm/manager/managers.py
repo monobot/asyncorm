@@ -1,5 +1,3 @@
-import re
-
 from asyncpg.exceptions import UniqueViolationError, InsufficientPrivilegeError
 from copy import deepcopy
 
@@ -53,9 +51,7 @@ class Queryset(object):
         self.step = None
 
     def query_copy(self):
-        return (
-            self.query and deepcopy(self.query) or deepcopy(self.basic_query)
-        )
+        return self.query and deepcopy(self.query) or deepcopy(self.basic_query)
 
     @property
     def basic_query(self):
@@ -97,10 +93,7 @@ class Queryset(object):
             for query in self.model.field_requirements:
                 await self.db_manager.request(query)
         except InsufficientPrivilegeError:
-            raise ModelError(
-                'Not enought privileges to add the needed requirement '
-                'in the database'
-            )
+            raise ModelError('Not enought privileges to add the needed requirement in the database')
 
     def unique_together_builder(self):
         unique_together = self.get_unique_together()
@@ -153,9 +146,7 @@ class Queryset(object):
 
     def get_unique_together(self):
         # builds the table with all its fields definition
-        unique_string = ' UNIQUE ({}) '.format(
-            ','.join(self.model.unique_together)
-        )
+        unique_string = ' UNIQUE ({}) '.format(','.join(self.model.unique_together))
         return self.model.unique_together and unique_string or ''
 
     def modelconstructor(self, record, instance=None):
@@ -198,12 +189,7 @@ class Queryset(object):
         if hasattr(self.model, field_name):
             field = getattr(self.model, field_name)
         else:
-            raise QuerysetError(
-                '{} wrong field name for model {}'.format(
-                    field_name,
-                    self.model.__name__
-                )
-            )
+            raise QuerysetError('{} wrong field name for model {}'.format(field_name, self.model.__name__))
         if not isinstance(field, NumberField):
             raise QuerysetError('{} is not a numeric field'.format(field_name))
 
@@ -238,15 +224,9 @@ class Queryset(object):
 
         if count > 1:
             raise MultipleObjectsReturned(
-                'More than one "{}" were returned, there are {}!'.format(
-                    self.model.__name__,
-                    count,
-                )
-            )
+                'More than one "{}" were returned, there are {}!'.format(self.model.__name__, count))
         elif count == 0:
-            raise self.model.DoesNotExist(
-                'That {} does not exist'.format(self.model.__name__)
-            )
+            raise self.model.DoesNotExist('That {} does not exist'.format(self.model.__name__))
 
         return itm
 
@@ -270,19 +250,10 @@ class Queryset(object):
             if '__' in arg:
                 arg = arg.split('__')[0]
             if not hasattr(self.model, arg):
-                raise QuerysetError(
-                    '{} is not a {} attribute.'.format(
-                        arg,
-                        self.model.__name__
-                    )
-                )
+                raise QuerysetError('{} is not a {} attribute.'.format(arg, self.model.__name__))
             if not isinstance(getattr(self.model, arg), ForeignKey):
                 raise QuerysetError(
-                    '{} is not a ForeignKey Field for {}.'.format(
-                        arg,
-                        self.model.__name__
-                    )
-                )
+                    '{} is not a ForeignKey Field for {}.'.format(arg, self.model.__name__))
             model = self.orm.get_model(getattr(self.model, arg).foreign_key)
 
             right_table = model.table_name or model.__name__.lower()
@@ -343,10 +314,7 @@ class Queryset(object):
                         '{} should be list or a tuple'.format(lookup)
                     )
                 if len(v) != 2:
-                    raise QuerysetError(
-                        'Not a correct tuple/list definition, '
-                        'should be of size 2'
-                    )
+                    raise QuerysetError('Not a correct tuple/list definition, should be of size 2')
                 operator_formater.update({
                     'min': field.sanitize_data(v[0]),
                     'max': field.sanitize_data(v[1]),
@@ -356,9 +324,7 @@ class Queryset(object):
                 # is_othercharfield = issubclass(field, CharField)
                 # if not is_charfield or not is_othercharfield:
                 if not is_charfield:
-                    raise QuerysetError(
-                        '{} not allowed in non CharField fields'.format(lookup)
-                    )
+                    raise QuerysetError('{} not allowed in non CharField fields'.format(lookup))
                 operator_formater['v'] = field.sanitize_data(v)[1:-1]
             else:
                 if isinstance(v, (list, tuple)):
@@ -392,11 +358,7 @@ class Queryset(object):
         # all the rest come as None
         for arg in args:
             if not hasattr(self.model, arg):
-                raise QuerysetError(
-                    '{} is not a correct field for {}'.format(
-                        arg, self.model.__name__
-                    )
-                )
+                raise QuerysetError('{} is not a correct field for {}'.format(arg, self.model.__name__))
 
         queryset = self.queryset()
         queryset.query = self.query_copy()
@@ -416,11 +378,7 @@ class Queryset(object):
                 final_args.append(arg)
 
             if not hasattr(self.model, arg):
-                raise QuerysetError(
-                    '{} is not a correct field for {}'.format(
-                        arg, self.model.__name__
-                    )
-                )
+                raise QuerysetError('{} is not a correct field for {}'.format(arg, self.model.__name__))
 
         queryset = self.queryset()
         queryset.query = self.query_copy()
@@ -437,9 +395,7 @@ class Queryset(object):
             'condition': "app = '{}'".format(self.model().app_name)
         }
 
-        results = await self.db_manager.request(
-            self.db_manager.db__select.format(**kwargs)
-        )
+        results = await self.db_manager.request(self.db_manager.db__select.format(**kwargs))
 
         # shortcircuit if No migration return None
         if results is None:
@@ -496,9 +452,7 @@ class Queryset(object):
 
             async for res in cursor:
                 return self.modelconstructor(res)
-            raise IndexError(
-                'That {} index does not exist'.format(self.model.__name__)
-            )
+            raise IndexError('That {} index does not exist'.format(self.model.__name__))
 
         else:
             raise TypeError("Invalid argument type.")
@@ -556,11 +510,7 @@ class ModelManager(Queryset):
             field_data.append(data)
 
         db_request = [{
-            'action': (
-                getattr(
-                    instanced_model, instanced_model.orm_pk
-                ) and 'db__update' or 'db__insert'
-            ),
+            'action': getattr(instanced_model, instanced_model.orm_pk) and 'db__update' or 'db__insert',
             'id_data': '{}={}'.format(
                 instanced_model.db_pk,
                 getattr(instanced_model, instanced_model.orm_pk),
@@ -603,9 +553,7 @@ class ModelManager(Queryset):
 
             if isinstance(data, list):
                 for d in data:
-                    db_request[0].update(
-                        {'field_values': ', '.join([str(model_id), str(d)])}
-                    )
+                    db_request[0].update({'field_values': ', '.join([str(model_id), str(d)])})
                     await self.db_request(db_request)
             else:
                 await self.db_request(db_request)

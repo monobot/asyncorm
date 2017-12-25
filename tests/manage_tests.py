@@ -62,9 +62,7 @@ class ManageTestMethods(AioTestCase):
         with self.assertRaises(ModelError) as exc:
             await author2.save()
 
-        self.assertTrue(
-            'The model violates a unique constraint' == exc.exception.args[0]
-        )
+        self.assertTrue('The model violates a unique constraint' == exc.exception.args[0])
 
     async def test_delete_can_not_be_saved(self):
         book = await Book.objects.all()[5]
@@ -73,7 +71,7 @@ class ManageTestMethods(AioTestCase):
         with self.assertRaises(ModelError) as exc:
             await book.save()
 
-        self.assertTrue('has already been deleted!' in exc.exception.args[0])
+        self.assertIn('has already been deleted!', exc.exception.args[0])
 
     async def test_delete_also_deletes_in_database(self):
         book = await Book.objects.all()[5]
@@ -82,7 +80,7 @@ class ManageTestMethods(AioTestCase):
         with self.assertRaises(ModelDoesNotExist) as exc:
             await Book.objects.get(**{'id': book.id})
 
-        self.assertTrue('does not exist' in exc.exception.args[0])
+        self.assertIn('does not exist', exc.exception.args[0])
 
     async def test_count(self):
         queryset = Book.objects.filter(id__lte=100)
@@ -108,9 +106,7 @@ class ManageTestMethods(AioTestCase):
         with self.assertRaises(IndexError) as exc:
             await q_book[7]
 
-        self.assertTrue(
-            'index does not exist' in exc.exception.args[0]
-        )
+        self.assertIn('index does not exist', exc.exception.args[0])
 
     async def test_slice_iterate_over(self):
         queryset = await Book.objects.filter(id__lt=25)[5:]
@@ -135,33 +131,25 @@ class ManageTestMethods(AioTestCase):
         with self.assertRaises(QuerysetError) as exc:
             await Book.objects.filter(id__lte=30)[1: 2: 4]
 
-        self.assertTrue(
-            'Step on Queryset is not allowed' == exc.exception.args[0]
-        )
+        self.assertTrue('Step on Queryset is not allowed' == exc.exception.args[0])
 
     async def test_slice_negative_slice(self):
         with self.assertRaises(QuerysetError) as exc:
             await Book.objects.filter(id__lte=30)[-1]
 
-        self.assertTrue(
-            'Negative indices are not allowed' == exc.exception.args[0]
-        )
+        self.assertTrue('Negative indices are not allowed' == exc.exception.args[0])
 
     async def test_slice_negative_slice_stop(self):
         with self.assertRaises(QuerysetError) as exc:
             await Book.objects.filter(id__lte=30)[:-1]
 
-        self.assertTrue(
-            'Negative indices are not allowed' == exc.exception.args[0]
-        )
+        self.assertTrue('Negative indices are not allowed' == exc.exception.args[0])
 
     async def test_slice_negative_slice_start(self):
         with self.assertRaises(QuerysetError) as exc:
             await Book.objects.filter(id__lte=30)[-3:]
 
-        self.assertTrue(
-            'Negative indices are not allowed' == exc.exception.args[0]
-        )
+        self.assertTrue('Negative indices are not allowed' == exc.exception.args[0])
 
     async def test_filter(self):
         queryset = Book.objects.filter(id__lte=30)
@@ -198,16 +186,14 @@ class ManageTestMethods(AioTestCase):
         with self.assertRaises(QuerysetError) as exc:
             await Book.objects.get(id__range=(280, 234, 23))
 
-        self.assertTrue(
-            ('Not a correct tuple/list definition, ') in exc.exception.args[0])
+        self.assertIn('Not a correct tuple/list definition, ', exc.exception.args[0])
 
     async def test_range_incorrect_tuple(self):
         # incorrect fitler tuple definition error catched
         with self.assertRaises(QuerysetError) as exc:
             await Book.objects.get(id__range=(280, ))
 
-        self.assertTrue(
-            ('should be of size 2') in exc.exception.args[0])
+        self.assertIn('should be of size 2', exc.exception.args[0])
 
     async def test_comparisons_dates(self):
         today = datetime.now()
@@ -243,10 +229,7 @@ class ManageTestMethods(AioTestCase):
     async def test_string_lookups_wrong_fieldtype(self):
         with self.assertRaises(QuerysetError)as exc:
             Book.objects.filter(id__exact=3)
-        self.assertEqual(
-            'exact not allowed in non CharField fields',
-            exc.exception.args[0]
-        )
+        self.assertEqual('exact not allowed in non CharField fields', exc.exception.args[0])
 
     async def test_string_lookups_exact(self):
         queryset = Book.objects.filter(name__exact='book name 10')
@@ -363,16 +346,13 @@ class ManageTestMethods(AioTestCase):
         # now try to get using wrong arguments (more than one)
         with self.assertRaises(MultipleObjectsReturned) as exc:
             await Book.objects.get(id__range=[10, 25])
-        self.assertTrue(
-            'More than one "Book" were returned, there are 16' in
-            exc.exception.args[0]
-        )
+        self.assertIn('More than one "Book" were returned, there are 16', exc.exception.args[0])
 
     async def test_get_no_exists_exception(self):
         # now try to get using wrong arguments (no object)
         with self.assertRaises(ModelDoesNotExist) as exc:
             await Book.objects.get(id=2800)
-        self.assertTrue('does not exist' in exc.exception.args[0])
+        self.assertIn('does not exist', exc.exception.args[0])
         count = await Book.objects.filter(id=2800).count()
         self.assertEqual(count, 0)
 
@@ -475,10 +455,7 @@ class ManageTestMethods(AioTestCase):
             Book.objects.select_related(field_name)
 
         self.assertEqual(
-            '{} is not a {} attribute.'.format(
-                field_name.split('__')[0],
-                'Book'
-            ),
+            '{} is not a {} attribute.'.format(field_name.split('__')[0], 'Book'),
             exc.exception.args[0]
         )
 

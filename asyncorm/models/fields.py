@@ -6,7 +6,7 @@ from uuid import UUID
 from json.decoder import JSONDecodeError
 
 from datetime import datetime, date, time
-from ..exceptions import FieldError  # , ModuleError
+from ..exceptions import FieldError
 
 DATE_FIELDS = ['DateField', ]
 
@@ -69,9 +69,7 @@ class Field(object):
             elif isinstance(default_value, bool):
                 creation_string += str(default_value)
             else:
-                creation_string += '\'{}\''.format(
-                    self.sanitize_data(default_value)
-                )
+                creation_string += '\'{}\''.format(self.sanitize_data(default_value))
 
         elif date_field and self.auto_now:
             creation_string += ' DEFAULT now()'
@@ -181,9 +179,7 @@ class BooleanField(Field):
     args = ('db_column', 'default', 'null', 'unique', )
 
     def __init__(self, db_column='', default=None, null=False, unique=False):
-        super().__init__(db_column=db_column, default=default,
-                         null=null, unique=unique
-                         )
+        super().__init__(db_column=db_column, default=default, null=null, unique=unique)
 
     def sanitize_data(self, value):
         '''method used to convert to SQL data'''
@@ -224,8 +220,7 @@ class CharField(Field):
         value = super().sanitize_data(value)
         if len(value) > self.max_length:
             raise FieldError(
-                'The string entered is bigger than the "max_length" defined ({})'.format(self.max_length)
-            )
+                'The string entered is bigger than the "max_length" defined ({})'.format(self.max_length))
         if value is not None:
             value = value.replace(';', '\;').replace('--', '\--')
         return '\'{}\''.format(value)
@@ -269,9 +264,7 @@ class JsonField(Field):
                 try:
                     value = json.loads(value)
                 except JSONDecodeError:
-                    raise FieldError(
-                        'The data entered can not be converted to json'
-                    )
+                    raise FieldError('The data entered can not be converted to json')
             value = json.dumps(value)
 
         if len(value) > self.max_length:
@@ -291,11 +284,8 @@ class IntegerField(NumberField):
     creation_string = 'integer'
     args = ('db_column', 'default', 'null', 'choices', 'unique')
 
-    def __init__(self, db_column='', default=None, null=False, choices=None,
-                 unique=False):
-        super().__init__(
-            db_column=db_column, default=default, null=null, choices=choices, unique=unique
-        )
+    def __init__(self, db_column='', default=None, null=False, choices=None, unique=False):
+        super().__init__(db_column=db_column, default=default, null=null, choices=choices, unique=unique)
 
     def sanitize_data(self, value):
         value = super().sanitize_data(value)
@@ -347,8 +337,7 @@ class DateField(Field):
 class DateTimeField(DateField):
     internal_type = datetime
     creation_string = 'timestamp'
-    args = ('db_column', 'default', 'auto_now', 'null', 'choices', 'unique',
-            'strftime')
+    args = ('db_column', 'default', 'auto_now', 'null', 'choices', 'unique', 'strftime')
 
     def __init__(
             self, db_column='', default=None, auto_now=False, null=False, choices=None, unique=False,
@@ -361,8 +350,7 @@ class DateTimeField(DateField):
 class TimeField(DateField):
     internal_type = time
     creation_string = 'time'
-    args = ('db_column', 'default', 'auto_now', 'null', 'choices', 'unique',
-            'strftime')
+    args = ('db_column', 'default', 'auto_now', 'null', 'choices', 'unique', 'strftime')
 
     def __init__(
             self, db_column='', default=None, auto_now=False, null=False, choices=None, unique=False,

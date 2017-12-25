@@ -40,9 +40,7 @@ class OrmApp(object):
 
         db_config = config.get('db_config', None)
         if not db_config:
-            raise ModuleError(
-                'Imposible to configure without database configuration!'
-            )
+            raise ModuleError('Imposible to configure without database configuration!')
 
         db_config['loop'] = self.loop = DEFAULT_CONFIG.get('loop')
 
@@ -93,10 +91,7 @@ class OrmApp(object):
             elif len(model_split) == 1:
                 return self.models[model_name]
             else:
-                raise ModelError(
-                    'The string declared should be in format '
-                    '"module.Model" or "Model"'
-                )
+                raise ModelError('The string declared should be in format "module.Model" or "Model"')
         except KeyError:
             raise ModuleError('The model does not exists')
 
@@ -143,9 +138,7 @@ class OrmApp(object):
             await model().objects.unique_together()
 
     def sync_db(self):
-        self.loop.run_until_complete(
-            asyncio.gather(self.loop.create_task(self.create_db()))
-        )
+        self.loop.run_until_complete(asyncio.gather(self.loop.create_task(self.create_db())))
 
     def make_migrations(self):
         for model in self.models.values():
@@ -163,11 +156,7 @@ def parse_config(config_file):
     # check all sections exist
     for section in ['db_config', 'orm']:
         if section not in parsed_file.sections():
-            raise ConfigError(
-                'the file {} does not contain {} section!'.format(
-                    config_file, section
-                )
-            )
+            raise ConfigError('the file {} does not contain {} section!'.format(config_file, section))
 
     return {
         'db_config': {

@@ -56,9 +56,7 @@ class GeneralManager(object):
 
     @property
     def db__create_table(self):
-        return '''
-            CREATE TABLE IF NOT EXISTS {table_name}
-            ({field_queries}) '''
+        return 'CREATE TABLE IF NOT EXISTS {table_name} ({field_queries}) '
 
     @property
     def db__drop_table(self):
@@ -66,32 +64,23 @@ class GeneralManager(object):
 
     @property
     def db__alter_table(self):
-        return '''
-            ALTER TABLE {table_name} ({field_queries}) '''
+        return 'ALTER TABLE {table_name} ({field_queries}) '
 
     @property
     def db__constrain_table(self):
-        return '''
-            ALTER TABLE {table_name} ADD {constrain} '''
+        return 'ALTER TABLE {table_name} ADD {constrain} '
 
     @property
     def db__table_add_column(self):
-        return '''
-            ALTER TABLE {table_name}
-            ADD COLUMN {field_creation_string} '''
+        return 'ALTER TABLE {table_name} ADD COLUMN {field_creation_string} '
 
     @property
     def db__table_alter_column(self):
-        return self.db__table_add_column.replace(
-            'ADD COLUMN ', 'ALTER COLUMN '
-        )
+        return self.db__table_add_column.replace('ADD COLUMN ', 'ALTER COLUMN ')
 
     @property
     def db__insert(self):
-        return '''
-            INSERT INTO {table_name} ({field_names}) VALUES ({field_values})
-            RETURNING *
-        '''
+        return 'INSERT INTO {table_name} ({field_names}) VALUES ({field_values}) RETURNING * '
 
     @property
     def db__select_all(self):
@@ -100,10 +89,7 @@ class GeneralManager(object):
     @property
     def db__select_related(self):
         # LEFT JOIN inventory ON inventory.film_id = film.film_id;
-        return '''
-            LEFT JOIN {right_table}
-            ON {foreign_field} = {right_table}.{model_db_pk}
-        '''
+        return 'LEFT JOIN {right_table} ON {foreign_field} = {right_table}.{model_db_pk} '
 
     @property
     def db__select(self):
@@ -198,16 +184,12 @@ class GeneralManager(object):
                         )
                         res_dict['select'] = select
                     else:
-                        res_dict['select'] += ', ' + (
-                            model_join['fields_formatter']
-                        )
+                        res_dict['select'] += ', ' + model_join['fields_formatter']
 
         # if we are not counting, then we can assign ordering
         operations = ['COUNT', 'MAX', 'MIN', 'SUM', 'AVG', 'STDDEV']
         if res_dict.get('select', '').split('(')[0] not in operations:
-            res_dict['ordering'] = self.ordering_syntax(
-                res_dict.get('ordering', [])
-            )
+            res_dict['ordering'] = self.ordering_syntax(res_dict.get('ordering', []))
         else:
             res_dict['ordering'] = ''
 

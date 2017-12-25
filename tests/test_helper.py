@@ -19,8 +19,6 @@ class AioTestCase(unittest.TestCase):
         attr = object.__getattribute__(self, item)
         if asyncio.iscoroutinefunction(attr):
             if item not in self._function_cache:
-                self._function_cache[item] = self.coroutine_function_decorator(
-                    attr
-                )
+                self._function_cache[item] = self.coroutine_function_decorator(attr)
             return self._function_cache[item]
         return attr

@@ -33,13 +33,9 @@ class MigrationConstructor(object):
             else:
                 self.write(tab_level, end_singleline.format(name))
         elif isinstance(content, str):
-            self.write(
-                tab_level, end_multistr.format(name, content)
-            )
+            self.write(tab_level, end_multistr.format(name, content))
         else:
-            self.write(
-                tab_level, end_multinostr.format(name, content)
-            )
+            self.write(tab_level, end_multinostr.format(name, content))
 
     @staticmethod
     def tabulation(tab_level):
