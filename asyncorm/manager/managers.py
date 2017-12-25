@@ -155,7 +155,7 @@ class Queryset(object):
 
     async def add_table_indices(self):
         for f in self.model.fields.values():
-            if f.index:
+            if f.db_index:
                 await self.db_request(self._add_table_indices_builder(f))
 
     def get_unique_together(self):

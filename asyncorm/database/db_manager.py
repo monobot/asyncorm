@@ -93,10 +93,7 @@ class GeneralManager(object):
 
     @property
     def db__select(self):
-        return self.db__select_all.replace(
-            '{ordering}',
-            'WHERE ( {condition} ) {ordering}'
-        )
+        return self.db__select_all.replace('{ordering}', 'WHERE ( {condition} ) {ordering}')
 
     @property
     def db__exists(self):

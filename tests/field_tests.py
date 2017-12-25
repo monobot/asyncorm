@@ -3,8 +3,8 @@ from uuid import UUID
 
 from asyncorm.exceptions import FieldError
 from asyncorm import models
-from .testapp.models import Book, Publisher, Reader
-from .testapp2.models import Organization, Appointment, Skill, Developer
+from .testapp.models import Book, Publisher, Reader, Author
+from .testapp2.models import Organization, Client, Appointment, Skill, Developer
 from .test_helper import AioTestCase
 
 
@@ -351,3 +351,12 @@ class FieldTests(AioTestCase):
         )
 
         self.assertIsInstance(skill.notes, str)
+
+    async def test_check_all_indices_were_created(self):
+        for m in (Book, Publisher, Reader, Author, Organization, Client, Appointment, Skill, Developer):
+            for field in m.fields.values():
+                if field.db_index:
+                    field_index = '{}_{}_index'.format(field.table_name, field.orm_field_name).lower()
+                    self.assertTrue(
+                        await Developer.objects.db_manager.request(
+                            "SELECT * FROM pg_indexes WHERE indexname = '{}'".format(field_index)))
