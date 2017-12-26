@@ -55,7 +55,8 @@ for x in range(300):
 
 
 if __name__ == '__main__':
-    from .model_tests import ModelTests
+    from .models_tests import ModelTests
+    from .serializers_tests import SerializerTests
     from .manage_tests import ManageTestMethods
     from .module_tests import ModuleTests
     from .field_tests import FieldTests

@@ -42,16 +42,22 @@ class ModelMeta(type):
 
         base_class.fields = base_class.get_fields()
 
-        if AutoField not in [f.__class__ for f in base_class.fields.values()]:
+        primary_keys = [f for f in base_class.fields.values() if f.primary_key]
+        if not primary_keys:
             base_class.id = AutoField()
             base_class.fields['id'] = base_class.id
 
             base_class.db_pk = 'id'
             base_class.orm_pk = 'id'
+        elif len(primary_keys) == 1:
+            base_class.db_pk = primary_keys[0].db_column
+            base_class.orm_pk = primary_keys[0].orm_field_name
         else:
-            pk_fields = [f for f in base_class.fields.values() if isinstance(f, AutoField)]
-            base_class.db_pk = pk_fields[0].db_column
-            base_class.orm_pk = pk_fields[0].orm_field_name
+            raise ModelError(
+                'Model "{}" has more than one primary keys defined it has {}'.format(
+                    base_class.__name__,
+                    len(primary_keys),
+                ))
 
         for f in base_class.fields.values():
             if hasattr(f, 'choices'):
