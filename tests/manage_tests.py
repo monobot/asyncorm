@@ -539,8 +539,7 @@ class ManageTestMethods(AioTestCase):
             'appointment': appointment.id,
         })
 
-        client = await Client.objects.select_related('dev', 'appointment'
-                                                     ).get(id=n_c.id)
+        client = await Client.objects.select_related('dev', 'appointment').get(id=n_c.id)
 
         self.assertIsInstance(client.dev, Developer)
         self.assertIsInstance(client.appointment, Appointment)

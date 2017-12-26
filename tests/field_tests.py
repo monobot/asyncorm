@@ -10,7 +10,7 @@ from .test_helper import AioTestCase
 
 class FieldTests(AioTestCase):
     def test_class_definition(self):
-        with self.assertRaises(AttributeError) as exc:
+        with self.assertRaises(NotImplementedError) as exc:
             models.Field()
         self.assertEqual(
             exc.exception.args[0],

@@ -97,12 +97,13 @@ class OrmApp(object):
 
     def models_configure(self):
         # and we set it to all the different models defined
+        from ..models.fields import ForeignKey, ManyToManyField
+
         self.set_model_orm()
 
         for name, model in self.models.items():
-            from ..models.fields import ForeignKey, ManyToManyField
-
-            for f in model.fields.values():
+            vvv = model.fields.values()
+            for f in vvv:
                 if isinstance(f, ManyToManyField):
                     m2m_tablename = '{}_{}'.format(name, f.foreign_key).lower()
                     other = self.get_model(f.foreign_key)
@@ -112,6 +113,15 @@ class OrmApp(object):
 
                 elif isinstance(f, ForeignKey):
                     other_model = self.get_model(f.foreign_key)
+                    # now we have to retrieve the other model primary key and asign the correct type to it
+                    # field = [o_f for o_f in other_model.fields.values() if f.primary_key]
+                    # field = [o_f for o_f in other_model.fields.values() if o_f.primary_key][0]
+                    # if field:
+                    #     # import pdb; pdb.set_trace()
+                    #     f.creation_string = field.foreignkey_type
+                    #     f.internal_type = field.internal_type
+                    #     f.sanitize_data = field.sanitize_data
+
                     other_model.set_reverse_foreignkey(name, f.db_column)
 
     def set_model_orm(self):
@@ -122,6 +132,7 @@ class OrmApp(object):
         """
         We  create all tables for each of the declared models
         """
+        self.models_configure()
         for model in self.models.values():
             await model().objects.set_requirements()
 

@@ -37,7 +37,7 @@ class Field(object):
 
     def __new__(mcs, **kwargs):
         if not getattr(mcs, 'internal_type'):
-            raise AttributeError('Missing "internal_type" attribute from class definition')
+            raise NotImplementedError('Missing "internal_type" attribute from class definition')
         return super().__new__(mcs)
 
     def __init__(self, **kwargs):
@@ -275,6 +275,7 @@ class DecimalField(NumberField):
 # time fields
 class AutoField(IntegerField):
     creation_string = 'serial'
+    # foreignkey_type = 'integer'
     args = ('choices', 'db_column', 'db_index', 'default', 'null', 'primary_key', 'unique', )
 
     def __init__(self, db_column='id'):
@@ -318,6 +319,7 @@ class TimeField(DateTimeField):
 # relational fields
 class ForeignKey(Field):
     internal_type = int
+    # foreignkey_type = 'integer'
     required_kwargs = ['foreign_key', ]
     creation_string = 'integer references {foreign_key}'
     args = ('db_column', 'db_index', 'default', 'foreign_key', 'null', 'primary_key', 'unique', )
@@ -408,17 +410,18 @@ class JsonField(Field):
 
 class Uuid4Field(Field):
     internal_type = UUID
+    # foreignkey_type = 'uuid'
     args = ('db_column', 'db_index', 'null', 'primary_key', 'unique', 'uuid_type', )
 
     def __init__(
-            self, db_column='', null=False, uuid_type='v4', db_index=False, primary_key=False):
+            self, db_column='', null=False, uuid_type='v4', db_index=False, primary_key=False, unique=True):
         self.field_requirement = 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
 
         if uuid_type not in ['v1', 'v4']:
             raise FieldError('{} is not a recognized type'.format(uuid_type))
 
         super().__init__(
-            db_column=db_column, unique=True, db_index=db_index, primary_key=primary_key,
+            db_column=db_column, unique=unique, db_index=db_index, primary_key=primary_key,
             default=None, null=null, uuid_type=uuid_type)
 
     @property
