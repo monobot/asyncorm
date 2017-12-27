@@ -113,15 +113,6 @@ class OrmApp(object):
 
                 elif isinstance(f, ForeignKey):
                     other_model = self.get_model(f.foreign_key)
-                    # now we have to retrieve the other model primary key and asign the correct type to it
-                    # field = [o_f for o_f in other_model.fields.values() if f.primary_key]
-                    # field = [o_f for o_f in other_model.fields.values() if o_f.primary_key][0]
-                    # if field:
-                    #     # import pdb; pdb.set_trace()
-                    #     f.creation_string = field.foreignkey_type
-                    #     f.internal_type = field.internal_type
-                    #     f.sanitize_data = field.sanitize_data
-
                     other_model.set_reverse_foreignkey(name, f.db_column)
 
     def set_model_orm(self):

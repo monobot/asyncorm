@@ -21,7 +21,6 @@ KWARGS_TYPES = {
     'max_digits': int,
     'max_length': int,
     'null': bool,
-    'primary_key': bool,
     'reverse_field': str,
     'strftime': str,
     'unique': bool,
@@ -44,7 +43,6 @@ class Field(object):
         self.validate_kwargs(kwargs)
         self.field_type = self.__class__.__name__
         self.db_index = False
-        self.primary_key = False
 
         for kw in kwargs.keys():
             setattr(self, kw, kwargs.get(kw))
@@ -55,9 +53,6 @@ class Field(object):
                     pass
                 else:
                     self.choices = {k: v for k, v in kwargs.get(kw)}
-        if self.primary_key:
-            self.unique = True
-            self.null = False
 
     def creation_query(self):
         creation_string = '{db_column} ' + self.creation_string
@@ -79,7 +74,6 @@ class Field(object):
         elif date_field and self.auto_now:
             creation_string += ' DEFAULT now()'
 
-        creation_string += self.primary_key and ' PRIMARY KEY' or ''
         creation_string += self.unique and ' UNIQUE' or ''
         creation_string += self.null and ' NULL' or ' NOT NULL'
 
@@ -94,13 +88,6 @@ class Field(object):
             null_choices = v is None and k == 'choices'
             if not isinstance(v, KWARGS_TYPES[k]) and not null_choices:
                 raise FieldError('Wrong value for {k}'.format(k=k))
-
-        primary_key = kwargs.get('primary_key', False)
-        if primary_key:
-            if not kwargs.get('unique', True):
-                raise FieldError('Primary key fields must be "unique=True"')
-            if kwargs.get('null', False):
-                raise FieldError('Primary key fields can not be null')
 
         if kwargs.get('db_column', ''):
             self.set_field_name(kwargs['db_column'])
@@ -174,12 +161,12 @@ class CharField(Field):
     internal_type = str
     required_kwargs = ['max_length', ]
     creation_string = 'varchar({max_length})'
-    args = ('choices', 'db_column', 'db_index', 'default', 'max_length', 'null', 'primary_key', 'unique', )
+    args = ('choices', 'db_column', 'db_index', 'default', 'max_length', 'null', 'unique', )
 
     def __init__(
             self,
             db_column='', default=None, max_length=0, null=False, choices=None, unique=False,
-            db_index=False, primary_key=False):
+            db_index=False):
         super().__init__(
             db_column=db_column,
             default=default,
@@ -188,7 +175,7 @@ class CharField(Field):
             choices=choices,
             unique=unique,
             db_index=db_index,
-            primary_key=primary_key,
+
         )
 
     @classmethod
@@ -220,14 +207,14 @@ class EmailField(CharField):
 class TextField(Field):
     internal_type = str
     creation_string = 'text'
-    args = ('choices', 'db_column', 'db_index', 'default', 'null', 'primary_key', 'unique', )
+    args = ('choices', 'db_column', 'db_index', 'default', 'null', 'unique', )
 
     def __init__(
-            self, db_column='', default=None, null=False, unique=False, db_index=False, primary_key=False,
+            self, db_column='', default=None, null=False, unique=False, db_index=False,
             choices=None):
         super().__init__(
                 db_column=db_column, default=default, null=null, unique=unique, db_index=db_index,
-                choices=choices, primary_key=primary_key)
+                choices=choices)
 
     def sanitize_data(self, value):
         return "'{}'".format(super().sanitize_data(value))
@@ -241,14 +228,13 @@ class NumberField(Field):
 class IntegerField(NumberField):
     internal_type = int
     creation_string = 'integer'
-    args = ('choices', 'db_column', 'db_index', 'default', 'null', 'primary_key', 'unique', )
+    args = ('choices', 'db_column', 'db_index', 'default', 'null', 'unique', )
 
     def __init__(
-            self, db_column='', default=None, null=False, choices=None, unique=False, db_index=False,
-            primary_key=False):
+            self, db_column='', default=None, null=False, choices=None, unique=False, db_index=False):
         super().__init__(
             db_column=db_column, default=default, null=null, choices=choices, unique=unique,
-            db_index=db_index, primary_key=primary_key)
+            db_index=db_index)
 
     def sanitize_data(self, value):
         return '{}'.format(super().sanitize_data(value))
@@ -259,14 +245,14 @@ class DecimalField(NumberField):
     creation_string = 'decimal({max_digits},{decimal_places})'
     args = (
         'db_column', 'default', 'null', 'choices', 'unique', 'max_digits', 'decimal_places', 'db_index',
-        'primary_key', )
+        )
 
     def __init__(
             self, db_column='', default=None, null=False, choices=None,
-            unique=False, db_index=False, primary_key=False, max_digits=10, decimal_places=2):
+            unique=False, db_index=False,  max_digits=10, decimal_places=2):
         super().__init__(
             db_column=db_column, default=default, null=null, choices=choices, unique=unique,
-            db_index=db_index, primary_key=primary_key, max_digits=max_digits, decimal_places=decimal_places)
+            db_index=db_index,  max_digits=max_digits, decimal_places=decimal_places)
 
     def sanitize_data(self, value):
         return '{}'.format(super().sanitize_data(value))
@@ -274,12 +260,11 @@ class DecimalField(NumberField):
 
 # time fields
 class AutoField(IntegerField):
-    creation_string = 'serial'
-    # foreignkey_type = 'integer'
-    args = ('choices', 'db_column', 'db_index', 'default', 'null', 'primary_key', 'unique', )
+    creation_string = 'serial PRIMARY KEY'
+    args = ('choices', 'db_column', 'db_index', 'default', 'null', 'unique', )
 
     def __init__(self, db_column='id'):
-        super().__init__(db_column=db_column, unique=True, null=False, primary_key=True)
+        super().__init__(db_column=db_column, unique=True, null=False)
 
 
 class DateTimeField(Field):
@@ -295,17 +280,17 @@ class DateTimeField(Field):
 
     def __init__(
             self, db_column='', default=None, auto_now=False, null=False, choices=None,
-            unique=False, db_index=False, primary_key=False, strftime=None):
+            unique=False, db_index=False,  strftime=None):
         super().__init__(
             db_column=db_column, default=default, auto_now=auto_now, null=null, choices=choices,
-            unique=unique, db_index=db_index, primary_key=primary_key, strftime=strftime or self.strftime)
+            unique=unique, db_index=db_index,  strftime=strftime or self.strftime)
 
 
 class DateField(DateTimeField):
     internal_type = date
     creation_string = 'date'
     args = (
-        'auto_now', 'choices', 'db_column', 'db_index', 'default', 'null', 'primary_key', 'strftime',
+        'auto_now', 'choices', 'db_column', 'db_index', 'default', 'null', 'strftime',
         'unique', )
     strftime = '%Y-%m-%d'
 
@@ -319,17 +304,14 @@ class TimeField(DateTimeField):
 # relational fields
 class ForeignKey(Field):
     internal_type = int
-    # foreignkey_type = 'integer'
     required_kwargs = ['foreign_key', ]
     creation_string = 'integer references {foreign_key}'
-    args = ('db_column', 'db_index', 'default', 'foreign_key', 'null', 'primary_key', 'unique', )
+    args = ('db_column', 'db_index', 'default', 'foreign_key', 'null', 'unique', )
 
-    def __init__(
-            self, db_column='', default=None, foreign_key='', null=False, unique=False, db_index=False,
-            primary_key=False):
+    def __init__(self, db_column='', default=None, foreign_key='', null=False, unique=False, db_index=False):
         super().__init__(
-            db_column=db_column, default=default, foreign_key=foreign_key, null=null,
-            unique=unique, db_index=db_index, primary_key=primary_key)
+            db_column=db_column, db_index=db_index, default=default, foreign_key=foreign_key, null=null,
+            unique=unique)
 
     def sanitize_data(self, value):
         return str(super().sanitize_data(value))
@@ -342,14 +324,11 @@ class ManyToManyField(Field):
         {own_model} INTEGER REFERENCES {own_model} NOT NULL,
         {foreign_key} INTEGER REFERENCES {foreign_key} NOT NULL
     '''
-    args = ('db_column', 'db_index', 'default', 'foreign_key', 'primary_key', 'unique', )
+    args = ('db_column', 'db_index', 'default', 'foreign_key', 'unique', )
 
-    def __init__(
-            self, db_column='', foreign_key=None, default=None, unique=False, db_index=False,
-            primary_key=False):
+    def __init__(self, db_column='', foreign_key=None, default=None, unique=False, db_index=False):
         super().__init__(
-            db_column=db_column, foreign_key=foreign_key, default=default, unique=unique, db_index=db_index,
-            primary_key=primary_key)
+            db_column=db_column, foreign_key=foreign_key, default=default, unique=unique, db_index=db_index)
 
     def creation_query(self):
         return self.creation_string.format(**self.__dict__)
@@ -369,11 +348,11 @@ class JsonField(Field):
     internal_type = dict, list, str
     required_kwargs = ['max_length', ]
     creation_string = 'varchar({max_length})'
-    args = ('choices', 'db_column', 'db_index', 'default', 'max_length', 'null', 'primary_key', 'unique', )
+    args = ('choices', 'db_column', 'db_index', 'default', 'max_length', 'null', 'unique', )
 
     def __init__(self,
             db_column='', default=None, max_length=0, null=False, choices=None, unique=False,
-            db_index=False, primary_key=False):
+            db_index=False):
         super().__init__(
             db_column=db_column,
             default=default,
@@ -382,7 +361,6 @@ class JsonField(Field):
             choices=choices,
             unique=unique,
             db_index=db_index,
-            primary_key=primary_key,
         )
 
     @classmethod
@@ -410,18 +388,17 @@ class JsonField(Field):
 
 class Uuid4Field(Field):
     internal_type = UUID
-    # foreignkey_type = 'uuid'
-    args = ('db_column', 'db_index', 'null', 'primary_key', 'unique', 'uuid_type', )
+    args = ('db_column', 'db_index', 'null', 'unique', 'uuid_type', )
 
     def __init__(
-            self, db_column='', null=False, uuid_type='v4', db_index=False, primary_key=False, unique=True):
+            self, db_column='', null=False, uuid_type='v4', db_index=False, unique=True):
         self.field_requirement = 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
 
         if uuid_type not in ['v1', 'v4']:
             raise FieldError('{} is not a recognized type'.format(uuid_type))
 
         super().__init__(
-            db_column=db_column, unique=unique, db_index=db_index, primary_key=primary_key,
+            db_column=db_column, unique=unique, db_index=db_index,
             default=None, null=null, uuid_type=uuid_type)
 
     @property
@@ -442,14 +419,12 @@ class Uuid4Field(Field):
 class ArrayField(Field):
     internal_type = list
     creation_string = '{value_type} ARRAY'
-    args = ('db_column', 'db_index', 'default', 'null', 'primary_key''unique', 'value_type', )
+    args = ('db_column', 'db_index', 'default', 'null', 'unique', 'value_type', )
     value_types = ('text', 'varchar', 'integer')
 
     def __init__(
-            self, db_column='', default=None, null=True, unique=False, db_index=False, primary_key=False,
-            value_type='text'):
-        super().__init__(db_column=db_column, default=default, unique=unique, db_index=db_index,
-            primary_key=primary_key, null=null)
+            self, db_column='', default=None, null=True, unique=False, db_index=False, value_type='text'):
+        super().__init__(db_column=db_column, default=default, unique=unique, db_index=db_index, null=null)
         self.value_type = value_type
 
     def sanitize_data(self, value):

@@ -147,13 +147,3 @@ class ModelTests(AioTestCase):
         # and they are correct
         self.assertEqual(developer_set.id, dev.id)
         self.assertIn(organization_set.id, org_list)
-
-    def test_more_than_one_primary_keys(self):
-        with self.assertRaises(ModelError) as exc:
-            class WrongModel(models.Model):
-                na = models.AutoField(db_column='uid')
-                age = models.IntegerField(primary_key=True, unique=True)
-
-        self.assertEqual(
-            exc.exception.args[0],
-            'Model "{}" has more than one primary keys defined it has 2'.format('WrongModel'))

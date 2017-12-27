@@ -342,15 +342,3 @@ class FieldTests(AioTestCase):
                     self.assertTrue(
                         await Developer.objects.db_manager.request(
                             "SELECT * FROM pg_indexes WHERE indexname = '{}'".format(field_index)))
-
-    async def test_primary_key_null_coexistance(self):
-        with self.assertRaises(FieldError) as exc:
-            models.IntegerField(primary_key=True, null=True, unique=True)
-
-        self.assertEqual(exc.exception.args[0], 'Primary key fields can not be null')
-
-    async def test_primary_key_unique_coexistance(self):
-        with self.assertRaises(FieldError) as exc:
-            models.IntegerField(primary_key=True, unique=False)
-
-        self.assertEqual(exc.exception.args[0], 'Primary key fields must be "unique=True"')
