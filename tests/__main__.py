@@ -2,7 +2,7 @@ import asyncio
 import unittest
 import os
 
-from .testapp.models import Author, Book
+from tests.testapp.models import Author, Book
 
 from asyncorm.application import configure_orm
 
@@ -55,11 +55,11 @@ for x in range(300):
 
 
 if __name__ == '__main__':
-    from .models_tests import ModelTests
-    from .serializers_tests import SerializerTests
-    from .manage_tests import ManageTestMethods
-    from .module_tests import ModuleTests
-    from .field_tests import FieldTests
-    from .migration_tests import MigrationTests
+    from tests.models_tests import ModelTests
+    from tests.serializers_tests import SerializerTests
+    from tests.manage_tests import ManageTestMethods
+    from tests.module_tests import ModuleTests
+    from tests.field_tests import FieldTests
+    from tests.migration_tests import MigrationTests
 
     unittest.main()

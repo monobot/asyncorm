@@ -1,5 +1,5 @@
 from asyncorm.serializers import ModelSerializer
-from .models import Book
+from tests.testapp.models import Book
 
 
 class BookSerializer(ModelSerializer):

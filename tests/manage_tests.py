@@ -5,9 +5,9 @@ from asyncorm.exceptions import (
     ModelError, ModelDoesNotExist, QuerysetError, MultipleObjectsReturned
 )
 
-from .testapp.models import Author, Book
-from .testapp2.models import Appointment, Developer, Client
-from .test_helper import AioTestCase
+from tests.testapp.models import Author, Book
+from tests.testapp2.models import Appointment, Developer, Client
+from tests.test_helper import AioTestCase
 
 
 class ManageTestMethods(AioTestCase):

@@ -1,6 +1,6 @@
-from .models import Model
-from .fields import (
+from asyncorm.models.fields import (
     ArrayField,
+    AutoField,
     BooleanField,
     CharField,
     DateField,
@@ -13,14 +13,14 @@ from .fields import (
     JsonField,
     ManyToManyField,
     NumberField,
-    AutoField,
     TextField,
     TimeField,
     Uuid4Field,
 )
+from asyncorm.models.models import Model
 
 __all__ = (
-    'ArrayField', 'BooleanField', 'CharField', 'DateField', 'DateTimeField', 'DecimalField', 'EmailField',
-    'Field', 'ForeignKey', 'IntegerField', 'JsonField', 'ManyToManyField', 'Model', 'NumberField', 'AutoField',
-    'TextField', 'TimeField', 'Uuid4Field',
+    'ArrayField', 'AutoField', 'BooleanField', 'CharField', 'DateField', 'DateTimeField', 'DecimalField',
+    'EmailField', 'Field', 'ForeignKey', 'IntegerField', 'JsonField', 'ManyToManyField', 'Model',
+    'NumberField', 'TextField', 'TimeField', 'Uuid4Field',
 )

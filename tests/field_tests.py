@@ -3,9 +3,9 @@ from uuid import UUID
 
 from asyncorm.exceptions import FieldError
 from asyncorm import models
-from .testapp.models import Book, Publisher, Reader, Author
-from .testapp2.models import Organization, Client, Appointment, Skill, Developer
-from .test_helper import AioTestCase
+from tests.testapp.models import Book, Publisher, Reader, Author
+from tests.testapp2.models import Organization, Client, Appointment, Skill, Developer
+from tests.test_helper import AioTestCase
 
 
 class FieldTests(AioTestCase):

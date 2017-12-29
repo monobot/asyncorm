@@ -1,12 +1,11 @@
 from asyncpg.exceptions import UniqueViolationError, InsufficientPrivilegeError
 from copy import deepcopy
 
-from ..exceptions import (
+from asyncorm.database import Cursor
+from asyncorm.exceptions import (
     ModelDoesNotExist, ModelError, MultipleObjectsReturned, QuerysetError,
 )
-
-from ..models.fields import ManyToManyField, ForeignKey, CharField, NumberField
-from ..database import Cursor
+from asyncorm.models.fields import CharField, ForeignKey, ManyToManyField, NumberField
 
 
 __all__ = ['ModelManager', 'Queryset']

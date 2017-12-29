@@ -2,12 +2,11 @@ import importlib
 import inspect
 import os
 
-from .fields import Field, AutoField, ManyToManyField, ForeignKey
-from ..manager import ModelManager
-from ..exceptions import ModelError, FieldError, ModelDoesNotExist
-from ..application import get_model
-
-from ..serializers import ModelSerializer, SerializerMethod
+from asyncorm.application.configure import get_model
+from asyncorm.exceptions import FieldError, ModelDoesNotExist, ModelError
+from asyncorm.manager import ModelManager
+from asyncorm.models.fields import AutoField, Field, ForeignKey, ManyToManyField
+from asyncorm.serializers import ModelSerializer, SerializerMethod
 
 __all__ = ['Model', 'ModelSerializer', 'SerializerMethod']
 

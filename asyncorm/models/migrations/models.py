@@ -1,11 +1,10 @@
-from ..models import Model
-from ..fields import CharField, DateField
+from asyncorm import models
 
 
-class AsyncormMigrations(Model):
-    app = CharField(max_length=75)
-    name = CharField(max_length=75)
-    applied = DateField(auto_now=True)
+class AsyncormMigrations(models.Model):
+    app = models.CharField(max_length=75)
+    name = models.CharField(max_length=75)
+    applied = models.DateField(auto_now=True)
 
     class Meta():
         ordering = ('-id', )

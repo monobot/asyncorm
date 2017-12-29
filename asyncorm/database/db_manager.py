@@ -1,4 +1,4 @@
-from ..log import logger
+from asyncorm.log import logger
 
 
 class Cursor(object):

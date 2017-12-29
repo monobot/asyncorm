@@ -2,7 +2,7 @@ import argparse
 import textwrap
 import os
 
-from .. configure import DEFAULT_CONFIG_FILE
+from asyncorm.application.configure import DEFAULT_CONFIG_FILE
 
 cwd = os.getcwd()
 

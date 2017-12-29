@@ -1,7 +1,7 @@
-from asyncorm.application import get_model, orm_app, configure_orm
+from asyncorm.application.configure import get_model, orm_app, configure_orm
 from asyncorm.exceptions import ModelError, ModuleError
 
-from .test_helper import AioTestCase
+from tests.test_helper import AioTestCase
 
 Book = get_model('Book')
 

@@ -1,10 +1,13 @@
 import asyncio
 import configparser
 import importlib
-import inspect
+import logging
 import os
 
-from ..exceptions import ConfigError, ModuleError, ModelError
+from asyncorm.exceptions import ConfigError, ModuleError, ModelError
+from asyncorm.application.module import Module
+
+logger = logging.getLogger('asyncorm')
 
 DEFAULT_CONFIG = {
     'db_config': None,
@@ -34,7 +37,8 @@ class OrmApp(object):
         models_configure(): will take care of the inverse relations for
         foreignkeys and many2many
         '''
-        modules = config.pop('modules', None) or []
+        modules = [Module(m) for m in config.pop('modules', []) or []]
+        modules.append(Module('asyncorm.models.migrations'))
 
         DEFAULT_CONFIG.update(config)
 
@@ -50,35 +54,14 @@ class OrmApp(object):
         manager = getattr(database_module, DEFAULT_CONFIG['manager'])
         self.db_manager = manager(db_config)
 
-        # we have to manually add the migrations table
-        modules.append('asyncorm.models.migrations')
-
         # After the manager is set then we can build the rest of db features
-        self.get_declared_models(modules)
+        self.modules = {m.module_name: m.models for m in modules}
+
+        self.models = {}
+        for m in self.modules.values():
+            self.models.update(m)
+
         self.models_configure()
-
-    def get_declared_models(self, modules):
-        if len(modules) == 1:
-            self.models = {}
-
-        # this import should be here otherwise causes problems
-        from asyncorm import models
-        for m in modules:
-            module_list = {}
-            try:
-                module = importlib.import_module('{}.models'.format(m))
-            except ImportError:
-                importlib.import_module('sanic2')
-                module = importlib.import_module('sanic2.{}.models'.format(m))
-
-            for k, v in inspect.getmembers(module):
-                try:
-                    if issubclass(v, models.Model) and v is not models.Model:
-                        self.models[k] = v
-                        module_list.update({k: v})
-                except TypeError:
-                    pass
-            self.modules.update({m.split('.')[-1]: module_list})
 
     def get_model(self, model_name):
         if len(self.models) == 1:
@@ -97,7 +80,7 @@ class OrmApp(object):
 
     def models_configure(self):
         # and we set it to all the different models defined
-        from ..models.fields import ForeignKey, ManyToManyField
+        from asyncorm.models.fields import ForeignKey, ManyToManyField
 
         self.set_model_orm()
 

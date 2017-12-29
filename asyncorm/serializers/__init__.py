@@ -1,4 +1,4 @@
-from .serializer import ModelSerializerMeta, SerializerMethod, ModelSerializer
+from asyncorm.serializers.serializer import ModelSerializerMeta, SerializerMethod, ModelSerializer
 
 __all__ = (
     'ModelSerializerMeta', 'SerializerMethod', 'ModelSerializer'

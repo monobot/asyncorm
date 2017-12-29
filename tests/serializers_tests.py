@@ -1,10 +1,10 @@
-from asyncorm.application import get_model
+from asyncorm.application.configure import get_model
 from asyncorm.exceptions import SerializerError
 from asyncorm.serializers import ModelSerializer, SerializerMethod
 
-from .testapp.models import Book, Author
-from .testapp.serializer import BookSerializer, BookSerializer2
-from .test_helper import AioTestCase
+from tests.testapp.serializer import BookSerializer, BookSerializer2
+from tests.testapp.models import Book, Author
+from tests.test_helper import AioTestCase
 
 # You can get the book by model_name
 Book2 = get_model('Book')

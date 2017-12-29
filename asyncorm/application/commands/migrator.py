@@ -3,12 +3,11 @@ import logging
 import os
 import textwrap
 
-from asyncpg.exceptions import UndefinedTableError
-from asyncorm.models.migrations.models import AsyncormMigrations
+from asyncorm.application.configure import configure_orm, DEFAULT_CONFIG_FILE
+from asyncorm.exceptions import CommandError, MigrationError
 from asyncorm.models.migrations.constructor import MigrationConstructor
-
-from ..configure import configure_orm
-from ...exceptions import CommandError, MigrationError
+from asyncorm.models.migrations.models import AsyncormMigrations
+from asyncpg.exceptions import UndefinedTableError
 
 cwd = os.getcwd()
 
@@ -62,7 +61,7 @@ class Migrator(object):
         )
 
         parser.add_argument(
-            '--config', type=str, nargs=1, default=['asyncorm.ini', ],
+            '--config', type=str, nargs=1, default=[DEFAULT_CONFIG_FILE, ],
             help=(
                 'configuration file (defaults to asyncorm.ini in the same '
                 'directory)'
@@ -100,21 +99,21 @@ class Migrator(object):
                     model = self.orm.get_model(model_name)
 
                     latest_db_migration = await model().latest_db_migration()
+                    latest_db_migration = latest_db_migration and latest_db_migration.split(' ')[0]
+
                     latest_fs_migration = model().latest_fs_migration()
+                    latest_fs_migration = latest_fs_migration and latest_fs_migration.split(' ')[0]
 
-                    db_migration_isNone = latest_db_migration is None
-                    fs_migration_isNone = latest_fs_migration is None
-
-                    if fs_migration_isNone and not db_migration_isNone:
+                    if latest_db_migration:
                         raise MigrationError(
                             'Database with migrations not represented in the migration files')
 
-                    if not db_migration_isNone and not fs_migration_isNone:
+                    if not latest_db_migration and not latest_fs_migration:
                         if int(latest_db_migration) > int(latest_fs_migration):
                             raise MigrationError(
                                 'Database with migrations not represented in the migration files')
                         if int(latest_db_migration) < int(latest_fs_migration):
-                            raise MigrationError('Migrations generated but noy applied!')
+                            raise MigrationError('Migrations noy applied!')
 
                     models_dict[model_name] = model.current_state()
 

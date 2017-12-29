@@ -1,4 +1,4 @@
-from ..exceptions import SerializerError
+from asyncorm.exceptions import SerializerError
 
 
 class Serializers():
