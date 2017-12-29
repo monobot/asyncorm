@@ -37,7 +37,7 @@ class FieldTests(AioTestCase):
 
     def test_now_correcly_valuates(self):
         # correctly valuates if max_length correctly defined
-        models.CharField(max_length=45)
+        self.assertTrue(models.CharField(max_length=45))
 
     def test_db_column_validation_wrong_start(self):
         with self.assertRaises(FieldError) as exc:
@@ -68,7 +68,7 @@ class FieldTests(AioTestCase):
 
     def test_db_column_correctly_validates(self):
         # this is an allowed fieldname
-        models.CharField(max_length=35, db_column='one_one')
+        self.assertTrue(models.CharField(max_length=35, db_column='one_one'))
 
     async def test_field_max_length(self):
         reader = Reader(size='M', name='name bigger than max')
@@ -221,7 +221,7 @@ class FieldTests(AioTestCase):
             'not a valid email address' in exc.exception.args[0])
 
     def test_emailfield_correct(self):
-        models.EmailField(max_length=35).validate('laadio@s.com')
+        self.assertEqual(models.EmailField(max_length=35).validate('laadio@s.com'), None)
 
     async def test_datetimefield_correct(self):
         org = await Organization.objects.create(date=datetime.now(), name='nonameneeded')

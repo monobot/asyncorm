@@ -7,7 +7,7 @@
 
 :exclamation: Work In Progress !!
 
-**AsyncORM** is a fully async [ORM](https://en.wikipedia.org/wiki/Object-relational_mapping) inspired in the fantastic [django orm](https://docs.djangoproject.com/en/1.11/topics/db/).
+**AsyncORM** is a fully async [ORM](https://en.wikipedia.org/wiki/Object-relational_mapping) inspired by the fantastic [django orm](https://docs.djangoproject.com/en/1.11/topics/db/).
 
 It is designed to be used together with [sanic](https://github.com/channelcat/sanic) or any other async platform.
 

@@ -2,6 +2,9 @@
 History
 =======
 
+0.3.4 (2017-12-27)
+* ArrayField, TextField, also allow db_index for any kind of fields
+
 0.3.3 (2017-06-25)
 * DateField, DateTimeField, TimeField, UuidField and more work on migrations
 

@@ -46,7 +46,7 @@ WARNING: version prebeta !!
 
 WARNING: Work In Progress !!
 
-**AsyncORM** is a fully async ORM_ inspired in the fantastic `django orm`_
+**AsyncORM** is a fully async ORM_ inspired by the fantastic `django orm`_
 
 .. _ORM: https://en.wikipedia.org/wiki/Object-relational_mapping
 .. _django orm: https://docs.djangoproject.com/en/1.11/topics/db/

@@ -1,4 +1,3 @@
-from asyncorm import models
 from asyncorm.application import get_model
 from asyncorm.exceptions import FieldError, ModelError
 
@@ -89,7 +88,7 @@ class ModelTests(AioTestCase):
 
         # now it correctly validates
         book = Book()
-        book.validate_kwargs(kwargs)
+        self.assertEqual(book.validate_kwargs(kwargs), None)
 
     async def test_ordering(self):
         # since ordering is by id descending
