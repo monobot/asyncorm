@@ -60,3 +60,9 @@ target/
 
 # pyenv python configuration file
 .python-version
+
+# package specific
+tests/testapp/migrations/*
+tests/testapp2/migrations/*
+tests/testapp2/migrations/*
+examples/sanic/library/migrations/*

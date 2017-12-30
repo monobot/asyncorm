@@ -269,7 +269,8 @@ class BaseModel(object, metaclass=ModelMeta):
     @classmethod
     async def next_db_migration(cls):
         latest = await cls.latest_db_migration()
-        return '000{}'.format(int(latest) + 1)[-4:] if latest else '0001'
+        latest = latest or 0
+        return '0000{}'.format(int(latest) + 1)[-5:]
 
     async def latest_db_fs_state(cls):
         f_name = await cls.latest_db_migration()
@@ -292,8 +293,8 @@ class BaseModel(object, metaclass=ModelMeta):
                 raise ModelError('Wrong filename for migration {}'.format(prev_migration))
 
     def next_fs_migration(self):
-        latest = self.latest_fs_migration()
-        return '000{}'.format(int(latest) + 1)[-4:] if latest else '0001'
+        latest = self.latest_fs_migration() or 0
+        return '0000{}'.format(int(latest) + 1)[-5:]
 
     @classmethod
     def current_state(cls):

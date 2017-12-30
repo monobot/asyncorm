@@ -99,21 +99,32 @@ class Migrator(object):
                     model = self.orm.get_model(model_name)
 
                     latest_db_migration = await model().latest_db_migration()
-                    latest_db_migration = latest_db_migration and latest_db_migration.split(' ')[0]
+                    latest_db_migration = latest_db_migration and latest_db_migration.split(' ')[0] or 0
 
                     latest_fs_migration = model().latest_fs_migration()
-                    latest_fs_migration = latest_fs_migration and latest_fs_migration.split(' ')[0]
+                    latest_fs_migration = latest_fs_migration and latest_fs_migration.split(' ')[0] or 0
 
-                    if latest_db_migration:
-                        raise MigrationError(
-                            'Database with migrations not represented in the migration files')
-
-                    if not latest_db_migration and not latest_fs_migration:
-                        if int(latest_db_migration) > int(latest_fs_migration):
-                            raise MigrationError(
-                                'Database with migrations not represented in the migration files')
-                        if int(latest_db_migration) < int(latest_fs_migration):
-                            raise MigrationError('Migrations noy applied!')
+                    if not latest_fs_migration:
+                        if not latest_db_migration:
+                            logger.debug(
+                                'No migration exists for app "{}", creating initial one.'.format(
+                                    module_name))
+                            pass
+                        else:
+                            logger.debug(
+                                'Impossible to solve inconsistency; there is no migration file'
+                                'but there is a migration {} in the database for app "{}"'.format(
+                                    latest_db_migration,
+                                    module_name))
+                            pass
+                    else:
+                        if not latest_db_migration:
+                            # migration not applied
+                            pass
+                        elif int(latest_fs_migration) > int(latest_db_migration):
+                            pass
+                        elif int(latest_fs_migration) < int(latest_db_migration):
+                            pass
 
                     models_dict[model_name] = model.current_state()
 
@@ -128,7 +139,6 @@ class Migrator(object):
                 logger.error('asyncorm raised "UndefinedTableError" in app "{}"'.format(module_name))
 
         command = getattr(self, self.args.command)
-
         command()
 
     @staticmethod
