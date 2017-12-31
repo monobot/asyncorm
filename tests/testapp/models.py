@@ -28,7 +28,7 @@ class Publisher(models.Model):
     name = models.CharField(max_length=50, db_index=True)
     json = models.JsonField(max_length=50, null=True)
 
-    mac = models.MACAdressField(null=True)
+    mac = models.MACAdressField(null=True, dialect='unix')
     inet = models.GenericIPAddressField(null=True, protocol='both', unpack_protocol='ipv4')
 
 

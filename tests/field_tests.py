@@ -1,7 +1,7 @@
 from datetime import date, datetime, time
 
 from uuid import UUID
-from netaddr import IPNetwork
+from netaddr import EUI, IPNetwork, mac_eui48
 
 from asyncorm.exceptions import FieldError
 from asyncorm import models
@@ -328,7 +328,9 @@ class FieldTests(AioTestCase):
         pub = Publisher(name='Linda', json={'last_name': 'Olson'}, mac=mac)
         await pub.save()
 
-        self.assertEqual(pub.mac, mac)
+        self.assertNotEqual(pub.mac, mac)  # diferent dialects
+        self.assertEqual(str(EUI(pub.mac, dialect=mac_eui48)), mac)  # equal when converted on same dialect
+        self.assertEqual(EUI(pub.mac), EUI(mac))   # equal before representation
 
     async def test_model_with_mac_field_error(self):
         with self.assertRaises(FieldError) as exc:
