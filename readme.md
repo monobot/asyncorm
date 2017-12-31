@@ -15,4 +15,5 @@ It is designed to be used together with [sanic](https://github.com/channelcat/sa
 [read the docs](http://asyncorm.readthedocs.io/en/development/)
 
 ### Dependencies
-[asyncpg](http://asyncorm.readthedocs.io/en/development/)
+[asyncpg](https://github.com/MagicStack/asyncpg)
+[netaddr](https://github.com/drkjam/netaddr/)

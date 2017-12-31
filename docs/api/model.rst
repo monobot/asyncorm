@@ -16,11 +16,10 @@ This example model defines an Author, which has a first_name, last_name and age
 .. code-block:: python
 
     from asyncorm import models
-    from asyncorm import fields
 
     class Author(models.Model):
-        first_name = fields.CharField(max_length=30)
-        last_name = fields.CharField(max_length=30)
-        age = fields.IntegerField()
+        first_name = models.CharField(max_length=30)
+        last_name = models.CharField(max_length=30)
+        age = models.IntegerField()
 
 Someone coming from django will definetly detect a pattern, this is one of the core ideas of asyncOrm, be for those developers with django background.

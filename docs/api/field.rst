@@ -9,44 +9,57 @@ You can define your own Field types, they should in that case subclass ``asyncor
 
 There are a number of already existing FieldTypes:
 
-AutoField
-~~~~~~~
-
 BooleanField
-~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
 
 CharField
-~~~~~~~~~
+~~~~~~~~~~~~~~~
 
 EmailField
-~~~~~~~~~~
+~~~~~~~~~~~~~~~
 
-JsonField
-~~~~~~~~~
+TextField
+~~~~~~~~~~~~~~~
 
 NumberField
-~~~~~~~~~~~
+~~~~~~~~~~~~~~~
 
 IntegerField
-~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
 
 DecimalField
-~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
 
-DateField
-~~~~~~~~~
+AutoField
+~~~~~~~~~~~~~~~
 
 DateTimeField
-~~~~~~~~~
+~~~~~~~~~~~~~~~
+
+DateField
+~~~~~~~~~~~~~~~
 
 TimeField
-~~~~~~~~~
+~~~~~~~~~~~~~~~
 
 ForeignKey
-~~~~~~~~~~
+~~~~~~~~~~~~~~~
 
 ManyToManyField
 ~~~~~~~~~~~~~~~
 
-UuidField
+JsonField
 ~~~~~~~~~~~~~~~
+
+Uuid4Field
+~~~~~~~~~~~~~~~
+
+ArrayField
+~~~~~~~~~~~~~~~
+
+GenericIPAddressField
+~~~~~~~~~~~~~~~
+
+MACAdressField
+~~~~~~~~~~~~~~~
+

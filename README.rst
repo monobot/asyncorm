@@ -78,8 +78,10 @@ Dependencies
 AsyncOrm currently only depends on AsyncPg and netaddr.
 
 asyncpg_, is a database interface library designed specifically for PostgreSQL and Python/asyncio.
+netaddr_, A network address manipulation library for Python
 
 .. _asyncpg: https://github.com/MagicStack/asyncpg
+.. _netaddr: https://github.com/drkjam/netaddr
 
 Credits
 ---------
