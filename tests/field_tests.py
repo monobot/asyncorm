@@ -12,28 +12,21 @@ class FieldTests(AioTestCase):
     def test_class_definition(self):
         with self.assertRaises(NotImplementedError) as exc:
             models.Field()
-        self.assertEqual(
-            exc.exception.args[0],
-            'Missing "internal_type" attribute from class definition'
-        )
+
+        self.assertEqual(exc.exception.args[0], 'Missing "internal_type" attribute from class definition')
 
     def test_required_kwargs_not_sent(self):
 
         with self.assertRaises(FieldError) as exc:
             models.CharField()
-        self.assertEqual(
-            exc.exception.args[0],
-            '"CharField" field requires max_length'
-        )
+
+        self.assertEqual(exc.exception.args[0], '"CharField" field requires max_length')
 
     def test_required_kwargs_wrong_value(self):
         with self.assertRaises(FieldError) as exc:
             models.CharField(max_length='gt')
 
-        self.assertEqual(
-            exc.exception.args[0],
-            'Wrong value for max_length'
-        )
+        self.assertEqual(exc.exception.args[0], 'Wrong value for max_length')
 
     def test_now_correcly_valuates(self):
         # correctly valuates if max_length correctly defined
@@ -43,28 +36,19 @@ class FieldTests(AioTestCase):
         with self.assertRaises(FieldError) as exc:
             models.CharField(max_length=35, db_column='_oneone')
 
-        self.assertEqual(
-            exc.exception.args[0],
-            'db_column can not start with "_"'
-        )
+        self.assertEqual(exc.exception.args[0], 'db_column can not start with "_"')
 
     def test_db_column_validation_wrong_ending(self):
         with self.assertRaises(FieldError) as exc:
             models.CharField(max_length=35, db_column='oneone_')
 
-        self.assertEqual(
-            exc.exception.args[0],
-            'db_column can not end with "_"'
-        )
+        self.assertEqual(exc.exception.args[0], 'db_column can not end with "_"')
 
     def test_db_column_validation_wrong_characters(self):
         with self.assertRaises(FieldError) as exc:
             models.CharField(max_length=35, db_column='one__one')
 
-        self.assertEqual(
-            exc.exception.args[0],
-            'db_column can not contain "__"'
-        )
+        self.assertEqual(exc.exception.args[0], 'db_column can not contain "__"')
 
     def test_db_column_correctly_validates(self):
         # this is an allowed fieldname
@@ -92,10 +76,7 @@ class FieldTests(AioTestCase):
             book = Book(content='telomero')
             await book.save()
 
-        self.assertEqual(
-            exc.exception.args[0],
-            '"telomero" not in model choices'
-        )
+        self.assertEqual(exc.exception.args[0], '"telomero" not in model choices')
 
     async def test_dictionary_choices_content_not_in_choices(self):
         # choices defined as dictionaries
@@ -103,10 +84,7 @@ class FieldTests(AioTestCase):
             read = Reader(power='flower')
             await read.save()
 
-        self.assertEqual(
-            exc.exception.args[0],
-            '"flower" not in model choices'
-        )
+        self.assertEqual(exc.exception.args[0], '"flower" not in model choices')
 
     async def test_default_callable(self):
         # when the fields with default value are not esecifically defined
@@ -125,6 +103,13 @@ class FieldTests(AioTestCase):
 
         self.assertEqual(publisher.json.__class__, dict)
 
+    async def test_jsonfield_saving_list(self):
+        publisher = Publisher(name='Oliver', json=['last_name', 'Gregory'])
+
+        await publisher.save()
+
+        self.assertEqual(publisher.json.__class__, list)
+
     async def test_jsonfield_saving_wrong_string(self):
         # you can also save an string as json
         publisher = Publisher(
@@ -135,10 +120,7 @@ class FieldTests(AioTestCase):
         with self.assertRaises(FieldError) as exc:
             await publisher.save()
 
-        self.assertEqual(
-            exc.exception.args[0],
-            'The data entered can not be converted to json'
-        )
+        self.assertEqual(exc.exception.args[0], 'The data entered can not be converted to json')
 
     async def test_jsonfield_saving_over_max_length(self):
         # if not bigger than max_length
@@ -190,35 +172,31 @@ class FieldTests(AioTestCase):
         with self.assertRaises(FieldError) as exc:
             models.EmailField(max_length=35).validate('laadio@svgvgvcom')
 
-        self.assertTrue(
-            'not a valid email address' in exc.exception.args[0])
+        self.assertTrue('not a valid email address' in exc.exception.args[0])
 
     def test_emailfield_wrong_starting_char(self):
         with self.assertRaises(FieldError) as exc:
             models.EmailField(max_length=35).validate('@laadio@svgvgv.com')
 
-        self.assertTrue(
-            'not a valid email address' in exc.exception.args[0])
+        self.assertTrue('not a valid email address' in exc.exception.args[0])
 
     def test_emailfield_wrong_starting_char_2(self):
         with self.assertRaises(FieldError) as exc:
             models.EmailField(max_length=35).validate('.laadio@svgv@gv.com')
-        self.assertTrue(
-            'not a valid email address' in exc.exception.args[0])
+
+        self.assertTrue('not a valid email address' in exc.exception.args[0])
 
     def test_emailfield_wrong_starting_char_3(self):
         with self.assertRaises(FieldError) as exc:
             models.EmailField(max_length=35).validate('_laadio@svgv@gv.com')
 
-        self.assertTrue(
-            'not a valid email address' in exc.exception.args[0])
+        self.assertTrue('not a valid email address' in exc.exception.args[0])
 
     def test_emailfield_too_many_ats(self):
         with self.assertRaises(FieldError) as exc:
             models.EmailField(max_length=35).validate('laadio@svgv@gv.com')
 
-        self.assertTrue(
-            'not a valid email address' in exc.exception.args[0])
+        self.assertTrue('not a valid email address' in exc.exception.args[0])
 
     def test_emailfield_correct(self):
         self.assertEqual(models.EmailField(max_length=35).validate('laadio@s.com'), None)
@@ -342,3 +320,165 @@ class FieldTests(AioTestCase):
                     self.assertTrue(
                         await Developer.objects.db_manager.request(
                             "SELECT * FROM pg_indexes WHERE indexname = '{}'".format(field_index)))
+
+    async def test_model_with_mac_field_ok(self):
+        pub = Publisher(name='Linda', json={'last_name': 'Olson'}, mac='00-1B-77-49-54-FD')
+        await pub.save()
+
+    async def test_model_with_mac_field_error(self):
+        with self.assertRaises(FieldError) as exc:
+            pub = Publisher(name='Linda', json={'last_name': 'Olson'}, mac='00-1B-77-49-54')
+            await pub.save()
+
+        self.assertEqual(exc.exception.args[0], 'Not a correct MAC address')
+
+    def test_mac_field_ok(self):
+        models.MACAdressField().validate('00-1B-77-49-54-FD')
+
+    def test_mac_field_error(self):
+        with self.assertRaises(FieldError) as exc:
+            models.MACAdressField().validate('00-1B-77-49-54')
+
+        self.assertEqual(exc.exception.args[0], 'Not a correct MAC address')
+
+    def test_inet_field_validation_ipv4_error(self):
+        with self.assertRaises(FieldError) as exc:
+            models.GenericIPAddressField(protocol='ipv4', unpack_protocol='ipv4')
+
+        self.assertEqual(
+            exc.exception.args[0],
+            'if the protocol is restricted the output will always be in the same protocol version, '
+            'so unpack_protocol should be "same"'
+        )
+
+    def test_inet_field_validation_protocol_error_option(self):
+        protocol = 'ipv9'
+        with self.assertRaises(FieldError) as exc:
+            models.GenericIPAddressField(protocol=protocol)
+
+        self.assertEqual(exc.exception.args[0], '{} is not a recognized protocol'.format(protocol))
+
+    def test_inet_field_validation_unpack_protocol_error_option(self):
+        unpack_protocol = 'ipv9'
+        with self.assertRaises(FieldError) as exc:
+            models.GenericIPAddressField(unpack_protocol=unpack_protocol)
+
+        self.assertEqual(
+            exc.exception.args[0],
+            '{} is not a recognized unpack_protocol'.format(unpack_protocol)
+        )
+
+    def test_inet_field_validation_protocol_correct_options(self):
+        protocol = ('both', 'ipv4', 'ipv6')
+        for prot in protocol:
+            models.GenericIPAddressField(protocol=prot)
+
+    def test_inet_field_validation_unpack_protocol_correct_options(self):
+        unpack_protocol = ('same', 'ipv4', 'ipv6')
+        for prot in unpack_protocol:
+            models.GenericIPAddressField(unpack_protocol=prot)
+
+    def test_inet_field_validation_ipv6_error(self):
+        with self.assertRaises(FieldError) as exc:
+            models.GenericIPAddressField(protocol='ipv6', unpack_protocol='ipv4')
+
+        self.assertEqual(
+            exc.exception.args[0],
+            'if the protocol is restricted the output will always be in the same protocol version, '
+            'so unpack_protocol should be "same"'
+        )
+
+    def test_inet_field_validation_ok(self):
+        models.GenericIPAddressField(protocol='ipv6', unpack_protocol='same')
+
+    async def test_model_with_inet_field_ok(self):
+        pub = Publisher(name='Linda', json={'last_name': 'Olson'}, inet='1.1.1.1')
+        await pub.save()
+
+    async def test_model_with_inet_field_error(self):
+        with self.assertRaises(FieldError) as exc:
+            pub = Publisher(name='Linda', json={'last_name': 'Olson'}, inet='300.3.3.3')
+            await pub.save()
+
+        self.assertEqual(exc.exception.args[0], 'Not a correct IP address')
+
+    def test_inet_field_ok(self):
+        correct_formats = (
+            '192.168.100.128/25',
+            '192.168/24',
+            '192.168/25',
+            '192.168.1',
+            '192.168',
+            '128.1',
+            '128',
+            '128.1.2',
+            '10.1.2',
+            '10.1',
+            '10',
+            '10.1.2.3/32',
+            '2001:4f8:3:ba::/64',
+            '2001:4f8:3:ba:2e0:81ff:fe22:d1f1/128',
+            '::ffff:1.2.3.0/120',
+            '::ffff:1.2.3.0/128',
+        )
+
+        for ip_address in correct_formats:
+            models.GenericIPAddressField().validate(ip_address)
+
+    def test_inet_field_ok_ipv4(self):
+        correct_formats = (
+            '192.168.100.128/25',
+            '192.168/24',
+            '192.168/25',
+            '192.168.1',
+            '192.168',
+            '128.1',
+            '128',
+            '128.1.2',
+            '10.1.2',
+            '10.1',
+            '10',
+            '10.1.2.3/32',
+        )
+
+        for ip_address in correct_formats:
+            models.GenericIPAddressField(protocol='ipv4').validate(ip_address)
+
+    def test_inet_field_ok_ipv6(self):
+        correct_formats = (
+            '2001:4f8:3:ba::/64',
+            '2001:4f8:3:ba:2e0:81ff:fe22:d1f1/128',
+            '::ffff:1.2.3.0/120',
+            '::ffff:1.2.3.0/128',
+        )
+
+        for ip_address in correct_formats:
+            models.GenericIPAddressField(protocol='ipv6').validate(ip_address)
+
+    def test_inet_field_ipv4_error(self):
+        value = '::ffff:1.2.3.0/128'
+        protocol = 'ipv4'
+        with self.assertRaises(FieldError) as exc:
+            models.GenericIPAddressField(protocol=protocol).validate(value)
+
+        self.assertEqual(
+            exc.exception.args[0],
+            '{} is not a correct {} IP address'.format(value, protocol)
+        )
+
+    def test_inet_field_ipv6_error(self):
+        value = '1.1.1.1'
+        protocol = 'ipv6'
+        with self.assertRaises(FieldError) as exc:
+            models.GenericIPAddressField(protocol=protocol).validate(value)
+
+        self.assertEqual(
+            exc.exception.args[0],
+            '{} is not a correct {} IP address'.format(value, protocol)
+        )
+
+    def test_inet_field_error(self):
+        with self.assertRaises(FieldError) as exc:
+            models.GenericIPAddressField().validate('1.1.1.1000')
+
+        self.assertEqual(exc.exception.args[0], 'Not a correct IP address')

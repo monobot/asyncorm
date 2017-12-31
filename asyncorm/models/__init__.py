@@ -9,8 +9,10 @@ from asyncorm.models.fields import (
     EmailField,
     Field,
     ForeignKey,
+    GenericIPAddressField,
     IntegerField,
     JsonField,
+    MACAdressField,
     ManyToManyField,
     NumberField,
     TextField,
@@ -21,6 +23,6 @@ from asyncorm.models.models import Model
 
 __all__ = (
     'ArrayField', 'AutoField', 'BooleanField', 'CharField', 'DateField', 'DateTimeField', 'DecimalField',
-    'EmailField', 'Field', 'ForeignKey', 'IntegerField', 'JsonField', 'ManyToManyField', 'Model',
-    'NumberField', 'TextField', 'TimeField', 'Uuid4Field',
+    'EmailField', 'Field', 'ForeignKey', 'GenericIPAddressField', 'IntegerField', 'JsonField',
+    'MACAdressField', 'ManyToManyField', 'Model', 'NumberField', 'TextField', 'TimeField', 'Uuid4Field',
 )

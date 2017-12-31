@@ -3,6 +3,8 @@ import re
 from datetime import datetime, date, time
 from decimal import Decimal
 from json.decoder import JSONDecodeError
+from netaddr import EUI, IPNetwork
+from netaddr.core import AddrFormatError
 
 from uuid import UUID
 
@@ -21,8 +23,10 @@ KWARGS_TYPES = {
     'max_digits': int,
     'max_length': int,
     'null': bool,
+    'protocol': str,
     'reverse_field': str,
     'strftime': str,
+    'unpack_protocol': str,
     'unique': bool,
     'uuid_type': str,
 }
@@ -113,7 +117,7 @@ class Field(object):
         return value
 
     def sanitize_data(self, value):
-        '''method used to convert to SQL data'''
+        '''method used to convert python to SQL data'''
         if value is None:
             return 'NULL'
         self.validate(value)
@@ -141,8 +145,8 @@ class BooleanField(Field):
     creation_string = 'boolean'
     args = ('choices', 'db_column', 'db_index', 'default', 'null', 'unique', )
 
-    def __init__(self, db_column='', default=None, null=False, unique=False, db_index=False):
-        super().__init__(db_column=db_column, default=default, null=null, unique=unique, db_index=db_index)
+    def __init__(self, db_column='', db_index=False, default=None, null=False, unique=False):
+        super().__init__(db_column=db_column, db_index=db_index, default=default, null=null, unique=unique)
 
     def sanitize_data(self, value):
         '''method used to convert to SQL data'''
@@ -165,17 +169,16 @@ class CharField(Field):
 
     def __init__(
             self,
-            db_column='', default=None, max_length=0, null=False, choices=None, unique=False,
-            db_index=False):
+            choices=None, db_column='', db_index=False, default=None, max_length=0, null=False, unique=False,
+            ):
         super().__init__(
+            choices=choices,
             db_column=db_column,
+            db_index=db_index,
             default=default,
             max_length=max_length,
             null=null,
-            choices=choices,
             unique=unique,
-            db_index=db_index,
-
         )
 
     @classmethod
@@ -210,11 +213,10 @@ class TextField(Field):
     args = ('choices', 'db_column', 'db_index', 'default', 'null', 'unique', )
 
     def __init__(
-            self, db_column='', default=None, null=False, unique=False, db_index=False,
-            choices=None):
+            self, choices=None, db_column='', db_index=False, default=None, null=False, unique=False):
         super().__init__(
-                db_column=db_column, default=default, null=null, unique=unique, db_index=db_index,
-                choices=choices)
+            choices=choices, db_column=db_column, db_index=db_index, default=default, null=null,
+            unique=unique)
 
     def sanitize_data(self, value):
         return "'{}'".format(super().sanitize_data(value))
@@ -230,11 +232,10 @@ class IntegerField(NumberField):
     creation_string = 'integer'
     args = ('choices', 'db_column', 'db_index', 'default', 'null', 'unique', )
 
-    def __init__(
-            self, db_column='', default=None, null=False, choices=None, unique=False, db_index=False):
+    def __init__(self, choices=None, db_column='', db_index=False, default=None, null=False, unique=False):
         super().__init__(
-            db_column=db_column, default=default, null=null, choices=choices, unique=unique,
-            db_index=db_index)
+            choices=choices, db_column=db_column, db_index=db_index, default=default, null=null,
+            unique=unique)
 
     def sanitize_data(self, value):
         return '{}'.format(super().sanitize_data(value))
@@ -244,15 +245,15 @@ class DecimalField(NumberField):
     internal_type = (Decimal, float, int)
     creation_string = 'decimal({max_digits},{decimal_places})'
     args = (
-        'db_column', 'default', 'null', 'choices', 'unique', 'max_digits', 'decimal_places', 'db_index',
+        'choices', 'db_column', 'db_index', 'decimal_places', 'default', 'null', 'unique', 'max_digits',
         )
 
     def __init__(
-            self, db_column='', default=None, null=False, choices=None,
-            unique=False, db_index=False,  max_digits=10, decimal_places=2):
+            self, choices=None, db_column='', db_index=False, decimal_places=2, default=None, max_digits=10,
+            null=False, unique=False):
         super().__init__(
-            db_column=db_column, default=default, null=null, choices=choices, unique=unique,
-            db_index=db_index,  max_digits=max_digits, decimal_places=decimal_places)
+            choices=choices, db_column=db_column, db_index=db_index, decimal_places=decimal_places,
+            default=default, max_digits=max_digits, null=null, unique=unique)
 
     def sanitize_data(self, value):
         return '{}'.format(super().sanitize_data(value))
@@ -279,19 +280,18 @@ class DateTimeField(Field):
         return value.strftime(self.strftime)
 
     def __init__(
-            self, db_column='', default=None, auto_now=False, null=False, choices=None,
-            unique=False, db_index=False,  strftime=None):
+            self,
+            auto_now=False, choices=None, db_column='', db_index=False, default=None, null=False,
+            strftime=None, unique=False):
         super().__init__(
-            db_column=db_column, default=default, auto_now=auto_now, null=null, choices=choices,
-            unique=unique, db_index=db_index,  strftime=strftime or self.strftime)
+            auto_now=auto_now, choices=choices, db_column=db_column, db_index=db_index, default=default,
+            null=null, strftime=strftime or self.strftime, unique=unique)
 
 
 class DateField(DateTimeField):
     internal_type = date
     creation_string = 'date'
-    args = (
-        'auto_now', 'choices', 'db_column', 'db_index', 'default', 'null', 'strftime',
-        'unique', )
+    args = ('auto_now', 'choices', 'db_column', 'db_index', 'default', 'null', 'strftime', 'unique')
     strftime = '%Y-%m-%d'
 
 
@@ -306,9 +306,9 @@ class ForeignKey(Field):
     internal_type = int
     required_kwargs = ['foreign_key', ]
     creation_string = 'integer references {foreign_key}'
-    args = ('db_column', 'db_index', 'default', 'foreign_key', 'null', 'unique', )
+    args = ('db_column', 'db_index', 'default', 'foreign_key', 'null', 'unique')
 
-    def __init__(self, db_column='', default=None, foreign_key='', null=False, unique=False, db_index=False):
+    def __init__(self, db_column='', db_index=False, default=None, foreign_key='', null=False, unique=False):
         super().__init__(
             db_column=db_column, db_index=db_index, default=default, foreign_key=foreign_key, null=null,
             unique=unique)
@@ -324,11 +324,11 @@ class ManyToManyField(Field):
         {own_model} INTEGER REFERENCES {own_model} NOT NULL,
         {foreign_key} INTEGER REFERENCES {foreign_key} NOT NULL
     '''
-    args = ('db_column', 'db_index', 'default', 'foreign_key', 'unique', )
+    args = ('db_column', 'db_index', 'default', 'foreign_key', 'unique')
 
-    def __init__(self, db_column='', foreign_key=None, default=None, unique=False, db_index=False):
+    def __init__(self, db_column='', db_index=False, default=None, foreign_key=None, unique=False):
         super().__init__(
-            db_column=db_column, foreign_key=foreign_key, default=default, unique=unique, db_index=db_index)
+            db_column=db_column, db_index=db_index, default=default, foreign_key=foreign_key, unique=unique)
 
     def creation_query(self):
         return self.creation_string.format(**self.__dict__)
@@ -341,27 +341,20 @@ class ManyToManyField(Field):
             super().validate(value)
 
 
-# composite fields
-
-
+# other data types
 class JsonField(Field):
     internal_type = dict, list, str
     required_kwargs = ['max_length', ]
-    creation_string = 'varchar({max_length})'
-    args = ('choices', 'db_column', 'db_index', 'default', 'max_length', 'null', 'unique', )
+    creation_string = 'JSON'
+    # creation_string = 'varchar({max_length})'
+    args = ('choices', 'db_column', 'db_index', 'default', 'max_length', 'null', 'unique')
 
-    def __init__(self,
-            db_column='', default=None, max_length=0, null=False, choices=None, unique=False,
-            db_index=False):
+    def __init__(
+            self, choices=None, db_column='', db_index=False, default=None, max_length=0, null=False,
+            unique=False):
         super().__init__(
-            db_column=db_column,
-            default=default,
-            max_length=max_length,
-            null=null,
-            choices=choices,
-            unique=unique,
-            db_index=db_index,
-        )
+            choices=choices, db_column=db_column, db_index=db_index, default=default, max_length=max_length,
+            null=null, unique=unique)
 
     @classmethod
     def recompose(cls, value):
@@ -380,8 +373,7 @@ class JsonField(Field):
 
         if len(value) > self.max_length:
             raise FieldError(
-                'The string entered is bigger than the "max_length" defined ({})'.format(self.max_length)
-            )
+                'The string entered is bigger than the "max_length" defined ({})'.format(self.max_length))
 
         return '\'{}\''.format(value)
 
@@ -390,16 +382,15 @@ class Uuid4Field(Field):
     internal_type = UUID
     args = ('db_column', 'db_index', 'null', 'unique', 'uuid_type', )
 
-    def __init__(
-            self, db_column='', null=False, uuid_type='v4', db_index=False, unique=True):
+    def __init__(self, db_column='', db_index=False, null=False, unique=True, uuid_type='v4'):
         self.field_requirement = 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
 
         if uuid_type not in ['v1', 'v4']:
             raise FieldError('{} is not a recognized type'.format(uuid_type))
 
         super().__init__(
-            db_column=db_column, unique=unique, db_index=db_index,
-            default=None, null=null, uuid_type=uuid_type)
+            db_column=db_column, db_index=db_index, default=None, null=null, unique=unique,
+            uuid_type=uuid_type)
 
     @property
     def creation_string(self):
@@ -419,12 +410,12 @@ class Uuid4Field(Field):
 class ArrayField(Field):
     internal_type = list
     creation_string = '{value_type} ARRAY'
-    args = ('db_column', 'db_index', 'default', 'null', 'unique', 'value_type', )
+    args = ('db_column', 'db_index', 'default', 'null', 'unique', 'value_type')
     value_types = ('text', 'varchar', 'integer')
 
-    def __init__(
-            self, db_column='', default=None, null=True, unique=False, db_index=False, value_type='text'):
-        super().__init__(db_column=db_column, default=default, unique=unique, db_index=db_index, null=null)
+    def __init__(self, db_column='', db_index=False, default=None, null=True, unique=False,
+            value_type='text'):
+        super().__init__(db_column=db_column, db_index=db_index, default=default, null=null, unique=unique)
         self.value_type = value_type
 
     def sanitize_data(self, value):
@@ -449,3 +440,56 @@ class ArrayField(Field):
         iseq = iter(value)
         first_type = type(next(iseq))
         return first_type if all(isinstance(x, first_type) for x in iseq) else False
+
+
+# networkfields
+class GenericIPAddressField(Field):
+    internal_type = IPNetwork
+    creation_string = 'INET'
+    args = ('db_column', 'db_index', 'null', 'protocol', 'unique', 'unpack_protocol')
+
+    def __init__(self,
+            db_column='', db_index=False, null=False, protocol='both', unique=False, unpack_protocol='same'):
+        if protocol.lower() not in ('both', 'ipv6', 'ipv4'):
+            raise FieldError('{} is not a recognized protocol'.format(protocol))
+        if unpack_protocol.lower() not in ('same', 'ipv6', 'ipv4'):
+            raise FieldError('{} is not a recognized unpack_protocol'.format(unpack_protocol))
+        if protocol.lower() != 'both' and unpack_protocol != 'same':
+            raise FieldError(
+                'if the protocol is restricted the output will always be in the same protocol version, '
+                'so unpack_protocol should be "same"'
+            )
+
+        super().__init__(
+            db_column=db_column, db_index=db_index, default=None, null=null, protocol=protocol,
+            unique=unique, unpack_protocol=unpack_protocol)
+
+    def validate(self, value):
+        try:
+            IPNetwork(value)
+        except AddrFormatError:
+            raise FieldError('Not a correct IP address')
+
+        if self.protocol.lower() != 'both' and IPNetwork(value).version != int(self.protocol[-1:]):
+            raise FieldError('{} is not a correct {} IP address'.format(value, self.protocol))
+
+    def sanitize_data(self, value):
+        return '\'{}\''.format(value)
+
+
+class MACAdressField(Field):
+    internal_type = EUI
+    creation_string = 'MACADDR'
+    args = ('db_column', 'db_index', 'null', 'unique')
+
+    def __init__(self, db_column='', db_index=False, null=False, unique=True):
+        super().__init__(db_column=db_column, db_index=db_index, default=None, null=null, unique=unique)
+
+    def validate(self, value):
+        try:
+            EUI(value)
+        except AddrFormatError:
+            raise FieldError('Not a correct MAC address')
+
+    def sanitize_data(self, value):
+        return '\'{}\''.format(value)

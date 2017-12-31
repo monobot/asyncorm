@@ -26,7 +26,10 @@ def weight():
 
 class Publisher(models.Model):
     name = models.CharField(max_length=50, db_index=True)
-    json = models.JsonField(max_length=50, null=True, db_index=True)
+    json = models.JsonField(max_length=50, null=True)
+
+    mac = models.MACAdressField(null=True)
+    inet = models.GenericIPAddressField(null=True)
 
 
 class Author(models.Model):
