@@ -1,5 +1,7 @@
 from datetime import date, datetime, time
+
 from uuid import UUID
+from netaddr import IPNetwork
 
 from asyncorm.exceptions import FieldError
 from asyncorm import models
@@ -322,8 +324,11 @@ class FieldTests(AioTestCase):
                             "SELECT * FROM pg_indexes WHERE indexname = '{}'".format(field_index)))
 
     async def test_model_with_mac_field_ok(self):
-        pub = Publisher(name='Linda', json={'last_name': 'Olson'}, mac='00-1B-77-49-54-FD')
+        mac = '00-1B-77-49-54-FD'
+        pub = Publisher(name='Linda', json={'last_name': 'Olson'}, mac=mac)
         await pub.save()
+
+        self.assertEqual(pub.mac, mac)
 
     async def test_model_with_mac_field_error(self):
         with self.assertRaises(FieldError) as exc:
@@ -331,6 +336,13 @@ class FieldTests(AioTestCase):
             await pub.save()
 
         self.assertEqual(exc.exception.args[0], 'Not a correct MAC address')
+
+    def test_mac_field_validation_error(self):
+        dialect = 'wrong'
+        with self.assertRaises(FieldError) as exc:
+            models.MACAdressField(dialect=dialect)
+
+        self.assertEqual(exc.exception.args[0], '"{}" is not a correct mac dialect'.format(dialect))
 
     def test_mac_field_ok(self):
         models.MACAdressField().validate('00-1B-77-49-54-FD')
@@ -348,7 +360,7 @@ class FieldTests(AioTestCase):
         self.assertEqual(
             exc.exception.args[0],
             'if the protocol is restricted the output will always be in the same protocol version, '
-            'so unpack_protocol should be "same"'
+            'so unpack_protocol should be default value, "same"'
         )
 
     def test_inet_field_validation_protocol_error_option(self):
@@ -385,7 +397,7 @@ class FieldTests(AioTestCase):
         self.assertEqual(
             exc.exception.args[0],
             'if the protocol is restricted the output will always be in the same protocol version, '
-            'so unpack_protocol should be "same"'
+            'so unpack_protocol should be default value, "same"'
         )
 
     def test_inet_field_validation_ok(self):
@@ -401,6 +413,16 @@ class FieldTests(AioTestCase):
             await pub.save()
 
         self.assertEqual(exc.exception.args[0], 'Not a correct IP address')
+
+    async def test_model_with_inet_field_unpack(self):
+        ip = '::ffff:1.2.3.0/120'
+        pub = Publisher(name='Linda', json={'last_name': 'Olson'}, inet=ip)
+
+        await pub.save()
+
+        self.assertNotEqual(pub.inet, ip)
+        self.assertEqual(pub.inet, '1.2.3.0/24')
+        self.assertEqual(pub.inet, str(IPNetwork(ip).ipv4()))
 
     def test_inet_field_ok(self):
         correct_formats = (

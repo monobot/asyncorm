@@ -3,7 +3,8 @@ import re
 from datetime import datetime, date, time
 from decimal import Decimal
 from json.decoder import JSONDecodeError
-from netaddr import EUI, IPNetwork
+from netaddr import EUI, IPNetwork, mac_eui48, mac_bare, mac_cisco, mac_pgsql, mac_unix, mac_unix_expanded
+
 from netaddr.core import AddrFormatError
 
 from uuid import UUID
@@ -19,6 +20,7 @@ KWARGS_TYPES = {
     'db_index': bool,
     'decimal_places': int,
     'default': object,
+    'dialect': str,
     'foreign_key': str,
     'max_digits': int,
     'max_length': int,
@@ -457,7 +459,7 @@ class GenericIPAddressField(Field):
         if protocol.lower() != 'both' and unpack_protocol != 'same':
             raise FieldError(
                 'if the protocol is restricted the output will always be in the same protocol version, '
-                'so unpack_protocol should be "same"'
+                'so unpack_protocol should be default value, "same"'
             )
 
         super().__init__(
@@ -473,6 +475,14 @@ class GenericIPAddressField(Field):
         if self.protocol.lower() != 'both' and IPNetwork(value).version != int(self.protocol[-1:]):
             raise FieldError('{} is not a correct {} IP address'.format(value, self.protocol))
 
+    def recompose(self, value):
+        if value is not None and self.unpack_protocol != 'same':
+            return str(getattr(IPNetwork(str(value)), self.unpack_protocol)())
+        return value
+
+    def serialize_data(self, value):
+        return self.recompose(value)
+
     def sanitize_data(self, value):
         return '\'{}\''.format(value)
 
@@ -480,16 +490,35 @@ class GenericIPAddressField(Field):
 class MACAdressField(Field):
     internal_type = EUI
     creation_string = 'MACADDR'
-    args = ('db_column', 'db_index', 'null', 'unique')
+    args = ('db_column', 'db_index', 'default', 'dialect', 'null', 'unique')
+    mac_dialects = {
+        'bare': mac_bare,
+        'cisco': mac_cisco,
+        'eui48': mac_eui48,
+        'pgsql': mac_pgsql,
+        'unix': mac_unix,
+        'unix_expanded': mac_unix_expanded
+    }
 
-    def __init__(self, db_column='', db_index=False, null=False, unique=True):
-        super().__init__(db_column=db_column, db_index=db_index, default=None, null=null, unique=unique)
+    def __init__(self, db_column='', db_index=False, default=None, dialect='eui48', null=False, unique=True):
+        if dialect not in (self.mac_dialects.keys()):
+            raise FieldError('"{}" is not a correct mac dialect'.format(dialect))
+
+        super().__init__(db_column=db_column, db_index=db_index, default=default, dialect=dialect, null=null,
+            unique=unique)
 
     def validate(self, value):
         try:
             EUI(value)
         except AddrFormatError:
             raise FieldError('Not a correct MAC address')
+
+    def recompose(self, value):
+        if value is not None:
+            v = EUI(value)
+            v.dialect = self.mac_dialects[self.dialect]
+            return str(v)
+        return value
 
     def sanitize_data(self, value):
         return '\'{}\''.format(value)
