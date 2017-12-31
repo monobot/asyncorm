@@ -2,6 +2,9 @@
 History
 =======
 
+0.3.5 (2017-12-27)
+* GenericIPAddressField, MACAdressField included
+
 0.3.4 (2017-12-27)
 * ArrayField, TextField, also allow db_index for any kind of fields
 

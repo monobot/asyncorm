@@ -75,7 +75,7 @@ A number of things are needed to be able to release asyncOrm a production ready 
 Dependencies
 ------------
 
-AsyncOrm currently only depends on AsyncPg.
+AsyncOrm currently only depends on AsyncPg and netaddr.
 
 asyncpg_, is a database interface library designed specifically for PostgreSQL and Python/asyncio.
 
