@@ -453,9 +453,9 @@ class GenericIPAddressField(Field):
     def __init__(self,
             db_column='', db_index=False, null=False, protocol='both', unique=False, unpack_protocol='same'):
         if protocol.lower() not in ('both', 'ipv6', 'ipv4'):
-            raise FieldError('{} is not a recognized protocol'.format(protocol))
+            raise FieldError('"{}" is not a recognized protocol'.format(protocol))
         if unpack_protocol.lower() not in ('same', 'ipv6', 'ipv4'):
-            raise FieldError('{} is not a recognized unpack_protocol'.format(unpack_protocol))
+            raise FieldError('"{}" is not a recognized unpack_protocol'.format(unpack_protocol))
         if protocol.lower() != 'both' and unpack_protocol != 'same':
             raise FieldError(
                 'if the protocol is restricted the output will always be in the same protocol version, '
@@ -476,8 +476,10 @@ class GenericIPAddressField(Field):
             raise FieldError('{} is not a correct {} IP address'.format(value, self.protocol))
 
     def recompose(self, value):
-        if value is not None and self.unpack_protocol != 'same':
-            return str(getattr(IPNetwork(str(value)), self.unpack_protocol)())
+        if value is not None:
+            if self.unpack_protocol != 'same':
+                value = getattr(IPNetwork(str(value)), self.unpack_protocol)()
+            value = str(value)
         return value
 
     def serialize_data(self, value):
@@ -500,7 +502,7 @@ class MACAdressField(Field):
         'unix_expanded': mac_unix_expanded
     }
 
-    def __init__(self, db_column='', db_index=False, default=None, dialect='eui48', null=False, unique=True):
+    def __init__(self, db_column='', db_index=False, default=None, dialect='unix', null=False, unique=True):
         if dialect not in (self.mac_dialects.keys()):
             raise FieldError('"{}" is not a correct mac dialect'.format(dialect))
 

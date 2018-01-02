@@ -5,7 +5,7 @@ from library.models import Book
 class BookSerializer(ModelSerializer):
     book_type = SerializerMethod()
 
-    @classmethod
+    @staticmethod
     def get_book_type(instance):
         return instance.book_type_display()
 

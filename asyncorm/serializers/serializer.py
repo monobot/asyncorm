@@ -55,9 +55,7 @@ class ModelSerializer(Serializers, metaclass=ModelSerializerMeta):
         return_dict = {}
 
         if not isinstance(instanced_model, cls.model):
-            raise SerializerError(
-                'That model is not an instance of {}'.format(cls.model)
-            )
+            raise SerializerError('That object is not an instance of {}'.format(cls.model))
 
         for f in cls._fields:
             # if the serializer class has an specific serializer for that field
@@ -65,14 +63,10 @@ class ModelSerializer(Serializers, metaclass=ModelSerializerMeta):
                 serializer = getattr(cls, f)
                 if isinstance(serializer, SerializerMethod):
                     serializer_method = getattr(cls, 'get_{}'.format(f))
-                    return_dict[f] = serializer_method(
-                        serializer, instanced_model
-                    )
+                    return_dict[f] = serializer_method(instanced_model)
                 # here we have to add subserializers when posible
             else:
                 field_class = getattr(instanced_model.__class__, f)
-                return_dict[f] = field_class.serialize_data(
-                    getattr(instanced_model, f)
-                )
+                return_dict[f] = field_class.serialize_data(getattr(instanced_model, f))
 
         return return_dict

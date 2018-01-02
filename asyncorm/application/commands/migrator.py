@@ -4,7 +4,7 @@ import os
 import textwrap
 
 from asyncorm.application.configure import configure_orm, DEFAULT_CONFIG_FILE
-from asyncorm.exceptions import CommandError, MigrationError
+from asyncorm.exceptions import CommandError
 from asyncorm.models.migrations.constructor import MigrationConstructor
 from asyncorm.models.migrations.models import AsyncormMigrations
 from asyncpg.exceptions import UndefinedTableError
@@ -95,6 +95,8 @@ class Migrator(object):
         for module_name in self.orm.modules.keys():
             try:
                 models_dict = {}
+                required_migration = False
+
                 for model_name in self.orm.modules[module_name]:
                     model = self.orm.get_model(model_name)
 
@@ -104,12 +106,19 @@ class Migrator(object):
                     latest_fs_migration = model().latest_fs_migration()
                     latest_fs_migration = latest_fs_migration and latest_fs_migration.split(' ')[0] or 0
 
+                    next_fs_migration = os.path.join(
+                        model().migrations_dir,
+                        '{}.py'.format(model().next_fs_migration())
+                    )
+
+                    models_dict[model_name] = model.current_state()
+
                     if not latest_fs_migration:
                         if not latest_db_migration:
                             logger.debug(
                                 'No migration exists for app "{}", creating initial one.'.format(
                                     module_name))
-                            pass
+                            required_migration = True
                         else:
                             logger.debug(
                                 'Impossible to solve inconsistency; there is no migration file'
@@ -126,14 +135,9 @@ class Migrator(object):
                         elif int(latest_fs_migration) < int(latest_db_migration):
                             pass
 
-                    models_dict[model_name] = model.current_state()
-
-                next_fs_migration = os.path.join(
-                    model().migrations_dir,
-                    '{}.py'.format(model().next_fs_migration())
-                )
-                mc = MigrationConstructor(next_fs_migration)
-                mc.set_models(models_dict)
+                if required_migration:
+                    mc = MigrationConstructor(next_fs_migration)
+                    mc.set_models(models_dict)
 
             except UndefinedTableError:
                 logger.error('asyncorm raised "UndefinedTableError" in app "{}"'.format(module_name))

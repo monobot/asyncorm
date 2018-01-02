@@ -272,12 +272,6 @@ class BaseModel(object, metaclass=ModelMeta):
         latest = latest or 0
         return '0000{}'.format(int(latest) + 1)[-5:]
 
-    async def latest_db_fs_state(cls):
-        f_name = await cls.latest_db_migration()
-        fullpath = os.join(cls.dir_name, f_name)
-
-        importlib.import_module(fullpath)
-
     def latest_fs_migration(self):
         filenames = next(os.walk(self.migrations_dir))[2]
 

@@ -2,6 +2,9 @@
 History
 =======
 
+0.3.6 (2012-1-2)
+* external import fix
+
 0.3.5 (2017-12-27)
 * GenericIPAddressField, MACAdressField included
 

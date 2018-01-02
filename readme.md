@@ -16,4 +16,5 @@ It is designed to be used together with [sanic](https://github.com/channelcat/sa
 
 ### Dependencies
 [asyncpg](https://github.com/MagicStack/asyncpg)
+
 [netaddr](https://github.com/drkjam/netaddr/)

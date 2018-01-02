@@ -53,14 +53,14 @@ WARNING: Work In Progress !!
 
 **AsyncORM** currently only supports postgres, but its developed to be "easy" to plug a number of different database interfaces.
 
-It is designed to be used together with sanic_ or other async webserver.
+It is designed to be used with any async library, but with sanic_ in mind.
 
 .. _sanic: https://github.com/channelcat/sanic
 
 To do
 -----
 
-A number of things are needed to be able to release asyncOrm a production ready ORM:
+A number of things are needed to be able to release asyncOrm as a production ready ORM:
 
 - better the documentation!
 - migration support (forward migration at least)
@@ -78,6 +78,7 @@ Dependencies
 AsyncOrm currently only depends on AsyncPg and netaddr.
 
 asyncpg_, is a database interface library designed specifically for PostgreSQL and Python/asyncio.
+
 netaddr_, A network address manipulation library for Python
 
 .. _asyncpg: https://github.com/MagicStack/asyncpg

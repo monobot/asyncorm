@@ -323,7 +323,7 @@ class FieldTests(AioTestCase):
                         await Developer.objects.db_manager.request(
                             "SELECT * FROM pg_indexes WHERE indexname = '{}'".format(field_index)))
 
-    async def test_model_with_mac_field_ok(self):
+    async def test_model_with_macadressfield_field_ok(self):
         mac = '00-1B-77-49-54-FD'
         pub = Publisher(name='Linda', json={'last_name': 'Olson'}, mac=mac)
         await pub.save()
@@ -332,30 +332,30 @@ class FieldTests(AioTestCase):
         self.assertEqual(str(EUI(pub.mac, dialect=mac_eui48)), mac)  # equal when converted on same dialect
         self.assertEqual(EUI(pub.mac), EUI(mac))   # equal before representation
 
-    async def test_model_with_mac_field_error(self):
+    async def test_model_with_macadressfield_field_error(self):
         with self.assertRaises(FieldError) as exc:
             pub = Publisher(name='Linda', json={'last_name': 'Olson'}, mac='00-1B-77-49-54')
             await pub.save()
 
         self.assertEqual(exc.exception.args[0], 'Not a correct MAC address')
 
-    def test_mac_field_validation_error(self):
+    def test_macadressfield_field_validation_error(self):
         dialect = 'wrong'
         with self.assertRaises(FieldError) as exc:
             models.MACAdressField(dialect=dialect)
 
         self.assertEqual(exc.exception.args[0], '"{}" is not a correct mac dialect'.format(dialect))
 
-    def test_mac_field_ok(self):
+    def test_macadressfield_field_ok(self):
         models.MACAdressField().validate('00-1B-77-49-54-FD')
 
-    def test_mac_field_error(self):
+    def test_macadressfield_field_error(self):
         with self.assertRaises(FieldError) as exc:
             models.MACAdressField().validate('00-1B-77-49-54')
 
         self.assertEqual(exc.exception.args[0], 'Not a correct MAC address')
 
-    def test_inet_field_validation_ipv4_error(self):
+    def test_genericipaddressfield_validation_ipv4_error(self):
         with self.assertRaises(FieldError) as exc:
             models.GenericIPAddressField(protocol='ipv4', unpack_protocol='ipv4')
 
@@ -365,34 +365,34 @@ class FieldTests(AioTestCase):
             'so unpack_protocol should be default value, "same"'
         )
 
-    def test_inet_field_validation_protocol_error_option(self):
+    def test_genericipaddressfield_validation_protocol_error_option(self):
         protocol = 'ipv9'
         with self.assertRaises(FieldError) as exc:
             models.GenericIPAddressField(protocol=protocol)
 
-        self.assertEqual(exc.exception.args[0], '{} is not a recognized protocol'.format(protocol))
+        self.assertEqual(exc.exception.args[0], '"{}" is not a recognized protocol'.format(protocol))
 
-    def test_inet_field_validation_unpack_protocol_error_option(self):
+    def test_genericipaddressfield_validation_unpack_protocol_error_option(self):
         unpack_protocol = 'ipv9'
         with self.assertRaises(FieldError) as exc:
             models.GenericIPAddressField(unpack_protocol=unpack_protocol)
 
         self.assertEqual(
             exc.exception.args[0],
-            '{} is not a recognized unpack_protocol'.format(unpack_protocol)
+            '"{}" is not a recognized unpack_protocol'.format(unpack_protocol)
         )
 
-    def test_inet_field_validation_protocol_correct_options(self):
+    def test_genericipaddressfield_validation_protocol_correct_options(self):
         protocol = ('both', 'ipv4', 'ipv6')
         for prot in protocol:
             models.GenericIPAddressField(protocol=prot)
 
-    def test_inet_field_validation_unpack_protocol_correct_options(self):
+    def test_genericipaddressfield_validation_unpack_protocol_correct_options(self):
         unpack_protocol = ('same', 'ipv4', 'ipv6')
         for prot in unpack_protocol:
             models.GenericIPAddressField(unpack_protocol=prot)
 
-    def test_inet_field_validation_ipv6_error(self):
+    def test_genericipaddressfield_validation_ipv6_error(self):
         with self.assertRaises(FieldError) as exc:
             models.GenericIPAddressField(protocol='ipv6', unpack_protocol='ipv4')
 
@@ -402,21 +402,21 @@ class FieldTests(AioTestCase):
             'so unpack_protocol should be default value, "same"'
         )
 
-    def test_inet_field_validation_ok(self):
+    def test_genericipaddressfield_validation_ok(self):
         models.GenericIPAddressField(protocol='ipv6', unpack_protocol='same')
 
-    async def test_model_with_inet_field_ok(self):
+    async def test_model_with_genericipaddressfield_ok(self):
         pub = Publisher(name='Linda', json={'last_name': 'Olson'}, inet='1.1.1.1')
         await pub.save()
 
-    async def test_model_with_inet_field_error(self):
+    async def test_model_with_genericipaddressfield_error(self):
         with self.assertRaises(FieldError) as exc:
             pub = Publisher(name='Linda', json={'last_name': 'Olson'}, inet='300.3.3.3')
             await pub.save()
 
         self.assertEqual(exc.exception.args[0], 'Not a correct IP address')
 
-    async def test_model_with_inet_field_unpack(self):
+    async def test_model_with_genericipaddressfield_unpack(self):
         ip = '::ffff:1.2.3.0/120'
         pub = Publisher(name='Linda', json={'last_name': 'Olson'}, inet=ip)
 
@@ -426,7 +426,7 @@ class FieldTests(AioTestCase):
         self.assertEqual(pub.inet, '1.2.3.0/24')
         self.assertEqual(pub.inet, str(IPNetwork(ip).ipv4()))
 
-    def test_inet_field_ok(self):
+    def test_genericipaddressfield_ok(self):
         correct_formats = (
             '192.168.100.128/25',
             '192.168/24',
@@ -449,7 +449,7 @@ class FieldTests(AioTestCase):
         for ip_address in correct_formats:
             models.GenericIPAddressField().validate(ip_address)
 
-    def test_inet_field_ok_ipv4(self):
+    def test_genericipaddressfield_ok_ipv4(self):
         correct_formats = (
             '192.168.100.128/25',
             '192.168/24',
@@ -468,7 +468,7 @@ class FieldTests(AioTestCase):
         for ip_address in correct_formats:
             models.GenericIPAddressField(protocol='ipv4').validate(ip_address)
 
-    def test_inet_field_ok_ipv6(self):
+    def test_genericipaddressfield_ok_ipv6(self):
         correct_formats = (
             '2001:4f8:3:ba::/64',
             '2001:4f8:3:ba:2e0:81ff:fe22:d1f1/128',
@@ -479,7 +479,7 @@ class FieldTests(AioTestCase):
         for ip_address in correct_formats:
             models.GenericIPAddressField(protocol='ipv6').validate(ip_address)
 
-    def test_inet_field_ipv4_error(self):
+    def test_genericipaddressfield_ipv4_error(self):
         value = '::ffff:1.2.3.0/128'
         protocol = 'ipv4'
         with self.assertRaises(FieldError) as exc:
@@ -490,7 +490,7 @@ class FieldTests(AioTestCase):
             '{} is not a correct {} IP address'.format(value, protocol)
         )
 
-    def test_inet_field_ipv6_error(self):
+    def test_genericipaddressfield_ipv6_error(self):
         value = '1.1.1.1'
         protocol = 'ipv6'
         with self.assertRaises(FieldError) as exc:
@@ -501,7 +501,7 @@ class FieldTests(AioTestCase):
             '{} is not a correct {} IP address'.format(value, protocol)
         )
 
-    def test_inet_field_error(self):
+    def test_genericipaddressfield_error(self):
         with self.assertRaises(FieldError) as exc:
             models.GenericIPAddressField().validate('1.1.1.1000')
 
