@@ -1,6 +1,6 @@
 __all__ = (
     'AsyncormException', 'FieldError', 'ModelDoesNotExist',
-    'ModelError', 'ModuleError', 'MultipleObjectsReturned', 'QuerysetError',
+    'ModelError', 'AppError', 'MultipleObjectsReturned', 'QuerysetError',
     'SerializerError', 'ConfigError', 'CommandError', 'MigrationError'
 )
 
@@ -54,6 +54,6 @@ class SerializerError(AsyncormException):
     pass
 
 
-class ModuleError(AsyncormException):
-    '''to be raised when there are model module or config errors detected'''
+class AppError(AsyncormException):
+    '''to be raised when there are class App or config errors detected'''
     pass

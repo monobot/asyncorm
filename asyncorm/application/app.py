@@ -8,7 +8,7 @@ from asyncorm.exceptions import MigrationError
 logger = logging.getLogger('asyncorm')
 
 
-class Module(object):
+class App(object):
     def __init__(self, relative_name, db_manager):
         self.dir_name = False
         self.relative_name = relative_name

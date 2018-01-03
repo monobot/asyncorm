@@ -38,7 +38,7 @@ user =
 password =
 
 [orm]
-modules =
+apps =
 
 """
 

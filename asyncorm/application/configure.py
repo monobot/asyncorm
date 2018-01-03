@@ -4,8 +4,8 @@ import importlib
 import logging
 import os
 
-from asyncorm.exceptions import ConfigError, ModuleError, ModelError
-from asyncorm.application.module import Module
+from asyncorm.exceptions import ConfigError, AppError, ModelError
+from asyncorm.application.app import App
 
 logger = logging.getLogger('asyncorm')
 
@@ -13,7 +13,7 @@ DEFAULT_CONFIG = {
     'db_config': None,
     'loop': asyncio.get_event_loop(),
     'manager': 'PostgresManager',
-    'modules': None,
+    'apps': None,
 }
 
 DEFAULT_CONFIG_FILE = 'asyncorm.ini'
@@ -38,7 +38,7 @@ class OrmApp(object):
 
         db_config = config.get('db_config', None)
         if not db_config:
-            raise ModuleError('Imposible to configure without database configuration!')
+            raise AppError('Imposible to configure without database configuration!')
 
         db_config['loop'] = self.loop = DEFAULT_CONFIG.get('loop')
 
@@ -48,30 +48,30 @@ class OrmApp(object):
         manager = getattr(database_module, DEFAULT_CONFIG['manager'])
         self.db_manager = manager(db_config)
 
-        modules_names = config.pop('modules', [])
-        self.modules = {m.split('.')[-1]: Module(m, self.db_manager) for m in modules_names or []}
-        self.modules.update({'migrations': Module('asyncorm.models.migrations', self.db_manager)})
+        app_names = config.pop('apps', [])
+        self.apps = {m.split('.')[-1]: App(m, self.db_manager) for m in app_names or []}
+        self.apps.update({'migrations': App('asyncorm.models.migrations', self.db_manager)})
 
         self.models = {}
-        for module in self.modules.values():
+        for module in self.apps.values():
             self.models.update(module.models)
 
         self.models_configure()
 
     def get_model(self, model_name):
         if len(self.models) == 1:
-            raise ModuleError('There are no modules declared in the orm')
+            raise AppError('There are no apps declared in the orm')
 
         try:
             model_split = model_name.split('.')
             if len(model_split) == 2:
-                return self.modules[model_split[0]].models[model_split[1]]
+                return self.apps[model_split[0]].models[model_split[1]]
             elif len(model_split) == 1:
                 return self.models[model_name]
             else:
                 raise ModelError('The string declared should be in format "module.Model" or "Model"')
         except KeyError:
-            raise ModuleError('The model does not exists')
+            raise AppError('The model does not exists')
 
     def models_configure(self):
         # and we set it to all the different models defined
@@ -144,7 +144,7 @@ def parse_config(config_file):
             'user': parsed_file.get('db_config', 'user') or None,
             'password': parsed_file.get('db_config', 'password') or None,
         },
-        'modules': parsed_file.get('orm', 'modules').split() or []
+        'apps': parsed_file.get('orm', 'apps').split() or []
     }
 
 

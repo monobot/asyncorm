@@ -21,7 +21,7 @@ Asyncorm can be configured like this, using a simple dictionary and so passing f
 
     configure_orm({'loop': loop,  # always use the whole application loop!
                              'db_config': db_config,
-                             'modules': ['library', ],  # list of apps
+                             'apps': ['library', ],  # list of apps
                              })
 
 But it is recomended to use the .ini approach, so if you dont pass the configuration as a dictionary it will expect it to be the absolute path to the .ini file that contents that data, the reason for that .ini file.

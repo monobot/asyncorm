@@ -75,9 +75,9 @@ class Migrator(object):
 
     def check_args(self):
         # check that the arguments are correctly sent
-        if self.args.app != '*' and self.args.app not in self.orm.modules.keys():
-            raise CommandError('Module not defined in the orm')
-        if self.args.app == '*' and self.args.migration != '?':
+        if self.args.app != '*' and self.args.app not in self.orm.apps.keys():
+            raise CommandError('App not defined in the orm')
+        if self.args.app == '*' and self.args.migration is not None:
             raise CommandError('Migration "{}" specified when the App is not'.format(self.args.migration))
 
     def configure_orm(self):
@@ -90,18 +90,21 @@ class Migrator(object):
         # create if not exists the migration table!!
         await AsyncormMigrations().objects.create_table()
 
-        modules = self.args.app != '*' and [self.args.app] or [k for k in self.orm.modules.keys()]
+        apps = self.args.app != '*' and [self.args.app] or [k for k in self.orm.apps.keys()]
         migration = self.args.migration != '?' and self.args.migration or None
 
-        await getattr(self, self.args.command)(modules, migration)
+        if self.args.command == 'makemigrations':
+            args = (apps, )
+        else:
+            args = (apps, migration)
+        await getattr(self, self.args.command)(*args)
 
-    async def makemigrations(self, modules, migration):
-        logger.info('{} {}'.format(modules, migration))
-        logger.info('makemigrations')
+    async def makemigrations(self, apps):
+        logger.info('migrations')
+        for module in [self.orm.apps[m] for m in apps]:
+            pass
 
-        for module in [self.orm.modules[m] for m in modules]:
-            await module.check_current_migrations_status(migration)
-
-    def migrate(self, modules, migration):
-        logger.info('{} {}'.format(modules, migration))
+    async def migrate(self, apps, migration):
         logger.info('migrate')
+        for module in [self.orm.apps[m] for m in apps]:
+            await module.check_current_migrations_status(migration)

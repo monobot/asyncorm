@@ -3,7 +3,7 @@ Model
 
 The model object
 ~~~~~~~~~~~~~~~~
-The model object is the key stone of the orm, it has to reside in the models.py file in each of the modules declared in the orm definition as you already know.
+The model object is the key stone of the orm, it has to reside in the models.py file in each of the apps declared in the orm definition as you already know.
 
 - Each model represents a table in the database (and all the relational tables that asyncOrm will create for them when needed like the ManyToMany relations)
 - They should subclass ``asyncorm.models.Model``
