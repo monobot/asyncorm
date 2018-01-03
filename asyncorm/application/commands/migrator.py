@@ -77,6 +77,8 @@ class Migrator(object):
         # check that the arguments are correctly sent
         if self.args.app != '*' and self.args.app not in self.orm.modules.keys():
             raise CommandError('Module not defined in the orm')
+        if self.args.app == '*' and self.args.migration != '?':
+            raise CommandError('Migration "{}" specified when the App is not'.format(self.args.migration))
 
     def configure_orm(self):
         config_filename = os.path.join(cwd, self.args.config[0])
@@ -88,25 +90,18 @@ class Migrator(object):
         # create if not exists the migration table!!
         await AsyncormMigrations().objects.create_table()
 
-        if self.args.app != '*':
-            modds = [self.args.app]
-        else:
-            modds = [k for k in self.orm.modules.keys()]
+        modules = self.args.app != '*' and [self.args.app] or [k for k in self.orm.modules.keys()]
+        migration = self.args.migration != '?' and self.args.migration or None
 
-        for mod in modds:
-            mod = self.orm.modules[mod]
+        await getattr(self, self.args.command)(modules, migration)
 
-            latest_db_migration = await mod.latest_db_migration()
-            latest_fs_migration = mod.latest_fs_migration()
-
-            print('latest_db_migration', latest_db_migration)
-            print('latest_fs_migration', latest_fs_migration)
-
-        command = getattr(self, self.args.command)
-        command()
-
-    def makemigrations(self):
+    async def makemigrations(self, modules, migration):
+        logger.info('{} {}'.format(modules, migration))
         logger.info('makemigrations')
 
-    def migrate(self):
+        for module in [self.orm.modules[m] for m in modules]:
+            await module.check_current_migrations_status(migration)
+
+    def migrate(self, modules, migration):
+        logger.info('{} {}'.format(modules, migration))
         logger.info('migrate')
