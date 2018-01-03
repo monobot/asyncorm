@@ -69,8 +69,6 @@ class BaseModel(object, metaclass=ModelMeta):
     def __init__(self, **kwargs):
         self.dir_name = os.path.dirname(inspect.getmodule(self).__file__)
         self.app_name = self.dir_name.split(os.path.sep)[-1]
-        self.migrations_dir = os.path.join(self.dir_name, 'migrations')
-        os.makedirs(self.migrations_dir, exist_ok=True)
 
         self.table_name = ''
 
@@ -261,34 +259,6 @@ class BaseModel(object, metaclass=ModelMeta):
 
         migration_queries.append(self.objects.unique_together_builder())
         return migration_queries
-
-    @classmethod
-    async def latest_db_migration(cls):
-        return await cls.objects.latest_db_migration()
-
-    @classmethod
-    async def next_db_migration(cls):
-        latest = await cls.latest_db_migration()
-        latest = latest or 0
-        return '0000{}'.format(int(latest) + 1)[-5:]
-
-    def latest_fs_migration(self):
-        filenames = next(os.walk(self.migrations_dir))[2]
-
-        if filenames:
-            prev_migration = (sorted(filenames))[-1]
-        else:
-            return None
-
-        if prev_migration is not None:
-            try:
-                return prev_migration.split('.')[0].split('__')[0]
-            except AttributeError:
-                raise ModelError('Wrong filename for migration {}'.format(prev_migration))
-
-    def next_fs_migration(self):
-        latest = self.latest_fs_migration() or 0
-        return '0000{}'.format(int(latest) + 1)[-5:]
 
     @classmethod
     def current_state(cls):

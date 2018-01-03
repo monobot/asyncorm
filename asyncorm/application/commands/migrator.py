@@ -5,9 +5,9 @@ import textwrap
 
 from asyncorm.application.configure import configure_orm, DEFAULT_CONFIG_FILE
 from asyncorm.exceptions import CommandError
-from asyncorm.models.migrations.constructor import MigrationConstructor
+# from asyncorm.models.migrations.constructor import MigrationConstructor
 from asyncorm.models.migrations.models import AsyncormMigrations
-from asyncpg.exceptions import UndefinedTableError
+# from asyncpg.exceptions import UndefinedTableError
 
 cwd = os.getcwd()
 
@@ -69,14 +69,14 @@ class Migrator(object):
         )
 
         self.args = parser.parse_args()
-        self.check_args()
-
         self.orm = self.configure_orm()
+
+        self.check_args()
 
     def check_args(self):
         # check that the arguments are correctly sent
-        if self.args.command == 'makemigrations' and self.args.app != '*':
-            raise CommandError('You can not specify the app when making migrations')
+        if self.args.app != '*' and self.args.app not in self.orm.modules.keys():
+            raise CommandError('Module not defined in the orm')
 
     def configure_orm(self):
         config_filename = os.path.join(cwd, self.args.config[0])
@@ -89,66 +89,24 @@ class Migrator(object):
         await AsyncormMigrations().objects.create_table()
 
         if self.args.app != '*':
-            if self.args.app not in self.orm.modules.keys():
-                raise CommandError('Module not defined in the orm')
+            modds = [self.args.app]
+        else:
+            modds = [k for k in self.orm.modules.keys()]
 
-        for module_name in self.orm.modules.keys():
-            try:
-                models_dict = {}
-                required_migration = False
+        for mod in modds:
+            mod = self.orm.modules[mod]
 
-                for model_name in self.orm.modules[module_name]:
-                    model = self.orm.get_model(model_name)
+            latest_db_migration = await mod.latest_db_migration()
+            latest_fs_migration = mod.latest_fs_migration()
 
-                    latest_db_migration = await model().latest_db_migration()
-                    latest_db_migration = latest_db_migration and latest_db_migration.split(' ')[0] or 0
-
-                    latest_fs_migration = model().latest_fs_migration()
-                    latest_fs_migration = latest_fs_migration and latest_fs_migration.split(' ')[0] or 0
-
-                    next_fs_migration = os.path.join(
-                        model().migrations_dir,
-                        '{}.py'.format(model().next_fs_migration())
-                    )
-
-                    models_dict[model_name] = model.current_state()
-
-                    if not latest_fs_migration:
-                        if not latest_db_migration:
-                            logger.debug(
-                                'No migration exists for app "{}", creating initial one.'.format(
-                                    module_name))
-                            required_migration = True
-                        else:
-                            logger.debug(
-                                'Impossible to solve inconsistency; there is no migration file'
-                                'but there is a migration {} in the database for app "{}"'.format(
-                                    latest_db_migration,
-                                    module_name))
-                            pass
-                    else:
-                        if not latest_db_migration:
-                            # migration not applied
-                            pass
-                        elif int(latest_fs_migration) > int(latest_db_migration):
-                            pass
-                        elif int(latest_fs_migration) < int(latest_db_migration):
-                            pass
-
-                if required_migration:
-                    mc = MigrationConstructor(next_fs_migration)
-                    mc.set_models(models_dict)
-
-            except UndefinedTableError:
-                logger.error('asyncorm raised "UndefinedTableError" in app "{}"'.format(module_name))
+            print('latest_db_migration', latest_db_migration)
+            print('latest_fs_migration', latest_fs_migration)
 
         command = getattr(self, self.args.command)
         command()
 
-    @staticmethod
-    def makemigrations():
-        print('makemigrations')
+    def makemigrations(self):
+        logger.info('makemigrations')
 
-    @staticmethod
-    def migrate():
-        print('migrate')
+    def migrate(self):
+        logger.info('migrate')

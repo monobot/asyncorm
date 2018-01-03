@@ -20,10 +20,6 @@ DEFAULT_CONFIG_FILE = 'asyncorm.ini'
 
 
 class OrmApp(object):
-    db_manager = None
-    loop = None
-    models = {}
-    modules = {}
 
     def configure(self, config):
         '''
@@ -52,14 +48,13 @@ class OrmApp(object):
         manager = getattr(database_module, DEFAULT_CONFIG['manager'])
         self.db_manager = manager(db_config)
 
-        self._modules = [Module(m, self.db_manager) for m in config.pop('modules', []) or []]
-        self._modules.append(Module('asyncorm.models.migrations', self.db_manager))
-        # After the manager is set then we can build the rest of db features
-        self._modules_models = {m.module_name: m.models for m in self._modules}
+        modules_names = config.pop('modules', [])
+        self.modules = {m.split('.')[-1]: Module(m, self.db_manager) for m in modules_names or []}
+        self.modules.update({'migrations': Module('asyncorm.models.migrations', self.db_manager)})
 
         self.models = {}
-        for m in self._modules_models.values():
-            self.models.update(m)
+        for module in self.modules.values():
+            self.models.update(module.models)
 
         self.models_configure()
 
@@ -70,7 +65,7 @@ class OrmApp(object):
         try:
             model_split = model_name.split('.')
             if len(model_split) == 2:
-                return self._modules_models[model_split[0]][model_split[1]]
+                return self.modules[model_split[0]].models[model_split[1]]
             elif len(model_split) == 1:
                 return self.models[model_name]
             else:
@@ -127,10 +122,6 @@ class OrmApp(object):
 
     def sync_db(self):
         self.loop.run_until_complete(asyncio.gather(self.loop.create_task(self.create_db())))
-
-    def make_migrations(self):
-        for model in self.models.values():
-            model().make_migration()
 
 
 orm_app = OrmApp()
