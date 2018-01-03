@@ -71,8 +71,7 @@ class Queryset(object):
         '''Builds the creationquery for each of the non fk or m2m fields'''
         return ', '.join([
             f.creation_query() for f in self.model.fields.values()
-            if not isinstance(f, ManyToManyField) and
-            not isinstance(f, ForeignKey)
+            if not isinstance(f, (ManyToManyField, ForeignKey))
         ])
 
     def create_table_builder(self):

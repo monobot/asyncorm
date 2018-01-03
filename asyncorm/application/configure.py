@@ -30,8 +30,7 @@ class OrmApp(object):
         Then the database manager is configured, and set to all the
         models previously declared
         and then we finish the models configurations using
-        models_configure(): will take care of the inverse relations for
-        foreignkeys and many2many
+        models_configure(): will take care of the inverse relations for foreignkeys and many2many
         '''
 
         DEFAULT_CONFIG.update(config)

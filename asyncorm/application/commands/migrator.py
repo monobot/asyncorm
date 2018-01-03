@@ -46,7 +46,7 @@ class Migrator(object):
         )
 
         parser.add_argument(
-            'command', type=str, choices=('makemigrations', 'migrate'),
+            'command', type=str, choices=('makemigrations', 'migrate', 'datamigration'),
             help=('makemigrations or migrate')
         )
 
@@ -74,11 +74,14 @@ class Migrator(object):
         self.check_args()
 
     def check_args(self):
-        # check that the arguments are correctly sent
         if self.args.app != '*' and self.args.app not in self.orm.apps.keys():
             raise CommandError('App not defined in the orm')
         if self.args.app == '*' and self.args.migration is not None:
             raise CommandError('Migration "{}" specified when the App is not'.format(self.args.migration))
+        if self.args.command == 'makemigrations' and self.args.migration is not None:
+            raise CommandError('Migration "{}" specified when "makemigrations"'.format(self.args.migration))
+        if self.args.command == 'datamigration' and self.args.app == '*':
+            raise CommandError('Datamigration requires an app defined')
 
     def configure_orm(self):
         config_filename = os.path.join(cwd, self.args.config[0])
@@ -100,11 +103,14 @@ class Migrator(object):
         await getattr(self, self.args.command)(*args)
 
     async def makemigrations(self, apps):
-        logger.info('migrations')
+        logger.info('migrations {}'.format(apps))
         for module in [self.orm.apps[m] for m in apps]:
             pass
 
     async def migrate(self, apps, migration):
-        logger.info('migrate')
+        logger.info('migrate {} {}'.format(apps, migration))
         for module in [self.orm.apps[m] for m in apps]:
             await module.check_current_migrations_status(migration)
+
+    async def datamigration(self, apps, migration):
+        logger.info('datamigration {} {}'.format(apps, migration))

@@ -69,7 +69,7 @@ class App(object):
             'select': 'name',
             'table_name': 'asyncorm_migrations',
             'join': '',
-            'ordering': 'ORDER BY  -id',
+            'ordering': 'ORDER BY -id',
             'condition': "app = '{}'".format(self.name)
         }
 
