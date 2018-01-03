@@ -6,10 +6,12 @@ logger = logging.getLogger('asyncorm')
 
 
 class Module(object):
-    def __init__(self, relative_name):
+    def __init__(self, relative_name, db_manager):
         self.name = relative_name
         self.module_name = relative_name.split('.')[-1]
         self.models = self.get_declared_models()
+
+        self.db_manager = db_manager
 
     def get_declared_models(self):
         # this import should be here otherwise causes circular import

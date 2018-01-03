@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser(
     description=textwrap.dedent(
         '''
 -------------------------------------------------------------------------------
-                                asyncorm setup
+                                orm_setup
 -------------------------------------------------------------------------------
 
     asyncorm setup

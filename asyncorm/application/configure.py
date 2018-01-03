@@ -37,8 +37,6 @@ class OrmApp(object):
         models_configure(): will take care of the inverse relations for
         foreignkeys and many2many
         '''
-        modules = [Module(m) for m in config.pop('modules', []) or []]
-        modules.append(Module('asyncorm.models.migrations'))
 
         DEFAULT_CONFIG.update(config)
 
@@ -54,11 +52,13 @@ class OrmApp(object):
         manager = getattr(database_module, DEFAULT_CONFIG['manager'])
         self.db_manager = manager(db_config)
 
+        self._modules = [Module(m, self.db_manager) for m in config.pop('modules', []) or []]
+        self._modules.append(Module('asyncorm.models.migrations', self.db_manager))
         # After the manager is set then we can build the rest of db features
-        self.modules = {m.module_name: m.models for m in modules}
+        self._modules_models = {m.module_name: m.models for m in self._modules}
 
         self.models = {}
-        for m in self.modules.values():
+        for m in self._modules_models.values():
             self.models.update(m)
 
         self.models_configure()
@@ -70,7 +70,7 @@ class OrmApp(object):
         try:
             model_split = model_name.split('.')
             if len(model_split) == 2:
-                return self.modules[model_split[0]][model_split[1]]
+                return self._modules_models[model_split[0]][model_split[1]]
             elif len(model_split) == 1:
                 return self.models[model_name]
             else:

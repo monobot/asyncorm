@@ -20,18 +20,18 @@ help_text = '''\
 
     > asyncorm makemigrations
 
-        makemigrations, prepares the migration comparing the actual state
+        Prepares the migration comparing the actual state
         in the database with the latest migration created
 
     > asyncorm migrate
 
-        migrate, executes the pending migrations
+        Executes the pending migrations
         you can optionally specify what app  to migrate
         > asyncorm migrate library
 
-        or even app and what specific migration name you want to go to
+        or even app and what specific migration number you want to go to
         forwards and backwards
-        > asyncorm migrate library 0002
+        > asyncorm migrate library 00002
 
 -------------------------------------------------------------------------------
 '''
