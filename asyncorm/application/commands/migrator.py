@@ -11,7 +11,7 @@ from asyncorm.models.migrations.models import AsyncormMigrations
 
 cwd = os.getcwd()
 
-logger = logging.getLogger('asyncorm')
+logger = logging.getLogger('asyncorm_stream')
 
 help_text = '''\
 -------------------------------------------------------------------------------
@@ -103,14 +103,24 @@ class Migrator(object):
         await getattr(self, self.args.command)(*args)
 
     async def makemigrations(self, apps):
-        logger.info('migrations {}'.format(apps))
+        """ Creates the file that can be used to migrate the table from a state to the next
+        """
+        logger.info('migrations for {}'.format(apps))
         for module in [self.orm.apps[m] for m in apps]:
-            pass
+            logger.info('checking models for {}'.format(module.name))
+            migration_needed = await module.check_current_migrations_status(None)
+            for model in module.models.values():
+                cls_tablename = model.cls_tablename()
+                current_state = model.current_state()
 
     async def migrate(self, apps, migration):
+        """ Migrates the database from an state to the next using the migration files defined
+        """
         logger.info('migrate {} {}'.format(apps, migration))
         for module in [self.orm.apps[m] for m in apps]:
             await module.check_current_migrations_status(migration)
 
     async def datamigration(self, apps, migration):
+        """ Creates an empty migration file, so the user can create their own migration
+        """
         logger.info('datamigration {} {}'.format(apps, migration))

@@ -12,6 +12,9 @@ logging_config = {
         'normal': {
             'format': '%(asctime)s %(name)s - %(levelname)s: %(message)s'
         },
+        'raw_message': {
+            'format': '%(message)s'
+        },
     },
     'handlers': {
         'stream': {
@@ -19,10 +22,20 @@ logging_config = {
             'class': 'logging.StreamHandler',
             'formatter': 'normal'
         },
+        'raw_stream': {
+            'level': LOGLEVEL,
+            'class': 'logging.StreamHandler',
+            'formatter': 'raw_message'
+        },
     },
     'loggers': {
         'asyncorm': {
             'handlers': ['stream', ],
+            'propagate': True,
+            'level': LOGLEVEL,
+        },
+        'asyncorm_stream': {
+            'handlers': ['raw_stream', ],
             'propagate': True,
             'level': LOGLEVEL,
         },

@@ -46,19 +46,24 @@ class App(object):
         self.check_migration_dir()
         latest_db_migration = self.migration_integer_number(await self.latest_db_migration())
 
+        forward = False
         if target is None:
             target_fs_migration = self.migration_integer_number(self.latest_fs_migration())
         else:
             target_fs_migration = [
                 fn for fn in next(os.walk(self.migrations_dir))[2] if fn.startswith(target)]
-            if not target_fs_migration:
-                raise MigrationError('the migration {} does not exist for app {}'.format(target, self.name))
+        if not target_fs_migration:
+            raise MigrationError('the migration {} does not exist for app {}'.format(target, self.name))
 
         if latest_db_migration is not None and target_fs_migration is not None:
             if latest_db_migration > target_fs_migration:
-                pass
+                raise MigrationError(
+                    ('There is an inconsistency, the database has a migration {} '
+                     'more advanced than the filesystem {}').format(latest_db_migration, target_fs_migration)
+                )
             if latest_db_migration < target_fs_migration:
-                pass
+                forward = True
+        return forward
 
     @staticmethod
     def migration_integer_number(migration_name):
