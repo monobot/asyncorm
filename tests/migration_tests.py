@@ -9,7 +9,3 @@ class MigrationTests(AioTestCase):
             **{'name': 'chusco redondo',
                'content': 'paperback'}
         )
-
-        # print(book.migration_queries())
-        # book.migration_queries()
-        # await book.make_migration()

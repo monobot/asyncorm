@@ -4,7 +4,7 @@ import os
 import textwrap
 
 from asyncorm.application.configure import configure_orm, DEFAULT_CONFIG_FILE
-from asyncorm.exceptions import CommandError
+from asyncorm.exceptions import CommandError, MigrationError
 # from asyncorm.models.migrations.constructor import MigrationConstructor
 from asyncorm.models.migrations.models import AsyncormMigrations
 # from asyncpg.exceptions import UndefinedTableError
@@ -108,10 +108,11 @@ class Migrator(object):
         logger.info('migrations for {}'.format(apps))
         for module in [self.orm.apps[m] for m in apps]:
             logger.info('checking models for {}'.format(module.name))
-            migration_needed = await module.check_current_migrations_status(None)
-            for model in module.models.values():
-                cls_tablename = model.cls_tablename()
-                current_state = model.current_state()
+            try:
+                latest_fs_migration = await module.check_makemigrations_status()
+                logger.info(latest_fs_migration)
+            except MigrationError as e:
+                logger.error('\nMigration Error: {}\n'.format(e))
 
     async def migrate(self, apps, migration):
         """ Migrates the database from an state to the next using the migration files defined

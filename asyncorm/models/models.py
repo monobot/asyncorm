@@ -273,6 +273,27 @@ class BaseModel(object, metaclass=ModelMeta):
 
         return {'fields': fields, 'meta': meta}
 
+    @classmethod
+    def status_difference(cls, old_state):
+        current_state = cls.current_state()
+
+        news = {'fields': {}, 'meta': {}}
+        deleted = {'fields': [], 'meta': []}
+        updated = {'fields': {}, 'meta': {}}
+
+        if old_state != current_state:
+            for subzone in ('fields', 'meta'):
+                if old_state[subzone] != current_state[subzone]:
+                    for f_n, f_v in old_state[subzone].items():
+                        if current_state[subzone].get(f_n, False):
+                            if current_state[subzone][f_n] != f_v:
+                                updated[subzone][f_n] = current_state[subzone].get(f_n)
+                        else:
+                            deleted[subzone].append(f_n)
+                    for f_n, f_v in current_state[subzone].items():
+                        if not old_state[subzone].get(f_n, False):
+                            news[subzone][f_n] = current_state[subzone].get(f_n)
+
 
 class Model(BaseModel):
 

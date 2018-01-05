@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger('asyncorm_stream')
+
 TEMPLATE_TEXT = '''\
 from asyncorm.models.migrations.migrator import MigrationBase
 
@@ -48,7 +52,7 @@ class MigrationConstructor(object):
         self.write(tab_level, 'def __init__(self):\n')
 
     def set_models(self, models_dict):
-        print(models_dict)
+        logger.info(models_dict)
         tab_level = 2
         self.write(tab_level, 'self.models = {\n')
         for model_name, model_dict in models_dict.items():
