@@ -3,6 +3,8 @@ import importlib
 import inspect
 import logging
 import os
+import re
+import types
 from datetime import datetime
 
 from asyncorm.exceptions import MigrationError
@@ -53,7 +55,6 @@ class App(object):
         latest_fs_migration_number = self.migration_integer_number(latest_fs_migration)
         latest_db_migration_number = self.migration_integer_number(latest_db_migration)
 
-        logger.info('\n\n\n\n{} {}\n\n'.format(latest_fs_migration, latest_db_migration))
         # the database doesn't have any migration
         if not latest_db_migration:
             if latest_fs_migration:
@@ -116,9 +117,22 @@ class App(object):
                 forward = True
         return forward
 
+    def get_migration(self, migration_name):
+        migration_name += '.py'
+        migration_path = os.path.join(
+            self.relative_name,
+            'migrations',
+            migration_name,
+        )
+        _loader = importlib.machinery.SourceFileLoader('Migration', migration_path)
+        migration = types.ModuleType(_loader.name)
+        _loader.exec_module(migration)
+        return migration
+
     @staticmethod
     def migration_integer_number(migration_name):
-        return migration_name and int(migration_name.split('__')[0]) or 0
+        regex = re.search(r'^(?P<m_number>[\d]{5})', migration_name)
+        return migration_name and int(regex.groups('m_number')[0]) or 0
 
     async def latest_db_migration(self):
         kwargs = {
