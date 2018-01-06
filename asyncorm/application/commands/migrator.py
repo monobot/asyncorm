@@ -5,8 +5,8 @@ import textwrap
 
 from asyncorm.application.configure import configure_orm, DEFAULT_CONFIG_FILE
 from asyncorm.exceptions import CommandError, MigrationError
-# from asyncorm.models.migrations.constructor import MigrationConstructor
-from asyncorm.models.migrations.models import AsyncormMigrations
+# from asyncorm.orm_migrations.migrations.constructor import MigrationConstructor
+from asyncorm.orm_migrations.migrations.models import AsyncormMigrations
 # from asyncpg.exceptions import UndefinedTableError
 
 cwd = os.getcwd()

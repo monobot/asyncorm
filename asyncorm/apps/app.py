@@ -12,14 +12,14 @@ from asyncorm.exceptions import MigrationError
 logger = logging.getLogger('asyncorm')
 
 
-class App(object):
-    def __init__(self, relative_name, db_manager):
-        self.dir_name = False
+class App:
+    def __init__(self, name, relative_name, dir_name, orm):
+        self.dir_name = dir_name
         self.relative_name = relative_name
-        self.name = relative_name.split('.')[-1]
+        self.name = name
+        self.orm = orm
+        self.db_manager = orm.db_manager
         self.models = self.get_declared_models()
-
-        self.db_manager = db_manager
 
     def get_declared_models(self):
         # this import should be here otherwise causes circular import
@@ -34,10 +34,8 @@ class App(object):
         for k, v in inspect.getmembers(module):
             try:
                 if issubclass(v, models.Model) and v is not models.Model:
-                    _models[k] = v
+                    v.app = self
                     _models.update({k: v})
-
-                    self.dir_name = self.dir_name or v().dir_name
             except TypeError:
                 pass
         return _models

@@ -1,5 +1,6 @@
 from asyncorm import models
 
+
 BOOK_CHOICES = (
     ('hard cover', 'hard cover book'),
     ('paperback', 'paperback book')

@@ -1,25 +1,27 @@
 import asyncio
 import configparser
 import importlib
+import inspect
 import logging
 import os
 
+from asyncorm.apps.app import App
+from asyncorm.apps.app_config import AppConfig
 from asyncorm.exceptions import ConfigError, AppError, ModelError
-from asyncorm.application.app import App
 
 logger = logging.getLogger('asyncorm')
 
-DEFAULT_CONFIG = {
-    'db_config': None,
-    'loop': asyncio.get_event_loop(),
-    'manager': 'PostgresManager',
-    'apps': None,
-}
 
 DEFAULT_CONFIG_FILE = 'asyncorm.ini'
 
 
 class OrmApp(object):
+    _conf = {
+        'db_config': None,
+        'loop': asyncio.get_event_loop(),
+        'manager': 'PostgresManager',
+        'apps': None,
+    }
 
     def configure(self, config):
         '''
@@ -33,29 +35,46 @@ class OrmApp(object):
         models_configure(): will take care of the inverse relations for foreignkeys and many2many
         '''
 
-        DEFAULT_CONFIG.update(config)
+        self._conf.update(config)
 
         db_config = config.get('db_config', None)
         if not db_config:
             raise AppError('Imposible to configure without database configuration!')
 
-        db_config['loop'] = self.loop = DEFAULT_CONFIG.get('loop')
+        db_config['loop'] = self.loop = self._conf.get('loop')
 
         database_module = importlib.import_module('asyncorm.database')
 
         # we get the manager defined in the config file
-        manager = getattr(database_module, DEFAULT_CONFIG['manager'])
+        manager = getattr(database_module, self._conf['manager'])
         self.db_manager = manager(db_config)
 
-        app_names = config.pop('apps', [])
-        self.apps = {m.split('.')[-1]: App(m, self.db_manager) for m in app_names or []}
-        self.apps.update({'migrations': App('asyncorm.models.migrations', self.db_manager)})
+        app_names = self._conf.pop('apps', []) or []
+        self.apps = self._get_declared_apps(app_names)
 
         self.models = {}
         for module in self.apps.values():
             self.models.update(module.models)
 
         self.models_configure()
+
+    def _get_declared_apps(self, app_names):
+        _apps = {}
+        app_names.append('asyncorm.orm_migrations')
+        for app_name in app_names:
+            import_str = not app_name.endswith('.app') and app_name + '.app' or app_name
+            try:
+                module = importlib.import_module(import_str)
+            except ImportError:
+                logger.error('unable to import {}'.format(import_str))
+            for k, v in inspect.getmembers(module):
+                try:
+                    if issubclass(v, AppConfig):
+                        app_instance_name = app_name.endswith('.app') and app_name[:-4] or app_name
+                        _apps.update({v.name: App(v.name, app_instance_name, v.dir_name, self)})
+                except TypeError:
+                    pass
+        return _apps
 
     def get_model(self, model_name):
         if len(self.models) == 1:
