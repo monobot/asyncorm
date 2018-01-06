@@ -62,6 +62,7 @@ class OrmApp(object):
         _apps = {}
         app_names.append('asyncorm.orm_migrations')
         for app_name in app_names:
+            # its not required to include .app when the app is declared in that specific file_name
             import_str = not app_name.endswith('.app') and app_name + '.app' or app_name
             try:
                 module = importlib.import_module(import_str)
@@ -74,9 +75,10 @@ class OrmApp(object):
             for k, v in inspect.getmembers(module):
                 try:
                     if issubclass(v, AppConfig):
-                        _apps.update(
-                            {v.name: App(v.name, '.'.join(import_str.split('.')[:-1]), v.dir_name, self)}
-                        )
+                        # the instance directory is the import_str without the app.py file_name
+                        app_instance_name = '.'.join(import_str.split('.')[:-1])
+                        app = App(v.name, app_instance_name, v.dir_name, self)
+                        _apps.update({v.name: app})
                 except TypeError:
                     pass
         return _apps
