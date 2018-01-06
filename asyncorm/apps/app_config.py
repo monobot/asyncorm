@@ -6,5 +6,5 @@ logger = logging.getLogger('asyncorm')
 
 
 class AppConfig:
-    name = NotImplementedError()
+    name = ''
     dir_name = os.getcwd()

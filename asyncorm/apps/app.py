@@ -142,14 +142,14 @@ class App:
         }
 
         result = await self.db_manager.request(self.db_manager.db__select.format(**kwargs))
-        return result and result['name'] or 0
+        return result and result['name'] or ''
 
     def latest_fs_migration(self):
         python_ext = '.py'
         self.check_migration_dir()
         filenames = [fn for fn in next(os.walk(self.migrations_dir))[2] if fn[-3:] == python_ext]
 
-        return filenames and sorted(filenames)[-1].rstrip(python_ext) or 0
+        return filenames and sorted(filenames)[-1].rstrip(python_ext) or ''
 
     def next_fs_migration_name(self, stage='auto'):
         if stage not in ('auto', 'data', 'initial'):

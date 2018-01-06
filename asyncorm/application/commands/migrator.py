@@ -6,7 +6,7 @@ import textwrap
 from asyncorm.application.configure import configure_orm, DEFAULT_CONFIG_FILE
 from asyncorm.exceptions import CommandError, MigrationError
 # from asyncorm.orm_migrations.migrations.constructor import MigrationConstructor
-from asyncorm.orm_migrations.migrations.models import AsyncormMigrations
+from asyncorm.orm_migrations.models import AsyncormMigrations
 # from asyncpg.exceptions import UndefinedTableError
 
 cwd = os.getcwd()
@@ -46,13 +46,13 @@ class Migrator(object):
         )
 
         parser.add_argument(
-            'command', type=str, choices=('makemigrations', 'migrate', 'datamigration'),
-            help=('makemigrations or migrate')
+            'command', type=str, choices=('makemigrations', 'migrate', 'datamigration', 'showmigrations'),
+            help=('makemigrations, migrate, datamigration or showmigrations')
         )
 
         parser.add_argument(
             'app', type=str, nargs='?', default='*',
-            help=('app you want to migrate')
+            help=('app the command will be aplied to')
         )
 
         parser.add_argument(
@@ -82,6 +82,8 @@ class Migrator(object):
             raise CommandError('Migration "{}" specified when "makemigrations"'.format(self.args.migration))
         if self.args.command == 'datamigration' and self.args.app == '*':
             raise CommandError('Datamigration requires an app defined')
+        if self.args.command == 'showmigration' and self.args.migration is not None:
+            raise CommandError('Migration "{}" specified when "showmigrations"'.format(self.args.migration))
 
     def configure_orm(self):
         config_filename = os.path.join(cwd, self.args.config[0])
@@ -96,7 +98,7 @@ class Migrator(object):
         apps = self.args.app != '*' and [self.args.app] or [k for k in self.orm.apps.keys()]
         migration = self.args.migration != '?' and self.args.migration or None
 
-        if self.args.command == 'makemigrations':
+        if self.args.command in ('makemigrations', 'showmigrations'):
             args = (apps, )
         else:
             args = (apps, migration)
@@ -126,3 +128,8 @@ class Migrator(object):
         """ Creates an empty migration file, so the user can create their own migration
         """
         logger.info('datamigration {} {}'.format(apps, migration))
+
+    async def showmigrations(self, apps):
+        """ Creates an empty migration file, so the user can create their own migration
+        """
+        logger.info('showmigrations {}'.format(apps))
