@@ -51,6 +51,6 @@ class ModuleTests(AioTestCase):
         self.assertEqual(orm_app.db_manager.conn_data['database'], db_config['database'])
 
     def test_the_data_is_persistent_orm_model(self):
-        configure_orm({'db_config': db_config, 'apps': ['tests.testapp', 'tests.testapp2']})
+        configure_orm({'db_config': db_config, 'apps': ['tests.testapp.appo', 'tests.testapp2']})
         # every model declared has the same db_manager
         self.assertTrue(orm_app.db_manager is Book.objects.db_manager)

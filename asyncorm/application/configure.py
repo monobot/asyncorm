@@ -66,12 +66,17 @@ class OrmApp(object):
             try:
                 module = importlib.import_module(import_str)
             except ImportError:
-                logger.error('unable to import {}'.format(import_str))
+                try:
+                    import_str = '.'.join(import_str.split('.')[:-1])
+                    module = importlib.import_module(import_str)
+                except ImportError:
+                    logger.error('unable to import {}'.format(import_str))
             for k, v in inspect.getmembers(module):
                 try:
                     if issubclass(v, AppConfig):
-                        app_instance_name = app_name.endswith('.app') and app_name[:-4] or app_name
-                        _apps.update({v.name: App(v.name, app_instance_name, v.dir_name, self)})
+                        _apps.update(
+                            {v.name: App(v.name, '.'.join(import_str.split('.')[:-1]), v.dir_name, self)}
+                        )
                 except TypeError:
                     pass
         return _apps
