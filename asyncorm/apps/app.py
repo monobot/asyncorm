@@ -13,9 +13,8 @@ logger = logging.getLogger('asyncorm')
 
 
 class App:
-    def __init__(self, name, relative_name, orm):
-        self.dir_name = inspect.getfile(self.__class__)
-        self.relative_name = relative_name
+    def __init__(self, name, dir_name, orm):
+        self.dir_name = dir_name
         self.name = name
         self.orm = orm
         self.db_manager = orm.db_manager
@@ -27,9 +26,9 @@ class App:
 
         _models = {}
         try:
-            module = importlib.import_module('{}.models'.format(self.relative_name))
+            module = importlib.import_module('{}.models'.format(self.dir_name))
         except ImportError:
-            logger.error('unable to import {}'.format(self.relative_name))
+            logger.error('unable to import {}'.format(self.dir_name))
 
         for k, v in inspect.getmembers(module):
             try:
@@ -41,7 +40,8 @@ class App:
         return _models
 
     def check_migration_dir(self):
-        self.migrations_dir = os.path.join(self.dir_name, 'migrations')
+        path = os.sep.join(self.dir_name.split('.'))
+        self.migrations_dir = os.path.join(path, 'migrations')
         os.makedirs(self.migrations_dir, exist_ok=True)
 
     async def check_makemigrations_status(self):
@@ -118,7 +118,7 @@ class App:
     def get_migration(self, migration_name):
         migration_name += '.py'
         migration_path = os.path.join(
-            self.relative_name,
+            self.dir_name,
             'migrations',
             migration_name,
         )
@@ -158,7 +158,8 @@ class App:
     def fs_migration_list(self):
         py_ext = '.py'
         self.check_migration_dir()
-        return [fn for fn in next(os.walk(self.migrations_dir))[2] if fn[-3:] == py_ext]
+        return sorted(
+            [fn.rstrip(py_ext) for fn in next(os.walk(self.migrations_dir))[2] if fn[-3:] == py_ext])
 
     def latest_fs_migration(self):
         filenames = self.fs_migration_list()

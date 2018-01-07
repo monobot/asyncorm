@@ -133,7 +133,7 @@ class Migrator(object):
         """ Creates an empty migration file, so the user can create their own migration
         """
         for app in [self.orm.apps[m] for m in apps]:
-            logger.info('{}\n Migration list for "{}" app\n{}\n'.format('~' * 50, app, '~' * 50, ))
+            logger.info('{}\n Migration list for "{}" app\n{}\n'.format('~' * 50, app.name, '~' * 50, ))
             for mig_name in app.fs_migration_list():
                 applied = await app.check_migration_applied(mig_name)
                 logger.info(' [{}] {}'.format(applied and 'x' or ' ', mig_name))
