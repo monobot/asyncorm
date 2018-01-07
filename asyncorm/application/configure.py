@@ -74,10 +74,10 @@ class OrmApp(object):
                     logger.error('unable to import {}'.format(import_str))
             for k, v in inspect.getmembers(module):
                 try:
-                    if issubclass(v, AppConfig):
+                    if issubclass(v, AppConfig) and v is not AppConfig:
                         # the instance directory is the import_str without the app.py file_name
                         app_instance_name = '.'.join(import_str.split('.')[:-1])
-                        app = App(v.name, app_instance_name, v.dir_name, self)
+                        app = App(v.name, app_instance_name, self)
                         _apps.update({v.name: app})
                 except TypeError:
                     pass

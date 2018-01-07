@@ -13,8 +13,8 @@ logger = logging.getLogger('asyncorm')
 
 
 class App:
-    def __init__(self, name, relative_name, dir_name, orm):
-        self.dir_name = dir_name
+    def __init__(self, name, relative_name, orm):
+        self.dir_name = inspect.getfile(self.__class__)
         self.relative_name = relative_name
         self.name = name
         self.orm = orm
@@ -144,12 +144,25 @@ class App:
         result = await self.db_manager.request(self.db_manager.db__select.format(**kwargs))
         return result and result['name'] or ''
 
-    def latest_fs_migration(self):
-        python_ext = '.py'
-        self.check_migration_dir()
-        filenames = [fn for fn in next(os.walk(self.migrations_dir))[2] if fn[-3:] == python_ext]
+    async def check_migration_applied(self, migration_name):
+        kwargs = {
+            'select': '*',
+            'table_name': 'asyncorm_migrations',
+            'join': '',
+            'ordering': '',
+            'condition': "app = '{}' AND name = '{}'".format(self.name, migration_name),
+        }
+        result = await self.db_manager.request(self.db_manager.db__select.format(**kwargs))
+        return result
 
-        return filenames and sorted(filenames)[-1].rstrip(python_ext) or ''
+    def fs_migration_list(self):
+        py_ext = '.py'
+        self.check_migration_dir()
+        return [fn for fn in next(os.walk(self.migrations_dir))[2] if fn[-3:] == py_ext]
+
+    def latest_fs_migration(self):
+        filenames = self.fs_migration_list()
+        return filenames and sorted(filenames)[-1] or ''
 
     def next_fs_migration_name(self, stage='auto'):
         if stage not in ('auto', 'data', 'initial'):
