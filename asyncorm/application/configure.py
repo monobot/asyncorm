@@ -77,7 +77,9 @@ class OrmApp(object):
                     if issubclass(v, AppConfig) and v is not AppConfig:
                         # the instance directory is the import_str without the app.py file_name
                         dir_name = '.'.join(import_str.split('.')[:-1])
-                        app = App(v.name, dir_name, self)
+                        abs_path = os.sep.join(module.__file__.split(os.sep)[:-1])
+
+                        app = App(v.name, dir_name, abs_path, self)
                         _apps.update({v.name: app})
                 except TypeError:
                     logger.debug('typerror')

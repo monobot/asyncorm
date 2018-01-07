@@ -13,8 +13,9 @@ logger = logging.getLogger('asyncorm')
 
 
 class App:
-    def __init__(self, name, dir_name, orm):
-        self.dir_name = dir_name
+    def __init__(self, name, relative_name, abs_path, orm):
+        self.relative_name = relative_name
+        self.abs_path = abs_path
         self.name = name
         self.orm = orm
         self.db_manager = orm.db_manager
@@ -26,9 +27,9 @@ class App:
 
         _models = {}
         try:
-            module = importlib.import_module('{}.models'.format(self.dir_name))
+            module = importlib.import_module('{}.models'.format(self.relative_name))
         except ImportError:
-            logger.error('unable to import {}'.format(self.dir_name))
+            logger.error('unable to import {}'.format(self.relative_name))
 
         for k, v in inspect.getmembers(module):
             try:
@@ -39,10 +40,11 @@ class App:
                 pass
         return _models
 
-    def check_migration_dir(self):
-        path = os.sep.join(self.dir_name.split('.'))
-        self.migrations_dir = os.path.join(path, 'migrations')
-        os.makedirs(self.migrations_dir, exist_ok=True)
+    def check_migration_dir(self, initial=True):
+        self.migrations_dir = os.path.join(self.abs_path, 'migrations')
+
+        if initial:
+            os.makedirs(self.migrations_dir, exist_ok=True)
 
     async def check_makemigrations_status(self):
         """ Checks that the migration is correcly synced and everything is fine
@@ -118,7 +120,7 @@ class App:
     def get_migration(self, migration_name):
         migration_name += '.py'
         migration_path = os.path.join(
-            self.dir_name,
+            self.relative_name,
             'migrations',
             migration_name,
         )
