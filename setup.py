@@ -10,16 +10,26 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 requirements = [
-    # TODO: put package requirements here
+    'asyncpg==0.14.0',
+    'netaddr==0.7.19',
 ]
 
 test_requirements = [
-    # TODO: put package test requirements here
+    'pip==9.0.1',
+    'bumpversion==0.5.3',
+    'wheel==0.30.0',
+    'watchdog==0.8.3',
+    'flake8==3.5.0',
+    'tox==2.9.1',
+    'coverage==4.4.2',
+    'Sphinx==1.6.6',
+    'asyncpg==0.14.0',
+    'netaddr==0.7.19',
 ]
 
 setup(
     name='asyncorm',
-    version='0.3.6',
+    version='0.3.7',
     description="A fully asynchronous python ORM",
     long_description=readme + '\n\n' + history,
     author="Héctor Alvarez (monobot)",

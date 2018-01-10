@@ -2,6 +2,9 @@
 History
 =======
 
+0.3.7 (2012-1-10)
+* minor release because of change in parsing the asyncorm.ini
+
 0.3.6 (2012-1-2)
 * external import fix
 
