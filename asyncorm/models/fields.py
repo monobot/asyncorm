@@ -106,7 +106,7 @@ class Field(object):
             if value not in self.choices.keys():
                 raise FieldError('"{}" not in model choices'.format(value))
 
-        if not isinstance(value, self.internal_type):
+        if value is not None and not isinstance(value, self.internal_type):
             raise FieldError(
                 '{value} is a wrong datatype for field {cls}'.format(
                     value=value,
