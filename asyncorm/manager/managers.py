@@ -496,26 +496,26 @@ class ModelManager(Queryset):
         # performs the database save
         fields, field_data = [], []
 
-        for field in instanced_model.fields.keys():
-            f_class = getattr(instanced_model.__class__, field)
+        for k, data in instanced_model.data.items():
+            f_class = getattr(instanced_model.__class__, k)
 
-            data = getattr(instanced_model, field)
-            if data is not None:
-                data = f_class.sanitize_data(data)
-            else:
-                continue
+            field_name = f_class.db_column or k
 
-            if isinstance(f_class, AutoField):
-                continue
-
-            field_name = f_class.db_column or field
-
-            if getattr(instanced_model, field) is None and hasattr(instanced_model.fields[field], 'default') and \
-                    instanced_model.fields[field].default is not None:
-                data = f_class.sanitize_data(instanced_model.fields[field].default)
-
+            data = f_class.sanitize_data(data)
             fields.append(field_name)
             field_data.append(data)
+
+        for field in instanced_model.fields.keys():
+            if field not in fields:
+                f_class = getattr(instanced_model.__class__, field)
+
+                field_name = f_class.db_column or field
+                data = getattr(instanced_model, field)
+                if data is None and hasattr(instanced_model.fields[field], 'default') and \
+                        instanced_model.fields[field].default is not None and not isinstance(f_class, AutoField):
+                    data = f_class.sanitize_data(instanced_model.fields[field].default)
+                    fields.append(field_name)
+                    field_data.append(data)
 
         db_request = [{
             'action': getattr(instanced_model, instanced_model.orm_pk) and 'db__update' or 'db__insert',
