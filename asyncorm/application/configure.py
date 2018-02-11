@@ -169,7 +169,7 @@ def parse_config(config_file):
         'db_config': {
             'database': parsed_file.get('db_config', 'database') or None,
             'host': parsed_file.get('db_config', 'host') or None,
-            'port': '5432',#parsed_file.get('db_config', 'port') or None,
+            'port': parsed_file.get('db_config', 'port') or None,
             'user': parsed_file.get('db_config', 'user') or None,
             'password': parsed_file.get('db_config', 'password') or None,
         },
