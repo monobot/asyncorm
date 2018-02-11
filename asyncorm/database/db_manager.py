@@ -3,9 +3,10 @@ from asyncorm.log import logger
 
 class Cursor(object):
 
-    def __init__(self, conn, query, step=20, forward=0, stop=None):
+    def __init__(self, conn, query, values=None, step=20, forward=0, stop=None):
         self._conn = conn
         self._query = query
+        self._values = values
         self._cursor = None
         self._results = []
 
@@ -15,7 +16,10 @@ class Cursor(object):
 
     async def get_results(self):
         async with self._conn.transaction():
-            self._cursor = await self._conn.cursor(self._query)
+            if self._values:
+                self._cursor = await self._conn.cursor(self._query, self._values)
+            else:
+                self._cursor = await self._conn.cursor(self._query)
 
             if self._forward:
                 await self._cursor.forward(self._forward)
@@ -80,7 +84,7 @@ class GeneralManager(object):
 
     @property
     def db__insert(self):
-        return 'INSERT INTO {table_name} ({field_names}) VALUES ({field_values}) RETURNING * '
+        return 'INSERT INTO {table_name} ({field_names}) VALUES ({field_schema}) RETURNING * '
 
     @property
     def db__select_all(self):
@@ -117,7 +121,7 @@ class GeneralManager(object):
     def db__update(self):
         return '''
             UPDATE ONLY {table_name}
-            SET ({field_names}) = ({field_values})
+            SET ({field_names}) = ({field_schema})
             WHERE {id_data}
             RETURNING *
         '''
@@ -197,12 +201,11 @@ class GeneralManager(object):
         query = getattr(self, res_dict['action']).format(**res_dict)
         query = self.query_clean(query)
 
-        logger.debug('QUERY: {}'.format(query))
-        return query
+        logger.debug('QUERY: {}, VALUES: {}'.format(query, res_dict.get('field_values')))
+        return query, res_dict.get('field_values')
 
 
 class PostgresManager(GeneralManager):
-
     async def get_conn(self):
         import asyncpg
         if not self.conn:
@@ -214,4 +217,9 @@ class PostgresManager(GeneralManager):
         conn = await self.get_conn()
 
         async with conn.transaction():
+            if isinstance(query, (tuple, list)):
+                if query[1]:
+                    return await conn.fetchrow(query[0], *query[1])
+                else:
+                    return await conn.fetchrow(query[0])
             return await conn.fetchrow(query)

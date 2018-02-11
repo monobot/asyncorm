@@ -461,7 +461,8 @@ class Queryset(object):
             query = self.db_manager.construct_query(self.query)
             self._cursor = Cursor(
                 conn,
-                query,
+                query[0],
+                values=query[1],
                 forward=self.forward,
                 stop=self.stop,
             )
@@ -502,6 +503,7 @@ class ModelManager(Queryset):
             field_name = f_class.db_column or k
 
             data = f_class.sanitize_data(data)
+
             fields.append(field_name)
             field_data.append(data)
 
@@ -513,7 +515,10 @@ class ModelManager(Queryset):
                 data = getattr(instanced_model, field)
                 if data is None and hasattr(instanced_model.fields[field], 'default') and \
                         instanced_model.fields[field].default is not None and not isinstance(f_class, AutoField):
-                    data = f_class.sanitize_data(instanced_model.fields[field].default)
+                    data = instanced_model.fields[field].default
+
+                    data = f_class.sanitize_data(data)
+
                     fields.append(field_name)
                     field_data.append(data)
 
@@ -524,7 +529,8 @@ class ModelManager(Queryset):
                 getattr(instanced_model, instanced_model.orm_pk),
             ),
             'field_names': ', '.join(fields),
-            'field_values': ', '.join(field_data),
+            'field_values': field_data,
+            'field_schema': ', '.join(['${}'.format(value + 1) for value in range(len(field_data))]),
             'condition': '{}={}'.format(
                 instanced_model.db_pk,
                 getattr(instanced_model, instanced_model.orm_pk)
@@ -556,12 +562,16 @@ class ModelManager(Queryset):
                 'table_name': table_name,
                 'action': 'db__insert',
                 'field_names': ', '.join([model_column, foreign_column]),
-                'field_values': ', '.join([str(model_id), str(data)]),
+                'field_values': [str(model_id), str(data)],
+                'field_schema': ', '.join(
+                    ['${}'.format(value + 1) for value in range(len([str(model_id), str(data)]))]),
             }]
 
             if isinstance(data, list):
                 for d in data:
-                    db_request[0].update({'field_values': ', '.join([str(model_id), str(d)])})
+                    db_request[0].update({'field_values': [str(model_id), str(d)],
+                                          'field_schema': ', '.join(['${}'.format(value + 1) for value in
+                                                                     range(len([str(model_id), str(d)]))])})
                     await self.db_request(db_request)
             else:
                 await self.db_request(db_request)

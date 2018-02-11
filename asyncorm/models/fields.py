@@ -196,7 +196,7 @@ class CharField(Field):
                 'The string entered is bigger than the "max_length" defined ({})'.format(self.max_length))
         if value is not None:
             value = value.replace(';', '\;').replace('--', '\--')
-        return '\'{}\''.format(value)
+        return value  # '\'{}\''.format(value)
 
 
 class EmailField(CharField):
@@ -221,7 +221,7 @@ class TextField(Field):
             unique=unique)
 
     def sanitize_data(self, value):
-        return "'{}'".format(super().sanitize_data(value))
+        return super().sanitize_data(value)  # "'{}'".format(super().sanitize_data(value))
 
 
 # numeric fields
@@ -240,7 +240,7 @@ class IntegerField(NumberField):
             unique=unique)
 
     def sanitize_data(self, value):
-        return '{}'.format(super().sanitize_data(value))
+        return super().sanitize_data(value)  # '{}'.format(super().sanitize_data(value))
 
 
 class BigIntegerField(IntegerField):
