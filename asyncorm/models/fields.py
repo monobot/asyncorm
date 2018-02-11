@@ -243,6 +243,10 @@ class IntegerField(NumberField):
         return '{}'.format(super().sanitize_data(value))
 
 
+class BigIntegerField(IntegerField):
+    creation_string = 'bigint'
+
+
 class DecimalField(NumberField):
     internal_type = (Decimal, float, int)
     creation_string = 'decimal({max_digits},{decimal_places})'
