@@ -75,7 +75,7 @@ class Field(object):
             elif isinstance(default_value, bool):
                 creation_string += str(default_value)
             else:
-                creation_string += '\'{}\''.format(self.sanitize_data(default_value))
+                creation_string += '{}'.format(self.sanitize_data(default_value))
 
         elif date_field and self.auto_now:
             creation_string += ' DEFAULT now()'
@@ -198,7 +198,7 @@ class CharField(Field):
                 'The string entered is bigger than the "max_length" defined ({})'.format(self.max_length))
         # if value is not None:
         #     value = value.replace(';', '\;').replace('--', '\--')
-        return value  # '\'{}\''.format(value)
+        return str(value) #'\'{}\''.format(value)
 
 
 class EmailField(CharField):
@@ -284,7 +284,7 @@ class DateTimeField(Field):
         return super().sanitize_data(value)  # "'{}'".format(super().sanitize_data(value))
 
     def serialize_data(self, value):
-        return value.strftime(self.strftime)
+        return datetime.strptime(value.strftime(self.strftime))
 
     def __init__(
         self,
@@ -376,7 +376,7 @@ class JsonField(Field):
                     value = json.loads(value)
                 except JSONDecodeError:
                     raise FieldError('The data entered can not be converted to json')
-            # value = json.dumps(value)
+            value = json.dumps(value)
 
         if len(value) > self.max_length:
             raise FieldError(
@@ -426,10 +426,10 @@ class ArrayField(Field):
         self.value_type = value_type
 
     def sanitize_data(self, value):
-        value = super().sanitize_data(value)
-        if value:
-            return 'ARRAY{}'.format(value)
-        return 'ARRAY[]::{}[]'.format(self.value_type)
+        return super().sanitize_data(value)
+        # if value:
+        #    return 'ARRAY{}'.format(value)
+        # return 'ARRAY[]::{}[]'.format(self.value_type)
 
     def validate(self, value):
         super().validate(value)
