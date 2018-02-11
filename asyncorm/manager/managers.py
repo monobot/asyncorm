@@ -342,6 +342,9 @@ class Queryset(object):
                 if isinstance(v, (list, tuple)):
                     # check they are correct items and serialize
                     v = ','.join([str(field.sanitize_data(si)) for si in v])
+                elif v is None:
+                    v = field.sanitize_data(v)[1:-1]
+                    operator = operator.replace('=', 'IS')
                 else:
                     v = field.sanitize_data(v)
                 operator_formater['v'] = v
