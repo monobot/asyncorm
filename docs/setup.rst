@@ -15,6 +15,7 @@ Asyncorm can be configured like this, using a simple dictionary and so passing f
 
     db_config = {'database': 'sanic_example',
                  'host': 'localhost',
+                 'port': '5432'
                  'user': 'ormdbuser',
                  'password': 'ormDbPass',
                  }
