@@ -120,8 +120,8 @@ class Field(object):
 
     def sanitize_data(self, value):
         '''method used to convert python to SQL data'''
-        if value is None:
-            return 'NULL'
+        # if value is None:
+        #     return 'NULL'
         self.validate(value)
         return value
 
@@ -145,20 +145,22 @@ class Field(object):
 class BooleanField(Field):
     internal_type = bool
     creation_string = 'boolean'
-    args = ('choices', 'db_column', 'db_index', 'default', 'null', 'unique', )
+    args = ('choices', 'db_column', 'db_index', 'default', 'null', 'unique',)
 
     def __init__(self, db_column='', db_index=False, default=None, null=False, unique=False):
         super().__init__(db_column=db_column, db_index=db_index, default=default, null=null, unique=unique)
 
     def sanitize_data(self, value):
         '''method used to convert to SQL data'''
-        if value is None:
-            return 'NULL'
-        elif value is True:
-            return 'true'
-        elif value is False:
-            return 'false'
-        elif value in ['NULL', 'null', 'TRUE', 'true', 'FALSE', 'false']:
+        # if value is None:
+        #     return 'NULL'
+        # elif value is True:
+        #     return 'true'
+        # elif value is False:
+        #     return 'false'
+        # elif value in ['NULL', 'null', 'TRUE', 'true', 'FALSE', 'false']:
+        #    return value
+        if isinstance(value, bool) or value is None:
             return value
         raise FieldError('not correct data for BooleanField')
 
@@ -167,12 +169,12 @@ class CharField(Field):
     internal_type = str
     required_kwargs = ['max_length', ]
     creation_string = 'varchar({max_length})'
-    args = ('choices', 'db_column', 'db_index', 'default', 'max_length', 'null', 'unique', )
+    args = ('choices', 'db_column', 'db_index', 'default', 'max_length', 'null', 'unique',)
 
     def __init__(
-            self,
-            choices=None, db_column='', db_index=False, default=None, max_length=0, null=False, unique=False,
-            ):
+        self,
+        choices=None, db_column='', db_index=False, default=None, max_length=0, null=False, unique=False,
+    ):
         super().__init__(
             choices=choices,
             db_column=db_column,
@@ -194,13 +196,12 @@ class CharField(Field):
         if len(value) > self.max_length:
             raise FieldError(
                 'The string entered is bigger than the "max_length" defined ({})'.format(self.max_length))
-        if value is not None:
-            value = value.replace(';', '\;').replace('--', '\--')
+        # if value is not None:
+        #     value = value.replace(';', '\;').replace('--', '\--')
         return value  # '\'{}\''.format(value)
 
 
 class EmailField(CharField):
-
     def validate(self, value):
         super(EmailField, self).validate(value)
         # now validate the emailfield here
@@ -212,10 +213,10 @@ class EmailField(CharField):
 class TextField(Field):
     internal_type = str
     creation_string = 'text'
-    args = ('choices', 'db_column', 'db_index', 'default', 'null', 'unique', )
+    args = ('choices', 'db_column', 'db_index', 'default', 'null', 'unique',)
 
     def __init__(
-            self, choices=None, db_column='', db_index=False, default=None, null=False, unique=False):
+        self, choices=None, db_column='', db_index=False, default=None, null=False, unique=False):
         super().__init__(
             choices=choices, db_column=db_column, db_index=db_index, default=default, null=null,
             unique=unique)
@@ -232,7 +233,7 @@ class NumberField(Field):
 class IntegerField(NumberField):
     internal_type = int
     creation_string = 'integer'
-    args = ('choices', 'db_column', 'db_index', 'default', 'null', 'unique', )
+    args = ('choices', 'db_column', 'db_index', 'default', 'null', 'unique',)
 
     def __init__(self, choices=None, db_column='', db_index=False, default=None, null=False, unique=False):
         super().__init__(
@@ -252,23 +253,23 @@ class DecimalField(NumberField):
     creation_string = 'decimal({max_digits},{decimal_places})'
     args = (
         'choices', 'db_column', 'db_index', 'decimal_places', 'default', 'null', 'unique', 'max_digits',
-        )
+    )
 
     def __init__(
-            self, choices=None, db_column='', db_index=False, decimal_places=2, default=None, max_digits=10,
-            null=False, unique=False):
+        self, choices=None, db_column='', db_index=False, decimal_places=2, default=None, max_digits=10,
+        null=False, unique=False):
         super().__init__(
             choices=choices, db_column=db_column, db_index=db_index, decimal_places=decimal_places,
             default=default, max_digits=max_digits, null=null, unique=unique)
 
     def sanitize_data(self, value):
-        return '{}'.format(super().sanitize_data(value))
+        return super().sanitize_data(value)  # '{}'.format(super().sanitize_data(value))
 
 
 # time fields
 class AutoField(IntegerField):
     creation_string = 'serial PRIMARY KEY'
-    args = ('choices', 'db_column', 'db_index', 'default', 'null', 'unique', )
+    args = ('choices', 'db_column', 'db_index', 'default', 'null', 'unique',)
 
     def __init__(self, db_column='id'):
         super().__init__(db_column=db_column, unique=True, null=False)
@@ -280,15 +281,15 @@ class DateTimeField(Field):
     strftime = '%Y-%m-%d  %H:%s'
 
     def sanitize_data(self, value):
-        return "'{}'".format(super().sanitize_data(value))
+        return super().sanitize_data(value)  # "'{}'".format(super().sanitize_data(value))
 
     def serialize_data(self, value):
         return value.strftime(self.strftime)
 
     def __init__(
-            self,
-            auto_now=False, choices=None, db_column='', db_index=False, default=None, null=False,
-            strftime=None, unique=False):
+        self,
+        auto_now=False, choices=None, db_column='', db_index=False, default=None, null=False,
+        strftime=None, unique=False):
         super().__init__(
             auto_now=auto_now, choices=choices, db_column=db_column, db_index=db_index, default=default,
             null=null, strftime=strftime or self.strftime, unique=unique)
@@ -320,7 +321,7 @@ class ForeignKey(Field):
             unique=unique)
 
     def sanitize_data(self, value):
-        return str(super().sanitize_data(value))
+        return super().sanitize_data(value)  # str(super().sanitize_data(value))
 
 
 class ManyToManyField(Field):
@@ -356,8 +357,8 @@ class JsonField(Field):
     args = ('choices', 'db_column', 'db_index', 'default', 'max_length', 'null', 'unique')
 
     def __init__(
-            self, choices=None, db_column='', db_index=False, default=None, max_length=0, null=False,
-            unique=False):
+        self, choices=None, db_column='', db_index=False, default=None, max_length=0, null=False,
+        unique=False):
         super().__init__(
             choices=choices, db_column=db_column, db_index=db_index, default=default, max_length=max_length,
             null=null, unique=unique)
@@ -369,24 +370,24 @@ class JsonField(Field):
     def sanitize_data(self, value):
         self.validate(value)
 
-        if value != 'NULL':
+        if value is not None:
             if isinstance(value, str):
                 try:
                     value = json.loads(value)
                 except JSONDecodeError:
                     raise FieldError('The data entered can not be converted to json')
-            value = json.dumps(value)
+            # value = json.dumps(value)
 
         if len(value) > self.max_length:
             raise FieldError(
                 'The string entered is bigger than the "max_length" defined ({})'.format(self.max_length))
 
-        return '\'{}\''.format(value)
+        return value  # '\'{}\''.format(value)
 
 
 class Uuid4Field(Field):
     internal_type = UUID
-    args = ('db_column', 'db_index', 'null', 'unique', 'uuid_type', )
+    args = ('db_column', 'db_index', 'null', 'unique', 'uuid_type',)
 
     def __init__(self, db_column='', db_index=False, null=False, unique=True, uuid_type='v4'):
         self.field_requirement = 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
@@ -420,7 +421,7 @@ class ArrayField(Field):
     value_types = ('text', 'varchar', 'integer')
 
     def __init__(self, db_column='', db_index=False, default=None, null=True, unique=False,
-            value_type='text'):
+                 value_type='text'):
         super().__init__(db_column=db_column, db_index=db_index, default=default, null=null, unique=unique)
         self.value_type = value_type
 
@@ -455,7 +456,7 @@ class GenericIPAddressField(Field):
     args = ('db_column', 'db_index', 'null', 'protocol', 'unique', 'unpack_protocol')
 
     def __init__(self,
-            db_column='', db_index=False, null=False, protocol='both', unique=False, unpack_protocol='same'):
+                 db_column='', db_index=False, null=False, protocol='both', unique=False, unpack_protocol='same'):
         if protocol.lower() not in ('both', 'ipv6', 'ipv4'):
             raise FieldError('"{}" is not a recognized protocol'.format(protocol))
         if unpack_protocol.lower() not in ('same', 'ipv6', 'ipv4'):
@@ -490,7 +491,7 @@ class GenericIPAddressField(Field):
         return self.recompose(value)
 
     def sanitize_data(self, value):
-        return '\'{}\''.format(value)
+        return value  # '\'{}\''.format(value)
 
 
 class MACAdressField(Field):
@@ -511,7 +512,7 @@ class MACAdressField(Field):
             raise FieldError('"{}" is not a correct mac dialect'.format(dialect))
 
         super().__init__(db_column=db_column, db_index=db_index, default=default, dialect=dialect, null=null,
-            unique=unique)
+                         unique=unique)
 
     def validate(self, value):
         try:
@@ -527,4 +528,4 @@ class MACAdressField(Field):
         return value
 
     def sanitize_data(self, value):
-        return '\'{}\''.format(value)
+        return value  # '\'{}\''.format(value)
