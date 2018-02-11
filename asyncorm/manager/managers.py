@@ -5,8 +5,7 @@ from asyncorm.database import Cursor
 from asyncorm.exceptions import (
     ModelDoesNotExist, ModelError, MultipleObjectsReturned, QuerysetError,
 )
-from asyncorm.models.fields import CharField, ForeignKey, ManyToManyField, NumberField
-
+from asyncorm.models.fields import CharField, ForeignKey, ManyToManyField, NumberField, AutoField
 
 __all__ = ['ModelManager', 'Queryset']
 
@@ -496,11 +495,24 @@ class ModelManager(Queryset):
     async def save(self, instanced_model):
         # performs the database save
         fields, field_data = [], []
-        for k, data in instanced_model.data.items():
-            f_class = getattr(instanced_model.__class__, k)
 
-            field_name = f_class.db_column or k
-            data = f_class.sanitize_data(data)
+        for field in instanced_model.fields.keys():
+            f_class = getattr(instanced_model.__class__, field)
+
+            data = getattr(instanced_model, field)
+            if data is not None:
+                data = f_class.sanitize_data(data)
+            else:
+                continue
+
+            if isinstance(f_class, AutoField):
+                continue
+
+            field_name = f_class.db_column or field
+
+            if getattr(instanced_model, field) is None and hasattr(instanced_model.fields[field], 'default') and \
+                    instanced_model.fields[field].default is not None:
+                data = f_class.sanitize_data(instanced_model.fields[field].default)
 
             fields.append(field_name)
             field_data.append(data)
