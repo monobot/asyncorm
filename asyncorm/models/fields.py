@@ -284,7 +284,7 @@ class DateTimeField(Field):
         return super().sanitize_data(value)  # "'{}'".format(super().sanitize_data(value))
 
     def serialize_data(self, value):
-        return datetime.strptime(value.strftime(self.strftime))
+        return value
 
     def __init__(
         self,
