@@ -34,6 +34,7 @@ ini = """\
 [db_config]
 database =
 host =
+port =
 user =
 password =
 

@@ -5,8 +5,8 @@ from asyncorm.database import Cursor
 from asyncorm.exceptions import (
     ModelDoesNotExist, ModelError, MultipleObjectsReturned, QuerysetError,
 )
-from asyncorm.models.fields import CharField, ForeignKey, ManyToManyField, NumberField
-
+from asyncorm.models.fields import CharField, ForeignKey, ManyToManyField, NumberField, AutoField
+import datetime
 
 __all__ = ['ModelManager', 'Queryset']
 
@@ -337,11 +337,17 @@ class Queryset(object):
                 # if not is_charfield or not is_othercharfield:
                 if not is_charfield:
                     raise QuerysetError('{} not allowed in non CharField fields'.format(lookup))
-                operator_formater['v'] = field.sanitize_data(v)[1:-1]
+                operator_formater['v'] = field.sanitize_data(v)
             else:
                 if isinstance(v, (list, tuple)):
                     # check they are correct items and serialize
-                    v = ','.join([str(field.sanitize_data(si)) for si in v])
+                    v = ','.join(
+                        ["'{}'".format(field.sanitize_data(si)) if isinstance(si, str) else str(si) for si in v])
+                elif v is None:
+                    v = field.sanitize_data(v)[1:-1]
+                    operator = operator.replace('=', 'IS')
+                elif isinstance(v, datetime.datetime) or isinstance(field, (CharField)):
+                    v = "'{}'".format(v)
                 else:
                     v = field.sanitize_data(v)
                 operator_formater['v'] = v
@@ -439,7 +445,8 @@ class Queryset(object):
                 query = self.db_manager.construct_query(deepcopy(self.query))
                 cursor = Cursor(
                     conn,
-                    query,
+                    query[0],
+                    values=query[1],
                     forward=key,
                 )
 
@@ -459,7 +466,8 @@ class Queryset(object):
             query = self.db_manager.construct_query(self.query)
             self._cursor = Cursor(
                 conn,
-                query,
+                query[0],
+                values=query[1],
                 forward=self.forward,
                 stop=self.stop,
             )
@@ -493,14 +501,31 @@ class ModelManager(Queryset):
     async def save(self, instanced_model):
         # performs the database save
         fields, field_data = [], []
+
         for k, data in instanced_model.data.items():
             f_class = getattr(instanced_model.__class__, k)
 
             field_name = f_class.db_column or k
+
             data = f_class.sanitize_data(data)
 
             fields.append(field_name)
             field_data.append(data)
+
+        for field in instanced_model.fields.keys():
+            if field not in fields:
+                f_class = getattr(instanced_model.__class__, field)
+
+                field_name = f_class.db_column or field
+                data = getattr(instanced_model, field)
+                if data is None and hasattr(instanced_model.fields[field], 'default') and \
+                        instanced_model.fields[field].default is not None and not isinstance(f_class, AutoField):
+                    data = instanced_model.fields[field].default
+
+                    data = f_class.sanitize_data(data)
+
+                    fields.append(field_name)
+                    field_data.append(data)
 
         db_request = [{
             'action': getattr(instanced_model, instanced_model.orm_pk) and 'db__update' or 'db__insert',
@@ -509,7 +534,8 @@ class ModelManager(Queryset):
                 getattr(instanced_model, instanced_model.orm_pk),
             ),
             'field_names': ', '.join(fields),
-            'field_values': ', '.join(field_data),
+            'field_values': field_data,
+            'field_schema': ', '.join(['${}'.format(value + 1) for value in range(len(field_data))]),
             'condition': '{}={}'.format(
                 instanced_model.db_pk,
                 getattr(instanced_model, instanced_model.orm_pk)
@@ -541,12 +567,16 @@ class ModelManager(Queryset):
                 'table_name': table_name,
                 'action': 'db__insert',
                 'field_names': ', '.join([model_column, foreign_column]),
-                'field_values': ', '.join([str(model_id), str(data)]),
+                'field_values': [model_id, data],
+                'field_schema': ', '.join(
+                    ['${}'.format(value + 1) for value in range(len([model_id, data]))]),
             }]
 
             if isinstance(data, list):
                 for d in data:
-                    db_request[0].update({'field_values': ', '.join([str(model_id), str(d)])})
+                    db_request[0].update({'field_values': [model_id, d],
+                                          'field_schema': ', '.join(['${}'.format(value + 1) for value in
+                                                                     range(len([model_id, d]))])})
                     await self.db_request(db_request)
             else:
                 await self.db_request(db_request)
