@@ -328,9 +328,12 @@ class FieldTests(AioTestCase):
         pub = Publisher(name='Linda', json={'last_name': 'Olson'}, mac=mac)
         await pub.save()
 
-        self.assertNotEqual(pub.mac, mac)  # diferent dialects
-        self.assertEqual(str(EUI(pub.mac, dialect=mac_eui48)), mac)  # equal when converted on same dialect
-        self.assertEqual(EUI(pub.mac), EUI(mac))   # equal before representation
+        # diferent dialects
+        self.assertNotEqual(pub.mac, mac)
+        # equal when converted on same dialect
+        self.assertEqual(str(EUI(pub.mac, dialect=mac_eui48)), mac)
+        # equal before representation
+        self.assertEqual(EUI(pub.mac), EUI(mac))
 
     async def test_model_with_macadressfield_field_error(self):
         with self.assertRaises(FieldError) as exc:

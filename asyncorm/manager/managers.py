@@ -342,7 +342,8 @@ class Queryset(object):
                 if isinstance(v, (list, tuple)):
                     # check they are correct items and serialize
                     v = ','.join(
-                        ["'{}'".format(field.sanitize_data(si)) if isinstance(si, str) else str(si) for si in v])
+                        ["'{}'".format(field.sanitize_data(si))
+                         if isinstance(si, str) else str(si) for si in v])
                 elif v is None:
                     v = field.sanitize_data(v)[1:-1]
                     operator = operator.replace('=', 'IS')
@@ -518,8 +519,10 @@ class ModelManager(Queryset):
 
                 field_name = f_class.db_column or field
                 data = getattr(instanced_model, field)
-                if data is None and hasattr(instanced_model.fields[field], 'default') and \
-                        instanced_model.fields[field].default is not None and not isinstance(f_class, AutoField):
+                field_has_default = hasattr(instanced_model.fields[field], 'default')
+                default_not_none = instanced_model.fields[field].default is not None
+                not_auto_field = not isinstance(f_class, AutoField)
+                if data is None and field_has_default and default_not_none and not_auto_field:
                     data = instanced_model.fields[field].default
 
                     data = f_class.sanitize_data(data)
