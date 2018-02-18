@@ -45,10 +45,10 @@ class ModuleTests(AioTestCase):
 
     def test_the_data_is_persistent_db_manager(self):
         # the orm is configure on the start of tests, but the data is kept
-        self.assertEqual(orm_app.db_manager.conn_data['password'], db_config['password'])
+        self.assertEqual(orm_app.db_manager._conn_data['password'], db_config['password'])
 
     def test_the_data_is_persistent_database(self):
-        self.assertEqual(orm_app.db_manager.conn_data['database'], db_config['database'])
+        self.assertEqual(orm_app.db_manager._conn_data['database'], db_config['database'])
 
     def test_the_data_is_persistent_orm_model(self):
         configure_orm({'db_config': db_config, 'apps': ['tests.testapp.appo', 'tests.testapp2']})
