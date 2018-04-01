@@ -71,16 +71,21 @@ class Migrator(object):
         self.args = parser.parse_args()
         self.orm = self.configure_orm()
 
+        # allows multiple apps comma separated
+        self.all_apps = ['*']
+        self.args.app = self.args.app.split(',')
         self.check_args()
 
     def check_args(self):
-        if self.args.app != '*' and self.args.app not in self.orm.apps.keys():
-            raise CommandError('App not defined in the orm')
-        if self.args.app == '*' and self.args.migration is not None:
+        if self.args.app != self.all_apps:
+            for app in self.args.app:
+                if app not in self.orm.apps.keys():
+                    raise CommandError('App "{}" not defined in the orm'.format(app))
+        if self.args.app == self.all_apps and self.args.migration is not None:
             raise CommandError('Migration "{}" specified when the App is not'.format(self.args.migration))
         if self.args.command == 'makemigrations' and self.args.migration is not None:
             raise CommandError('Migration "{}" specified when "makemigrations"'.format(self.args.migration))
-        if self.args.command == 'datamigration' and self.args.app == '*':
+        if self.args.command == 'datamigration' and self.args.app == self.all_apps:
             raise CommandError('Datamigration requires an app defined')
         if self.args.command == 'showmigration' and self.args.migration is not None:
             raise CommandError('Migration "{}" specified when "showmigrations"'.format(self.args.migration))
@@ -92,10 +97,10 @@ class Migrator(object):
         return configure_orm(config=config_filename)
 
     async def run(self):
-        # create if not exists the migration table!!
+        # creates the migration table if does'nt exist!!
         await AsyncormMigrations().objects.create_table()
 
-        apps = self.args.app != '*' and [self.args.app] or [k for k in self.orm.apps.keys()]
+        apps = self.args.app if self.args.app != self.all_apps else [k for k in self.orm.apps.keys()]
         migration = self.args.migration != '?' and self.args.migration or None
 
         if self.args.command in ('makemigrations', 'showmigrations'):
@@ -105,8 +110,7 @@ class Migrator(object):
         await getattr(self, self.args.command)(*args)
 
     async def makemigrations(self, apps):
-        """ Creates the file that can be used to migrate the table from a state to the next
-        """
+        """Creates the file that can be used to migrate the table from a state to the next."""
         logger.info('migrations for {}'.format(apps))
         for app in [self.orm.apps[m] for m in apps]:
             logger.info('checking models for {}'.format(app.name))
@@ -118,23 +122,20 @@ class Migrator(object):
                 logger.error('\nMigration Error: {}\n'.format(e))
 
     async def migrate(self, apps, migration):
-        """ Migrates the database from an state to the next using the migration files defined
-        """
-        logger.info('migrate {} {}'.format(apps, migration))
+        """Migrates the database from an state to the next using the migration files defined."""
+        logger.info('migrate {} {}'.format(apps, migration if migration else ''))
         for module in [self.orm.apps[m] for m in apps]:
             await module.check_current_migrations_status(migration)
 
     async def datamigration(self, apps, migration):
-        """ Creates an empty migration file, so the user can create their own migration
-        """
+        """ Creates an empty migration file, so the user can create their own migration."""
         logger.info('datamigration {} {}'.format(apps, migration))
 
     async def showmigrations(self, apps):
-        """ Creates an empty migration file, so the user can create their own migration
-        """
+        """Shows the list of migrations defined in the filesystem and its status in atabase."""
         for app in [self.orm.apps[m] for m in apps]:
-            logger.info('{}\n Migration list for "{}" app\n{}\n'.format('~' * 50, app.name, '~' * 50, ))
+            logger.info('{}\n Migration list for "{}" app\n{}'.format('~' * 50, app.name, '-' * 50, ))
             for mig_name in app.fs_migration_list():
                 applied = await app.check_migration_applied(mig_name)
-                logger.info(' [{}] {}'.format(applied and 'x' or ' ', mig_name))
+                logger.info(' [{}] {}'.format('x' if applied else ' ', mig_name))
             logger.info('\n')
