@@ -1,0 +1,147 @@
+from asyncorm.models.app_migrator import MigrationBase
+from asyncorm.orm_migrations.migration_actions import *
+
+
+class Migration(MigrationBase):
+    initial = True
+    depends = ['']
+    actions = [
+        CreateModel(
+            'Author',
+            fields={
+                'name': {
+                    'field_type': 'asyncorm.models.fields.CharField',
+                    'choices': None,
+                    'db_column': 'name',
+                    'db_index': False,
+                    'default': None,
+                    'max_length': 50,
+                    'null': False,
+                    'unique': True,
+                },
+                'last_name': {
+                    'field_type': 'asyncorm.models.fields.CharField',
+                    'choices': None,
+                    'db_column': 'last_name',
+                    'db_index': False,
+                    'default': None,
+                    'max_length': 50,
+                    'null': False,
+                    'unique': True,
+                },
+                'email': {
+                    'field_type': 'asyncorm.models.fields.EmailField',
+                    'choices': None,
+                    'db_column': 'email',
+                    'db_index': False,
+                    'default': None,
+                    'max_length': 100,
+                    'null': True,
+                    'unique': False,
+                },
+                'age': {
+                    'field_type': 'asyncorm.models.fields.IntegerField',
+                    'choices': None,
+                    'db_column': 'age',
+                    'db_index': False,
+                    'default': None,
+                    'null': False,
+                    'unique': False,
+                },
+                'id': {
+                    'field_type': 'asyncorm.models.fields.AutoField',
+                    'choices': None,
+                    'db_column': 'id',
+                    'db_index': False,
+                    'default': None,
+                    'null': False,
+                    'unique': True,
+                },
+            },
+            meta={
+                'ordering': None,
+                'unique_together': ('name', 'last_name'),
+                'table_name': '',
+            },
+        ),
+        CreateModel(
+            'Book',
+            fields={
+                'name': {
+                    'field_type': 'asyncorm.models.fields.CharField',
+                    'choices': None,
+                    'db_column': 'name',
+                    'db_index': False,
+                    'default': None,
+                    'max_length': 50,
+                    'null': False,
+                    'unique': False,
+                },
+                'synopsis': {
+                    'field_type': 'asyncorm.models.fields.CharField',
+                    'choices': None,
+                    'db_column': 'synopsis',
+                    'db_index': False,
+                    'default': None,
+                    'max_length': 255,
+                    'null': False,
+                    'unique': False,
+                },
+                'book_type': {
+                    'field_type': 'asyncorm.models.fields.CharField',
+                    'choices': {
+                        'hard cover': 'hard cover book',
+                        'paperback': 'paperback book',
+                    },
+                    'db_column': 'book_type',
+                    'db_index': False,
+                    'default': None,
+                    'max_length': 15,
+                    'null': True,
+                    'unique': False,
+                },
+                'pages': {
+                    'field_type': 'asyncorm.models.fields.IntegerField',
+                    'choices': None,
+                    'db_column': 'pages',
+                    'db_index': False,
+                    'default': None,
+                    'null': True,
+                    'unique': False,
+                },
+                'date_created': {
+                    'field_type': 'asyncorm.models.fields.DateField',
+                    'auto_now': True,
+                    'choices': None,
+                    'db_column': 'date_created',
+                    'db_index': False,
+                    'default': None,
+                    'null': False,
+                    'strftime': '%Y-%m-%d',
+                    'unique': False,
+                },
+                'author': {
+                    'field_type': 'asyncorm.models.fields.ManyToManyField',
+                    'db_column': 'author',
+                    'db_index': False,
+                    'default': None,
+                    'foreign_key': 'Author',
+                    'unique': False,
+                },
+                'id': {
+                    'field_type': 'asyncorm.models.fields.AutoField',
+                    'choices': None,
+                    'db_column': 'id',
+                    'db_index': False,
+                    'default': None,
+                    'null': False,
+                    'unique': True,
+                },
+            },
+            meta={
+                'ordering': ['-name'],
+                'unique_together': ['name', 'synopsis'],
+                'table_name': '',
+            },
+        ),
+    ]

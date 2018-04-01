@@ -128,7 +128,12 @@ class Field(object):
         return value
 
     def current_state(self):
-        return {arg: getattr(self, arg) for arg in self.args}
+        state = {'field_type': '{}.{}'.format(
+            self.__class__.__dict__['__module__'],
+            self.__class__.__name__)
+        }
+        state.update({arg: getattr(self, arg) for arg in self.args})
+        return state
 
     def set_field_name(self, db_column):
         if '__' in db_column:
@@ -257,6 +262,7 @@ class DateTimeField(Field):
     internal_type = datetime
     creation_string = 'timestamp'
     strftime = '%Y-%m-%d  %H:%s'
+    args = ('auto_now', 'choices', 'db_column', 'db_index', 'default', 'null', 'strftime', 'unique')
 
     def serialize_data(self, value):
         return value

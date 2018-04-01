@@ -8,6 +8,17 @@ import types
 from datetime import datetime
 
 from asyncorm.exceptions import MigrationError
+from asyncorm.orm_migrations.migration_actions import (
+    AlterField,
+    AlterModel,
+    CreateField,
+    CreateModel,
+    FieldMigration,
+    ModelMigration,
+    RemoveField,
+    RemoveModel,
+    RenameField,
+)
 
 logger = logging.getLogger('asyncorm')
 
@@ -131,7 +142,7 @@ class App:
 
     @staticmethod
     def migration_integer_number(migration_name):
-        regex = re.search(r'^(?P<m_number>[\d]{5})', migration_name)
+        regex = re.search(r'^(?P<m_number>[\d]{4})', migration_name)
         return migration_name and int(regex.groups('m_number')[0]) or 0
 
     async def latest_db_migration(self):
@@ -174,7 +185,38 @@ class App:
         random_hash = hashlib.sha1()
         random_hash.update('{}{}'.format(target_fs_migration, str(datetime.now())).encode('utf-8'))
         return '{}__{}_{}'.format(
-            '0000{}'.format(target_fs_migration + 1)[-5:],
+            '000{}'.format(target_fs_migration + 1)[-4:],
             stage,
             random_hash.hexdigest(),
         )[:26]
+
+    def get_absolute_migration(self, migration_name):
+        return os.path.join(self.abs_path, 'migrations', migration_name)
+
+    def get_migration_actions(self):
+        actions = []
+        for model_name, model in self.models.items():
+            final_migration_state = {}
+            current_state = model.current_state()
+            if current_state != final_migration_state:
+                fields, meta = {}, {}
+                if not final_migration_state:
+                    action_type = CreateModel
+                    fields = current_state['fields']
+                    meta = current_state['meta']
+                else:
+                    action_type = AlterModel
+                    for k, value in current_state['fields'].items():
+                        if final_migration_state['fields'][k] != value:
+                            fields.update({k: value})
+                    meta = current_state['meta']
+                actions.append(action_type(model_name, fields, meta))
+        return actions
+
+    def get_migration_depends(self):
+        from asyncorm.models import ForeignKey, ManyToManyField
+        depends = []
+        for model_name, model in self.models.items():
+            if isinstance(model.fields, (ForeignKey, ManyToManyField)):
+                import pdb; pdb.set_trace()
+        return depends
