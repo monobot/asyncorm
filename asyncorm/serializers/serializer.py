@@ -33,7 +33,8 @@ class ModelSerializerMeta(type):
 
 
 class SerializerMethod(Serializers):
-    pass
+    def __init__(self, method_name=''):
+        self.method_name = method_name
 
 
 class ModelSerializer(Serializers, metaclass=ModelSerializerMeta):
@@ -62,7 +63,11 @@ class ModelSerializer(Serializers, metaclass=ModelSerializerMeta):
             if hasattr(cls, f):
                 serializer = getattr(cls, f)
                 if isinstance(serializer, SerializerMethod):
-                    serializer_method = getattr(cls, 'get_{}'.format(f))
+                    method_name = serializer.method_name
+                    if not method_name:
+                        serializer_method = getattr(cls, 'get_{}'.format(f))
+                    else:
+                        serializer_method = getattr(cls, method_name)
                     return_dict[f] = serializer_method(instanced_model)
                 # here we have to add subserializers when posible
             else:

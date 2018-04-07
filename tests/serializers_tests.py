@@ -84,3 +84,18 @@ class SerializerTests(AioTestCase):
 
         book_ser = BookSerializerNew().serialize(await Book.objects.get(id=3))
         self.assertEqual(book_ser['its_a_2'], 2)
+
+    async def test_serializer_specifically_defined_methodfield(self):
+        class BookSerializerNew(ModelSerializer):
+            its_a_2 = SerializerMethod(method_name='my_special_method_name')
+
+            @staticmethod
+            def my_special_method_name(instance):
+                return instance.its_a_2()
+
+            class Meta:
+                model = Book
+                fields = ['its_a_2', ]
+
+        book_ser = BookSerializerNew().serialize(await Book.objects.get(id=3))
+        self.assertEqual(book_ser['its_a_2'], 2)

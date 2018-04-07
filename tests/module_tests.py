@@ -19,7 +19,7 @@ class ModuleTests(AioTestCase):
         orm = configure_orm({'db_config': db_config, 'apps': None})
 
         with self.assertRaises(AppError) as exc:
-            orm.get_model('here.there.what')
+            orm.get_model('here.what')
 
         self.assertTrue('There are no apps declared in the orm' == exc.exception.args[0])
 

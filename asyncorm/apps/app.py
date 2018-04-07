@@ -9,15 +9,15 @@ from datetime import datetime
 
 from asyncorm.exceptions import MigrationError
 from asyncorm.orm_migrations.migration_actions import (
-    AlterField,
+    # AlterField,
     AlterModel,
-    CreateField,
+    # CreateField,
     CreateModel,
-    FieldMigration,
-    ModelMigration,
-    RemoveField,
-    RemoveModel,
-    RenameField,
+    # FieldMigration,
+    # ModelMigration,
+    # RemoveField,
+    # RemoveModel,
+    # RenameField,
 )
 
 logger = logging.getLogger('asyncorm')
@@ -218,5 +218,5 @@ class App:
         depends = []
         for model_name, model in self.models.items():
             if isinstance(model.fields, (ForeignKey, ManyToManyField)):
-                import pdb; pdb.set_trace()
+                pass
         return depends

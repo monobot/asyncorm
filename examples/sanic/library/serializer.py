@@ -3,10 +3,10 @@ from library.models import Book
 
 
 class BookSerializer(ModelSerializer):
-    book_type = SerializerMethod()
+    book_type = SerializerMethod(method_name='my_book_type')
 
     @staticmethod
-    def get_book_type(instance):
+    def my_book_type(instance):
         return instance.book_type_display()
 
     class Meta():

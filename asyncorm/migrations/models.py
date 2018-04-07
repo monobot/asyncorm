@@ -7,5 +7,4 @@ class AsyncormMigrations(models.Model):
     applied = models.DateTimeField(auto_now=True)
 
     class Meta():
-        ordering = ('-id', )
         table_name = 'asyncorm_migrations'

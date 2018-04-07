@@ -6,7 +6,7 @@ import textwrap
 from asyncorm.application.configure import configure_orm, DEFAULT_CONFIG_FILE
 from asyncorm.exceptions import CommandError, MigrationError
 from asyncorm.orm_migrations.migration_constructor import MigrationConstructor
-from asyncorm.orm_migrations.models import AsyncormMigrations
+from asyncorm.migrations.models import AsyncormMigrations
 # from asyncpg.exceptions import UndefinedTableError
 
 cwd = os.getcwd()
@@ -88,7 +88,9 @@ class Migrator(object):
         self.orm = self.configure_orm()
 
         # allows multiple apps comma separated
-        self.args.app = self.args.app.split(',')
+        if self.args.app != self.ALL_APPS:
+            self.args.app = self.args.app.split(',')
+
         self.check_args()
 
     @staticmethod
@@ -105,6 +107,7 @@ class Migrator(object):
             for app in self.args.app:
                 if app not in self.orm.apps.keys():
                     raise CommandError('App "{}" not defined in the orm'.format(app))
+
         if self.args.app == self.ALL_APPS and self.args.migration is not None:
             raise CommandError('Migration "{}" specified when the App is not'.format(self.args.migration))
         if self.args.initial and self.args.command == self.MIGRATE:

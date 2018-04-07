@@ -60,7 +60,7 @@ class OrmApp(object):
 
     def _get_declared_apps(self, app_names):
         _apps = {}
-        app_names.append('asyncorm.orm_migrations')
+        app_names.append('asyncorm.migrations')
         for app_name in app_names:
             # its not required to include .app when the app is declared in that specific file_name
             import_str = not app_name.endswith('.app') and app_name + '.app' or app_name
@@ -83,7 +83,6 @@ class OrmApp(object):
                         _apps.update({v.name: app})
                 except TypeError:
                     logger.debug('typerror')
-                    pass
         return _apps
 
     def get_model(self, model_name):
