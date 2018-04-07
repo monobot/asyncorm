@@ -314,7 +314,6 @@ class Queryset(object):
                 'startswith', 'istartswith',
                 'endswith', 'iendswith',
             ]
-
             operator_formater = {
                 't_n': self.model.table_name or self.model.__name__.lower(),
                 'k': field.db_column,

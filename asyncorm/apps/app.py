@@ -10,14 +10,12 @@ from datetime import datetime
 from asyncorm.exceptions import MigrationError
 from asyncorm.orm_migrations.migration_actions import (
     # AlterField,
-    AlterModel,
     # CreateField,
     CreateModel,
     # FieldMigration,
     # ModelMigration,
     # RemoveField,
     # RemoveModel,
-    # RenameField,
 )
 
 logger = logging.getLogger('asyncorm')
@@ -45,7 +43,7 @@ class App:
         for k, v in inspect.getmembers(module):
             try:
                 if issubclass(v, models.Model) and v is not models.Model:
-                    v.app = self
+                    v.orm_app = self
                     _models.update({k: v})
             except TypeError:
                 pass
@@ -61,8 +59,11 @@ class App:
         """ Checks that the migration is correcly synced and everything is fine
         returns the latest migration applied file_name
         """
+        steps_migrated = await self._app_db_applied_migrations()
+
         latest_fs_migration = self.latest_fs_migration()
-        latest_db_migration = await self.latest_db_migration()
+        latest_db_migration = steps_migrated[-1]
+
         latest_fs_migration_number = self.migration_integer_number(latest_fs_migration)
         latest_db_migration_number = self.migration_integer_number(latest_db_migration)
 
@@ -142,8 +143,19 @@ class App:
 
     @staticmethod
     def migration_integer_number(migration_name):
-        regex = re.search(r'^(?P<m_number>[\d]{4})', migration_name)
-        return migration_name and int(regex.groups('m_number')[0]) or 0
+        match = re.search(r'^(?P<m_number>[\d]{4})', migration_name)
+
+        if match:
+            return migration_name and int(match.groups('m_number')[0]) or 0
+        return 0
+
+    async def _app_db_applied_migrations(self):
+        AsyncormMigrations = self.orm.get_model('AsyncormMigrations')
+        results = []
+        async for res in AsyncormMigrations.objects.filter(app_name=self.name):
+            results.append(res)
+
+        return [r.name for r in results] if results else []
 
     async def latest_db_migration(self):
         kwargs = {
@@ -151,7 +163,7 @@ class App:
             'table_name': 'asyncorm_migrations',
             'join': '',
             'ordering': 'ORDER BY -id',
-            'condition': "app = '{}'".format(self.name)
+            'condition': "app_name = '{}'".format(self.name),
         }
 
         result = await self.db_manager.request(self.db_manager.db__select.format(**kwargs))
@@ -163,7 +175,7 @@ class App:
             'table_name': 'asyncorm_migrations',
             'join': '',
             'ordering': '',
-            'condition': "app = '{}' AND name = '{}'".format(self.name, migration_name),
+            'condition': "app_name = '{}' AND name = '{}'".format(self.name, migration_name),
         }
         result = await self.db_manager.request(self.db_manager.db__select.format(**kwargs))
         return result
@@ -176,7 +188,7 @@ class App:
 
     def latest_fs_migration(self):
         filenames = self.fs_migration_list()
-        return filenames and sorted(filenames)[-1] or ''
+        return filenames and filenames[-1] or ''
 
     def next_fs_migration_name(self, stage='auto'):
         if stage not in ('auto', 'data', 'initial'):
@@ -205,7 +217,8 @@ class App:
                     fields = current_state['fields']
                     meta = current_state['meta']
                 else:
-                    action_type = AlterModel
+                    # not create here
+                    action_type = CreateModel
                     for k, value in current_state['fields'].items():
                         if final_migration_state['fields'][k] != value:
                             fields.update({k: value})

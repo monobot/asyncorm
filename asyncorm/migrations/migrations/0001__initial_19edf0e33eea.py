@@ -9,6 +9,16 @@ class Migration(MigrationBase):
         CreateModel(
             'AsyncormMigrations',
             fields={
+                'app_name': {
+                    'field_type': 'asyncorm.models.fields.CharField',
+                    'choices': None,
+                    'db_column': 'app_name',
+                    'db_index': False,
+                    'default': None,
+                    'max_length': 75,
+                    'null': False,
+                    'unique': False,
+                },
                 'name': {
                     'field_type': 'asyncorm.models.fields.CharField',
                     'choices': None,

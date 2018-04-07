@@ -359,4 +359,4 @@ class Model(BaseModel):
         return '< {} object >'.format(self.__class__.__name__)
 
     def __repr__(self):
-        return self.__str__
+        return self.__str__()

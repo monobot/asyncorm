@@ -62,7 +62,7 @@ class Migrator(object):
         )
 
         parser.add_argument(
-            'app', type=str, nargs='?', default=self.ALL_APPS,
+            'apps', type=str, nargs='?', default=self.ALL_APPS,
             help=('app the command will be aplied to')
         )
 
@@ -88,8 +88,8 @@ class Migrator(object):
         self.orm = self.configure_orm()
 
         # allows multiple apps comma separated
-        if self.args.app != self.ALL_APPS:
-            self.args.app = self.args.app.split(',')
+        if self.args.apps != self.ALL_APPS:
+            self.args.apps = self.args.apps.split(',')
 
         self.check_args()
 
@@ -103,18 +103,18 @@ class Migrator(object):
             raise argparse.ArgumentTypeError('Boolean value expected.')
 
     def check_args(self):
-        if self.args.app != self.ALL_APPS:
-            for app in self.args.app:
+        if self.args.apps != self.ALL_APPS:
+            for app in self.args.apps:
                 if app not in self.orm.apps.keys():
                     raise CommandError('App "{}" not defined in the orm'.format(app))
 
-        if self.args.app == self.ALL_APPS and self.args.migration is not None:
+        if self.args.apps == self.ALL_APPS and self.args.migration is not None:
             raise CommandError('Migration "{}" specified when the App is not'.format(self.args.migration))
         if self.args.initial and self.args.command == self.MIGRATE:
             raise CommandError('You can not migrate "initial". try "makemigrations"')
         if self.args.command == self.MAKEMIGRATIONS and self.args.migration is not None:
             raise CommandError('Migration "{}" specified when "makemigrations"'.format(self.args.migration))
-        if self.args.command == self.DATAMIGRATION and self.args.app == self.ALL_APPS:
+        if self.args.command == self.DATAMIGRATION and self.args.apps == self.ALL_APPS:
             raise CommandError('Datamigration requires an app defined')
         if self.args.command == self.SHOWMIGRATIONS and self.args.migration is not None:
             raise CommandError('Migration "{}" specified when "showmigrations"'.format(self.args.migration))
@@ -129,7 +129,7 @@ class Migrator(object):
         # creates the migration table if does'nt exist!!
         await AsyncormMigrations().objects.create_table()
 
-        apps = self.args.app if self.args.app != self.ALL_APPS else [k for k in self.orm.apps.keys()]
+        apps = self.args.apps if self.args.apps != self.ALL_APPS else [k for k in self.orm.apps.keys()]
         migration = self.args.migration != '?' and self.args.migration or None
 
         if self.args.command in (self.MAKEMIGRATIONS, self.SHOWMIGRATIONS):
