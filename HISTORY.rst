@@ -2,6 +2,9 @@
 History
 =======
 
+0.3.9 (2012-1-10)
+* remove python3.8 still not avalailable
+
 0.3.8 (2012-1-10)
 * heavy works in migrations, basic setup completed
 

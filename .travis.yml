@@ -2,7 +2,6 @@ language: python
 python:
   - "3.5"
   - "3.6"
-  - "3.7"
 
 before_script:
   - psql -c "create user ormdbuser with password 'ormDbPass';" -U postgres
