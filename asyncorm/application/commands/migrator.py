@@ -142,15 +142,22 @@ class Migrator(object):
         """Creates the file that can be used to migrate the table from a state to the next."""
         logger.info('migrations for {}'.format(apps))
         for app in [self.orm.apps[m] for m in apps]:
-            logger.info('checking models for {}'.format(app.name))
+            logger.info('##### checking models for "{}" #####'.format(app.name))
             try:
-                latest_fs_migration = await app.check_makemigrations_status()
-                logger.info(latest_fs_migration)
+                _migration_status = await app._construct_migrations_status()
+                _latest_fs_declared = _migration_status['_latest_fs_declared']
+                logger.info(_latest_fs_declared)
                 initial = self.args.initial
-                if not latest_fs_migration and not initial:
+                if not initial and not _latest_fs_declared:
                     raise MigrationError(
                         'No migration defined in filesystem for app "{}" '
                         'and makemigration not marked as initial.'.format(app.name)
+                    )
+
+                if initial and _latest_fs_declared:
+                    raise MigrationError(
+                        'Makemigrations marked as initial where there is already an initial '
+                        'migration declared.'
                     )
 
                 file_name = app.next_fs_migration_name(stage='initial' if initial else 'auto')
@@ -177,7 +184,10 @@ class Migrator(object):
         """Shows the list of migrations defined in the filesystem and its status in database."""
         for app in [self.orm.apps[m] for m in apps]:
             logger.info('{}\n Migration list for "{}" app\n{}'.format('~' * 50, app.name, '-' * 50, ))
-            for mig_name in app.fs_migration_list():
-                applied = await app.check_migration_applied(mig_name)
-                logger.info(' [{}] {}'.format('x' if applied else ' ', mig_name))
-            logger.info('\n')
+            _migration_status = await app._construct_migrations_status()
+            for mig_name in [k for k in _migration_status.keys() if not k.startswith('_')]:
+                logger.info(' [{}] {}'.format(
+                    'x' if _migration_status[mig_name]['migrated'] else ' ',
+                    mig_name)
+                )
+            logger.info('{}\n'.format('~' * 50))

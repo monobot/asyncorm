@@ -29,7 +29,7 @@ test_requirements = [
 
 setup(
     name='asyncorm',
-    version='0.3.7',
+    version='0.3.8',
     description="A fully asynchronous python ORM",
     long_description=readme + '\n\n' + history,
     author="Héctor Alvarez (monobot)",

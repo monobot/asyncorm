@@ -8,46 +8,12 @@ import types
 from datetime import datetime
 
 from asyncorm.exceptions import MigrationError
-from asyncorm.orm_migrations.migration_actions import (
-    # AlterField,
-    # CreateField,
-    CreateModel,
-    # FieldMigration,
-    # ModelMigration,
-    # RemoveField,
-    # RemoveModel,
-)
+from asyncorm.orm_migrations.migration_actions import CreateModel
 
 logger = logging.getLogger('asyncorm')
 
 
-class App:
-    def __init__(self, name, relative_name, abs_path, orm):
-        self.relative_name = relative_name
-        self.abs_path = abs_path
-        self.name = name
-        self.orm = orm
-        self.db_manager = orm.db_manager
-        self.models = self.get_declared_models()
-
-    def get_declared_models(self):
-        # this import should be here otherwise causes circular import
-        from asyncorm import models
-
-        _models = {}
-        try:
-            module = importlib.import_module('{}.models'.format(self.relative_name))
-        except ImportError:
-            logger.error('unable to import {}'.format(self.relative_name))
-
-        for k, v in inspect.getmembers(module):
-            try:
-                if issubclass(v, models.Model) and v is not models.Model:
-                    v.orm_app = self
-                    _models.update({k: v})
-            except TypeError:
-                pass
-        return _models
+class AppMigration:
 
     def check_migration_dir(self, initial=True):
         self.migrations_dir = os.path.join(self.abs_path, 'migrations')
@@ -55,61 +21,90 @@ class App:
         if initial:
             os.makedirs(self.migrations_dir, exist_ok=True)
 
+    async def _construct_migrations_status(self):
+        fs_declared = self.fs_migration_list()
+        db_migrated = await self._app_db_applied_migrations()
+
+        migrations_status = {}
+        for migration in fs_declared:
+            migrations_status.update(
+                {
+                    migration: {
+                        'migrated': True if migration in db_migrated else False,
+                        'initial': True if '__initial_' in migration else False,
+                    }
+                }
+            )
+
+        try:
+            _latest_db_migrated = migrations_status[db_migrated[-1]] if db_migrated else {}
+        except KeyError:
+            raise MigrationError(
+                'Something went wrong, migration "{}" does not exist in the filesystem.'.format(
+                    db_migrated[-1]
+                )
+            )
+
+        migrations_status.update({
+            '_latest_db_migrated': _latest_db_migrated,
+            '_latest_fs_declared': migrations_status[fs_declared[-1]] if fs_declared else {}
+        })
+
+        return migrations_status
+
     async def check_makemigrations_status(self):
         """ Checks that the migration is correcly synced and everything is fine
         returns the latest migration applied file_name
         """
-        steps_migrated = await self._app_db_applied_migrations()
+        _migration_status = await self._construct_migrations_status()
+        _latest_db_migrated = _migration_status['_latest_db_migrated']
+        _latest_db_migrated_number = self._migration_integer_number(_latest_db_migrated)
+        _latest_fs_declared = _migration_status['_latest_fs_declared']
+        _latest_fs_declared_number = self._migration_integer_number(_latest_fs_declared)
 
-        latest_fs_migration = self.latest_fs_migration()
-        latest_db_migration = steps_migrated[-1]
-
-        latest_fs_migration_number = self.migration_integer_number(latest_fs_migration)
-        latest_db_migration_number = self.migration_integer_number(latest_db_migration)
-
+        self._migration_integer_number(_latest_fs_declared)
         # the database doesn't have any migration
-        if not latest_db_migration:
-            if latest_fs_migration:
+        if not _latest_db_migrated:
+            if _latest_fs_declared:
                 raise MigrationError(
                     'The model is not in the latest filesystem status, so the migration created will '
                     'not be consistent.\nPlease "migrate" the database before "makemigrations" again.'
                 )
         else:
-            if not latest_fs_migration:
+            if not _latest_fs_declared:
                 raise MigrationError(
                     'Severe inconsistence detected, the database has at least one migration applied and no '
                     'migration described in the filesystem.')
-            if latest_db_migration_number > latest_fs_migration_number:
+            if _latest_db_migrated_number > _latest_fs_declared_number:
                 raise MigrationError(
                     'There is an inconsistency, the database has a migration named "{}" '
                     'more advanced than the filesystem "{}"'.format(
-                        latest_db_migration,
-                        latest_fs_migration,
+                        _latest_db_migrated,
+                        _latest_fs_declared,
                     )
                 )
 
-            elif latest_db_migration_number < latest_fs_migration_number:
+            elif _latest_db_migrated_number < _latest_fs_declared_number:
                 raise MigrationError(
                     'The model is not in the latest filesystem status, so the migration created will '
                     'not be consistent.\nPlease "migrate" the database before "makemigrations" again.'
                 )
-            elif latest_fs_migration != latest_db_migration:
+            elif _latest_fs_declared != _latest_db_migrated:
                 raise MigrationError(
                     'The migration in the filesystem "{}" is not the same migration '
                     'applied in the database "{}" .'.format(
-                        latest_fs_migration,
-                        latest_db_migration,
+                        _latest_fs_declared,
+                        _latest_db_migrated,
                     )
                 )
-        return latest_fs_migration
 
     async def check_current_migrations_status(self, target):
         self.check_migration_dir()
-        latest_db_migration = self.migration_integer_number(await self.latest_db_migration())
+        latest_db_migration = self._migration_integer_number(await self.latest_db_migration())
 
         forward = False
         if target is None:
-            target_fs_migration = self.migration_integer_number(self.latest_fs_migration())
+            target_fs_migration = self._migration_integer_number(self.latest_fs_migration())
         else:
             target_fs_migration = [
                 fn for fn in next(os.walk(self.migrations_dir))[2] if fn.startswith(target)]
@@ -142,7 +137,7 @@ class App:
         return migration
 
     @staticmethod
-    def migration_integer_number(migration_name):
+    def _migration_integer_number(migration_name):
         match = re.search(r'^(?P<m_number>[\d]{4})', migration_name)
 
         if match:
@@ -193,7 +188,7 @@ class App:
     def next_fs_migration_name(self, stage='auto'):
         if stage not in ('auto', 'data', 'initial'):
             raise MigrationError('that migration stage is not supported')
-        target_fs_migration = self.migration_integer_number(self.latest_fs_migration())
+        target_fs_migration = self._migration_integer_number(self.latest_fs_migration())
         random_hash = hashlib.sha1()
         random_hash.update('{}{}'.format(target_fs_migration, str(datetime.now())).encode('utf-8'))
         return '{}__{}_{}'.format(
@@ -233,3 +228,32 @@ class App:
             if isinstance(model.fields, (ForeignKey, ManyToManyField)):
                 pass
         return depends
+
+
+class App(AppMigration):
+    def __init__(self, name, relative_name, abs_path, orm):
+        self.relative_name = relative_name
+        self.abs_path = abs_path
+        self.name = name
+        self.orm = orm
+        self.db_manager = orm.db_manager
+        self.models = self.get_declared_models()
+
+    def get_declared_models(self):
+        # this import should be here otherwise causes circular import
+        from asyncorm import models
+
+        _models = {}
+        try:
+            module = importlib.import_module('{}.models'.format(self.relative_name))
+        except ImportError:
+            logger.error('unable to import {}'.format(self.relative_name))
+
+        for k, v in inspect.getmembers(module):
+            try:
+                if issubclass(v, models.Model) and v is not models.Model:
+                    v.orm_app = self
+                    _models.update({k: v})
+            except TypeError:
+                pass
+        return _models

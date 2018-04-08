@@ -13,6 +13,7 @@ recursive-include asyncorm/database *
 recursive-include asyncorm/log *
 recursive-include asyncorm/manager *
 recursive-include asyncorm/models *
+recursive-include asyncorm/migrations *
 recursive-include asyncorm/orm_migrations *
 recursive-include asyncorm/serializers *
 recursive-include tests *

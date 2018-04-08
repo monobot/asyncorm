@@ -2,6 +2,9 @@
 History
 =======
 
+0.3.8 (2012-1-10)
+* heavy works in migrations, basic setup completed
+
 0.3.7 (2012-1-10)
 * minor release because of change in parsing the asyncorm.ini
 
