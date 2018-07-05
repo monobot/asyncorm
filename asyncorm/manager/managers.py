@@ -346,7 +346,7 @@ class Queryset(object):
                 elif v is None:
                     v = field.sanitize_data(v)[1:-1]
                     operator = operator.replace('=', 'IS')
-                elif isinstance(v, datetime.datetime) or isinstance(field, (CharField)):
+                elif isinstance(v, (datetime.datetime, datetime.date)) or isinstance(field, (CharField)):
                     v = "'{}'".format(v)
                 else:
                     v = field.sanitize_data(v)

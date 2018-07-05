@@ -234,6 +234,17 @@ class BigIntegerField(IntegerField):
     creation_string = 'bigint'
 
 
+class FloatField(NumberField):
+    internal_type = float
+    creation_string = 'double precision'
+    args = ('choices', 'db_column', 'db_index', 'default', 'null', 'unique',)
+
+    def __init__(self, choices=None, db_column='', db_index=False, default=None, null=False, unique=False):
+        super().__init__(
+            choices=choices, db_column=db_column, db_index=db_index, default=default, null=null,
+            unique=unique)
+
+
 class DecimalField(NumberField):
     internal_type = (Decimal, float, int)
     creation_string = 'decimal({max_digits},{decimal_places})'
