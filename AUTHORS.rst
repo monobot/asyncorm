@@ -10,4 +10,6 @@ Development Lead
 Contributors
 ------------
 
-None yet. Why not be the first?
+3 https://github.com/kitlycol [added FloatField]
+2 https://github.com/Kylmakalle [SQL queries rework]
+1 https://github.com/kejkz [Added support for array and text Fields]
