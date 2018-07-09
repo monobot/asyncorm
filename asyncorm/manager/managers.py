@@ -263,7 +263,8 @@ class Queryset(object):
                 arg = arg.split('__')[0]
             if not hasattr(self.model, arg):
                 raise QuerysetError('{} is not a {} attribute.'.format(arg, self.model.__name__))
-            if not isinstance(getattr(self.model, arg), ForeignKey):
+            fk_field = getattr(self.model, arg)
+            if not isinstance(fk_field, ForeignKey):
                 raise QuerysetError(
                     '{} is not a ForeignKey Field for {}.'.format(arg, self.model.__name__))
             model = self.orm.get_model(getattr(self.model, arg).foreign_key)
@@ -278,11 +279,12 @@ class Queryset(object):
                 ) for field in model.get_db_columns()
 
             ])
+            fk_column = fk_field.db_column and fk_field.db_column or arg
             select_related['fields'].append(
                 {
                     'right_table': right_table,
                     'left_table': left_table,
-                    'foreign_field': arg,
+                    'foreign_field': fk_column,
                     'model_db_pk': model.db_pk,
                     'fields_formatter': fields_formatter,
                     'orm_fieldname': arg,
@@ -521,7 +523,7 @@ class ModelManager(Queryset):
                 field_has_default = hasattr(instanced_model.fields[field], 'default')
                 default_not_none = instanced_model.fields[field].default is not None
                 not_auto_field = not isinstance(f_class, AutoField)
-                if data is None and field_has_default and default_not_none and not_auto_field:
+                if field_has_default and default_not_none and not_auto_field:
                     data = instanced_model.fields[field].default
 
                     data = f_class.sanitize_data(data)

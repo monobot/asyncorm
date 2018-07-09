@@ -107,18 +107,20 @@ class OrmApp(object):
         self.set_model_orm()
 
         for name, model in self.models.items():
-            vvv = model.fields.values()
-            for f in vvv:
+            vvv = model.fields.items()
+            for k, f in vvv:
                 if isinstance(f, ManyToManyField):
-                    m2m_tablename = '{}_{}'.format(name, f.foreign_key).lower()
+                    m2m_tablename = '{}_{}'.format(model.table_name, k).lower()
+                    db_column = '{}_{}'.format(name, model.db_pk).lower()
+
                     other = self.get_model(f.foreign_key)
                     other.set_many2many(f, m2m_tablename, f.foreign_key, name)
 
-                    model.set_many2many(f, m2m_tablename, name, f.foreign_key)
+                    model.set_many2many(f, m2m_tablename, db_column, f.foreign_key)
 
                 elif isinstance(f, ForeignKey):
                     other_model = self.get_model(f.foreign_key)
-                    other_model.set_reverse_foreignkey(name, f.db_column)
+                    other_model.set_reverse_foreignkey(name, k)
 
     def set_model_orm(self):
         for model in self.models.values():

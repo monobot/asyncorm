@@ -121,13 +121,15 @@ class BaseModel(object, metaclass=ModelMeta):
         other_model = get_model(other_column)
         queryset = ModelManager(other_model, field=field)
         queryset.set_orm(cls.objects.orm)
+        other_column_pk = "{}_{}".format(other_column, other_model.db_pk).lower()
 
         def m2m_set(self):
             queryset.query = [{
                 'action': 'db__select_m2m',
                 'select': '*',
                 'm2m_tablename': table_name,
-                'other_tablename': other_column,
+                'other_tablename': other_model.table_name,
+                'other_column_pk': other_column_pk,
                 'otherdb_pk': other_model.db_pk,
                 'id_data': '{}={}'.format(my_column, getattr(self, self.orm_pk)),
             }]
@@ -156,11 +158,11 @@ class BaseModel(object, metaclass=ModelMeta):
             many2many = isinstance(class__orm, ManyToManyField)
 
             if not has_pk and not many2many:
-                d[db] = self__orm
+                d[orm] = self__orm
 
                 default = self__orm == class__orm.default
                 if created and default:
-                    d.pop(db)
+                    d.pop(orm)
 
         return d
 

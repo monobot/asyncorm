@@ -59,7 +59,7 @@ class GeneralManager(object):
         return '''
             SELECT {select} FROM {other_tablename}
             WHERE {otherdb_pk} = ANY (
-                SELECT {other_tablename} FROM {m2m_tablename} WHERE {id_data}
+                SELECT {other_column_pk} FROM {m2m_tablename} WHERE {id_data}
             )
         '''
 

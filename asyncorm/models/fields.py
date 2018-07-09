@@ -11,7 +11,7 @@ from uuid import UUID
 
 from asyncorm.exceptions import FieldError
 
-DATE_FIELDS = ['DateField', ]
+DATE_FIELDS = ['DateField', 'DateTimeField']
 
 KWARGS_TYPES = {
     'auto_now': bool,
