@@ -6,5 +6,5 @@ flake8==3.5.0
 tox==3.0.0
 coverage==4.5.1
 Sphinx==1.7.5
-asyncpg==0.16.0
+asyncpg==0.17.0
 netaddr==0.7.19
