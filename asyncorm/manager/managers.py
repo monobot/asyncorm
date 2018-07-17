@@ -418,6 +418,13 @@ class Queryset(object):
         query = self.db_manager.construct_query(db_request)
         return await self.db_manager.request(query)
 
+    def _copy_me(self):
+        queryset = Queryset(self.model)
+        queryset.set_orm(self.orm)
+        queryset.query = self.query_copy()
+
+        return queryset
+
     async def __getitem__(self, key):
         if isinstance(key, slice):
             # control the keys values
@@ -453,7 +460,10 @@ class Queryset(object):
                 )
 
             async for res in cursor:
-                return self.modelconstructor(res)
+                item = self.modelconstructor(res)
+                pool = await self.db_manager.get_pool()
+                await pool.release(cursor._conn)
+                return item
             raise IndexError('That {} index does not exist'.format(self.model.__name__))
 
         else:
@@ -477,6 +487,8 @@ class Queryset(object):
         async for rec in self._cursor:
             item = self.modelconstructor(rec)
             return item
+        pool = await self.db_manager.get_pool()
+        await pool.release(self._cursor._conn)
         raise StopAsyncIteration()
 
 
@@ -486,13 +498,6 @@ class ModelManager(Queryset):
         self.model = model
         self.field = field
         super().__init__(model)
-
-    def _copy_me(self):
-        queryset = ModelManager(self.model)
-        queryset.set_orm(self.orm)
-        queryset.query = self.query_copy()
-
-        return queryset
 
     async def get_or_create(self, **kwargs):
         try:

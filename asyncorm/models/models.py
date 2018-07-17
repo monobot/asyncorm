@@ -333,7 +333,7 @@ class Model(BaseModel):
                         model = get_model(field.foreign_key)
 
                         setattr(self, attr_name, model().construct(data))
-                else:
+                elif 'fields' in subitems[0]:
                     for join in subitems[0]['fields']:
                         if join['right_table'] == attr_name:
                             field = getattr(self.__class__, join['orm_fieldname'])
