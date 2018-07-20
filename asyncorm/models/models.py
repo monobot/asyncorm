@@ -350,7 +350,7 @@ class Model(BaseModel):
         if self.deleted:
             raise ModelError(
                 'That {model_name} has already been deleted!'.format(model_name=self.__class__.__name__))
-        await self.objects.save(self)
+        await self.objects.save(self, **kwargs)
 
     async def delete(self):
         # object delete method

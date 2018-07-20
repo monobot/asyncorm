@@ -244,7 +244,7 @@ class FloatField(NumberField):
             choices=choices, db_column=db_column, db_index=db_index, default=default, null=null,
             unique=unique)
 
-
+        
 class DecimalField(NumberField):
     internal_type = (Decimal, float, int)
     creation_string = 'decimal({max_digits},{decimal_places})'

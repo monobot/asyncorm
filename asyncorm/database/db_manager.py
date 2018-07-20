@@ -177,7 +177,8 @@ class PostgresManager(GeneralManager):
                         result = await conn.fetchrow(query[0], *query[1])
                     else:
                         result = await conn.fetchrow(query[0])
-                result = await conn.fetchrow(query)
+                else:
+                    result = await conn.fetchrow(query)
         finally:
             await pool.release(conn)
         return result

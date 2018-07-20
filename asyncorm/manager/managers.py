@@ -27,6 +27,7 @@ LOOKUP_OPERATOR = {
     'iendswith': '{t_n}.{k} ILIKE \'%{v}\'',
     'regex': '{t_n}.{k} ~ {v}',
     'iregex': '{t_n}.{k} ~* {v}',
+    'date': '{t_n}.{k}::date > {v}::date'
 }
 
 
@@ -242,7 +243,15 @@ class Queryset(object):
 
         return itm
 
-    #               CHAINABLE QUERYSET METHODS
+    async def first(self):
+        obj = None
+        try:
+            obj = await self[0]
+        except IndexError:
+            obj = None
+        return obj
+        
+    #CHAINABLE QUERYSET METHODS
     def queryset(self):
         return self._copy_me()
 
@@ -505,13 +514,14 @@ class ModelManager(Queryset):
         except ModelDoesNotExist:
             return await self.create(**kwargs), True
 
-    async def save(self, instanced_model):
+    async def save(self, instanced_model, update_fields=None):
         # performs the database save
         fields, field_data = [], []
 
         for k, data in instanced_model.data.items():
             f_class = getattr(instanced_model.__class__, k)
-
+            if update_fields and k not in update_fields:
+                continue
             field_name = f_class.db_column or k
 
             data = f_class.sanitize_data(data)
