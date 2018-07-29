@@ -24,9 +24,26 @@ from asyncorm.models.fields import (
 from asyncorm.models.models import Model
 
 __all__ = (
-    'ArrayField', 'AutoField', 'BigIntegerField', 'BooleanField', 'CharField',
-    'DateField', 'DateTimeField', 'DecimalField', 'EmailField', 'Field',
-    'ForeignKey', 'GenericIPAddressField', 'IntegerField', 'JsonField',
-    'MACAdressField', 'ManyToManyField', 'Model', 'NumberField', 'TextField',
-    'TimeField', 'Uuid4Field', 'FloatField'
+    "ArrayField",
+    "AutoField",
+    "BigIntegerField",
+    "BooleanField",
+    "CharField",
+    "DateField",
+    "DateTimeField",
+    "DecimalField",
+    "EmailField",
+    "Field",
+    "ForeignKey",
+    "GenericIPAddressField",
+    "IntegerField",
+    "JsonField",
+    "MACAdressField",
+    "ManyToManyField",
+    "Model",
+    "NumberField",
+    "TextField",
+    "TimeField",
+    "Uuid4Field",
+    "FloatField",
 )

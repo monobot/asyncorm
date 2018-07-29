@@ -1,8 +1,8 @@
 import logging
 
 
-logger = logging.getLogger('asyncorm')
+logger = logging.getLogger("asyncorm")
 
 
 class AppConfig:
-    name = ''
+    name = ""

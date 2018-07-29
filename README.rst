@@ -17,6 +17,7 @@ asyncOrm
 .. image:: https://api.codacy.com/project/badge/Grade/86ee891909654fc0a294849d0a436109
     :target: https://www.codacy.com/app/monobot/asyncorm?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=monobot/asyncorm&amp;utm_campaign=Badge_Grade
     :alt: Code quality
+
 .. image:: https://api.codacy.com/project/badge/Coverage/86ee891909654fc0a294849d0a436109
     :target: https://www.codacy.com/app/monobot/asyncorm?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=monobot/asyncorm&amp;utm_campaign=Badge_Coverage
     :alt: Coverage
@@ -32,6 +33,10 @@ asyncOrm
 .. image:: https://readthedocs.org/projects/asyncorm/badge/?version=development
     :target: http://asyncorm.readthedocs.io/en/development/
     :alt: Documentation Status
+
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/ambv/black
+    :alt: Code style
 
 A fully asynchronous python ORM
 

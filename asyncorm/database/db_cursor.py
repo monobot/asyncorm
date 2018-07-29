@@ -1,5 +1,4 @@
 class Cursor(object):
-
     def __init__(self, conn, query, values=None, step=20, forward=0, stop=None):
         self._conn = conn
         self._query = query

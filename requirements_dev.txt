@@ -1,3 +1,5 @@
+-r requirements.txt
+
 pip==10.0.1
 bumpversion==0.5.3
 wheel==0.31.1
@@ -6,5 +8,4 @@ flake8==3.5.0
 tox==3.1.2
 coverage==4.5.1
 Sphinx==1.7.6
-asyncpg==0.17.0
-netaddr==0.7.19
+black==18.6b4

@@ -6,5 +6,5 @@ class AsyncormMigrations(models.Model):
     name = models.CharField(max_length=75)
     applied = models.DateTimeField(auto_now=True)
 
-    class Meta():
-        table_name = 'asyncorm_migrations'
+    class Meta:
+        table_name = "asyncorm_migrations"

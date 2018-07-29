@@ -32,7 +32,7 @@ class RemoveField(FieldMigration):
 
 
 class ModelMigration(MigrationAction):
-    def __init__(self, model_name='', fields='', meta=''):
+    def __init__(self, model_name="", fields="", meta=""):
         self.model_name = model_name
         self.fields = fields
         self.meta = meta

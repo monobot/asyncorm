@@ -11,7 +11,7 @@ from library.serializer import BookSerializer
 app = Sanic(name=__name__)
 
 
-@app.listener('before_server_start')
+@app.listener("before_server_start")
 def orm_configure(sanic, loop):
     # configure_orm defaults to the asyncorm.ini in same directory
     # the loop is required tho
@@ -22,27 +22,30 @@ def orm_configure(sanic, loop):
 # for all the 404 lets handle the exceptions
 @app.exception(NotFound)
 def ignore_404s(request, exception):
-    return json({
-        'error': exception.args[0],
-        'method': request.method,
-        'results': None,
-        'status': exception.status_code,
-    })
+    return json(
+        {
+            "error": exception.args[0],
+            "method": request.method,
+            "results": None,
+            "status": exception.status_code,
+        }
+    )
 
 
 @app.exception(URLBuildError)
 def ignore_urlbuilderrors(request, exception):
-    return json({
-        'error': exception.args[0],
-        'method': request.method,
-        'results': None,
-        'status': exception.status_code,
-    })
+    return json(
+        {
+            "error": exception.args[0],
+            "method": request.method,
+            "results": None,
+            "status": exception.status_code,
+        }
+    )
 
 
 # now the propper sanic workflow
 class BooksView(HTTPMethodView):
-
     async def get(self, request):
         filtered_by = request.raw_args
 
@@ -58,7 +61,14 @@ class BooksView(HTTPMethodView):
         async for book in q_books:
             books.append(BookSerializer.serialize(book))
 
-        return json({'method': request.method, 'status': 200, 'results': books or None, 'count': len(books)})
+        return json(
+            {
+                "method": request.method,
+                "status": 200,
+                "results": books or None,
+                "count": len(books),
+            }
+        )
 
     async def post(self, request):
         # populate the book with the data in the request
@@ -67,14 +77,20 @@ class BooksView(HTTPMethodView):
         # and await on save
         await book.save()
 
-        return json({'method': request.method, 'status': 201, 'results': BookSerializer.serialize(book)})
+        return json(
+            {
+                "method": request.method,
+                "status": 201,
+                "results": BookSerializer.serialize(book),
+            }
+        )
 
 
 class BookView(HTTPMethodView):
     async def get_object(self, request, book_id):
         try:
             # await on database consults
-            book = await Book.objects.get(**{'id': book_id})
+            book = await Book.objects.get(**{"id": book_id})
         except QuerysetError as e:
             raise NotFound(e.args[0])
         return book
@@ -83,7 +99,13 @@ class BookView(HTTPMethodView):
         # await on database consults
         book = await self.get_object(request, book_id)
 
-        return json({'method': request.method, 'status': 200, 'results': BookSerializer.serialize(book)})
+        return json(
+            {
+                "method": request.method,
+                "status": 200,
+                "results": BookSerializer.serialize(book),
+            }
+        )
 
     async def put(self, request, book_id):
         # await on database consults
@@ -91,7 +113,13 @@ class BookView(HTTPMethodView):
         # await on save
         await book.save(**request.json)
 
-        return json({'method': request.method, 'status': 200, 'results': BookSerializer.serialize(book)})
+        return json(
+            {
+                "method": request.method,
+                "status": 200,
+                "results": BookSerializer.serialize(book),
+            }
+        )
 
     async def patch(self, request, book_id):
         # await on database consults
@@ -99,7 +127,13 @@ class BookView(HTTPMethodView):
         # await on save
         await book.save(**request.json)
 
-        return json({'method': request.method, 'status': 200, 'results': BookSerializer.serialize(book)})
+        return json(
+            {
+                "method": request.method,
+                "status": 200,
+                "results": BookSerializer.serialize(book),
+            }
+        )
 
     async def delete(self, request, book_id):
         # await on database consults
@@ -107,11 +141,11 @@ class BookView(HTTPMethodView):
         # await on its deletion
         await book.delete()
 
-        return json({'method': request.method, 'status': 200, 'results': None})
+        return json({"method": request.method, "status": 200, "results": None})
 
 
-app.add_route(BooksView.as_view(), '/books/')
-app.add_route(BookView.as_view(), '/books/<book_id:int>/')
+app.add_route(BooksView.as_view(), "/books/")
+app.add_route(BookView.as_view(), "/books/<book_id:int>/")
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(port=9000, debug=True)

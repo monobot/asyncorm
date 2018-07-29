@@ -9,7 +9,7 @@ cwd = os.getcwd()
 parser = argparse.ArgumentParser(
     formatter_class=argparse.RawDescriptionHelpFormatter,
     description=textwrap.dedent(
-        '''
+        """
 -------------------------------------------------------------------------------
                                 orm_setup
 -------------------------------------------------------------------------------
@@ -17,15 +17,17 @@ parser = argparse.ArgumentParser(
     asyncorm setup
 
 -------------------------------------------------------------------------------
-        '''
-    )
+        """
+    ),
 )
 
 parser.add_argument(
-    'command',
+    "command",
     type=str,
-    choices=('setup', ),
-    help=('sets up the orm_migrator.py command and also an empty asyncorm.ini in the same directory')
+    choices=("setup",),
+    help=(
+        "sets up the orm_migrator.py command and also an empty asyncorm.ini in the same directory"
+    ),
 )
 
 args = parser.parse_args()
@@ -57,14 +59,14 @@ loop.run_until_complete(asyncio.gather(task))
 
 
 def file_creator(filename):
-    content_dict = {DEFAULT_CONFIG_FILE: ini, 'orm_migrator.py': man}
+    content_dict = {DEFAULT_CONFIG_FILE: ini, "orm_migrator.py": man}
     file_path = os.path.join(os.getcwd(), filename)
 
     if not os.path.isfile(file_path):
-        with open(file_path, 'w') as f:
+        with open(file_path, "w") as f:
             f.write(content_dict[filename])
 
 
 def setup():
     file_creator(DEFAULT_CONFIG_FILE)
-    file_creator('orm_migrator.py')
+    file_creator("orm_migrator.py")

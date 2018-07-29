@@ -1,5 +1,5 @@
-__doc__ = '''
+__doc__ = """
 asyncorm is a fully asynchronous ORM library
 inspired by django's own ORM
-'''
-__version__ = '0.3.9'
+"""
+__version__ = "0.3.9"

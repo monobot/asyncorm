@@ -3,7 +3,6 @@ from tests.testapp.models import Book
 
 
 class BookSerializer(ModelSerializer):
-
     class Meta:
         model = Book
-        fields = ['name', 'content', ]
+        fields = ["name", "content"]
