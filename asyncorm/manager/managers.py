@@ -20,7 +20,7 @@ import datetime
 __all__ = ["ModelManager", "Queryset"]
 
 LOOKUP_OPERATOR = {
-    'gt': "{t_n}.{k} > {v}",
+    "gt": "{t_n}.{k} > {v}",
     "lt": "{t_n}.{k} < {v}",
     "gte": "{t_n}.{k} >= {v}",
     "lte": "{t_n}.{k} <= {v}",
