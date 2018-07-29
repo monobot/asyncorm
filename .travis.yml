@@ -20,3 +20,4 @@ install:
 # command to run tests
 script:
   - python -m tests
+  - black --check --verbose .
