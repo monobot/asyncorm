@@ -20,4 +20,4 @@ install:
 # command to run tests
 script:
   - python -m tests
-  - black --check .
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then black --check . ; fi
