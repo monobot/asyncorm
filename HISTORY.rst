@@ -2,16 +2,19 @@
 History
 =======
 
-0.3.9 (2012-1-10)
-* remove python3.8 still not avalailable
+0.4.0 (2018-7-29)
+* added python3.7 support, added CI tools
 
-0.3.8 (2012-1-10)
+0.3.9 (2018-1-10)
+* remove python3.8 mistake
+
+0.3.8 (2018-1-10)
 * heavy works in migrations, basic setup completed
 
-0.3.7 (2012-1-10)
+0.3.7 (2018-1-10)
 * minor release because of change in parsing the asyncorm.ini
 
-0.3.6 (2012-1-2)
+0.3.6 (2018-1-2)
 * external import fix
 
 0.3.5 (2017-12-27)

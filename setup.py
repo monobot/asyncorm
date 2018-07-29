@@ -12,21 +12,22 @@ with open("HISTORY.rst") as history_file:
 requirements = ["asyncpg==0.14.0", "netaddr==0.7.19"]
 
 test_requirements = [
-    "pip==9.0.1",
+    "asyncpg==0.17.0",
+    "netaddr==0.7.19",
+    "pip==18.0",
     "bumpversion==0.5.3",
-    "wheel==0.30.0",
+    "wheel==0.31.1",
     "watchdog==0.8.3",
     "flake8==3.5.0",
-    "tox==2.9.1",
-    "coverage==4.4.2",
-    "Sphinx==1.6.6",
-    "asyncpg==0.14.0",
-    "netaddr==0.7.19",
+    "tox==3.1.2",
+    "coverage==4.5.1",
+    "codacy-coverage==1.3.11",
+    "Sphinx==1.7.6",
 ]
 
 setup(
     name="asyncorm",
-    version="0.3.9",
+    version="0.4.0",
     description="A fully asynchronous python ORM",
     long_description=readme + "\n\n" + history,
     author="Héctor Alvarez (monobot)",
@@ -46,6 +47,7 @@ setup(
         "Natural Language :: English",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
     ],
     test_suite="tests",
     tests_require=test_requirements,
