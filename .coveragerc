@@ -1,4 +1,5 @@
 [run]
     omit =
-        */python3.5/site-packages/asyncpg/*
+        */site-packages/asyncpg/*
+        */site-packages/netaddr/*
         tests/*
