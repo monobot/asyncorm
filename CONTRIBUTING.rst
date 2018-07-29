@@ -80,14 +80,21 @@ Ready to contribute? Here's how to set up `asyncorm` for local development.
 
     $ python -m tests
 
+6. Make sure that your code style is black compliant:
 
-6. Commit your changes and push your branch to GitHub::
+    check with
+    $ black --check --verbose .
+
+    or let black make it for you
+    $ black .
+
+7. Commit your changes and push your branch to GitHub::
 
     $ git add .
     $ git commit -m "Your detailed description of your changes."
     $ git push origin name-of-your-bugfix-or-feature
 
-7. Submit a pull request through the GitHub website.
+8. Submit a pull request through the GitHub website.
 
 Pull Request Guidelines
 -----------------------
