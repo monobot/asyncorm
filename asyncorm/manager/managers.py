@@ -1,4 +1,5 @@
 from asyncpg.exceptions import UniqueViolationError, InsufficientPrivilegeError
+from asyncorm.log import logger
 from copy import deepcopy
 
 from asyncorm.database import Cursor
@@ -27,7 +28,7 @@ LOOKUP_OPERATOR = {
     'iendswith': '{t_n}.{k} ILIKE \'%{v}\'',
     'regex': '{t_n}.{k} ~ {v}',
     'iregex': '{t_n}.{k} ~* {v}',
-    'date': '{t_n}.{k}::date > {v}::date'
+    'date': '{t_n}.{k}::date = {v}::date'
 }
 
 
@@ -244,7 +245,6 @@ class Queryset(object):
         return itm
 
     async def first(self):
-        obj = None
         try:
             obj = await self[0]
         except IndexError:
@@ -403,9 +403,12 @@ class Queryset(object):
             if arg[0] == '-':
                 arg = arg[1:]
                 final_args.append('-' + arg)
+            if arg == '?':
+                final_args.append('random()')
             else:
                 final_args.append(arg)
-
+            if arg == '?':
+                continue
             if not hasattr(self.model, arg):
                 raise QuerysetError('{} is not a correct field for {}'.format(arg, self.model.__name__))
 
@@ -460,18 +463,18 @@ class Queryset(object):
 
             cursor = self._cursor
             if not cursor:
-                query = self.db_manager.construct_query(deepcopy(self.query))
+                query = self.db_manager.construct_query(self.query)
                 cursor = Cursor(
                     conn,
                     query[0],
                     values=query[1],
                     forward=key,
                 )
-
+                logger.debug('QUERY: {}'.format(query))
             async for res in cursor:
                 item = self.modelconstructor(res)
                 pool = await self.db_manager.get_pool()
-                await pool.release(cursor._conn)
+                await pool.release(conn)
                 return item
             raise IndexError('That {} index does not exist'.format(self.model.__name__))
 
@@ -492,7 +495,7 @@ class Queryset(object):
                 forward=self.forward,
                 stop=self.stop,
             )
-
+            logger.debug('QUERY: {}'.format(query))
         async for rec in self._cursor:
             item = self.modelconstructor(rec)
             return item

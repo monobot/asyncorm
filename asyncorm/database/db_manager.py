@@ -167,6 +167,7 @@ class PostgresManager(GeneralManager):
         return self._pool
 
     async def request(self, query):
+        logger.debug('QUERY: {}'.format(query))
         result = None
         pool = await self.get_pool()
         conn = await pool.acquire()
