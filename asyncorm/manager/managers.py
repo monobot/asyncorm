@@ -520,9 +520,9 @@ class ModelManager(Queryset):
         fields, field_data = [], []
 
         for k, data in instanced_model.data.items():
-            f_class = getattr(instanced_model.__class__, k)
             if update_fields and k not in update_fields:
                 continue
+            f_class = getattr(instanced_model.__class__, k)
             field_name = f_class.db_column or k
 
             data = f_class.sanitize_data(data)
@@ -531,6 +531,8 @@ class ModelManager(Queryset):
             field_data.append(data)
 
         for field in instanced_model.fields.keys():
+            if update_fields and k not in update_fields:
+                continue
             if field not in fields:
                 f_class = getattr(instanced_model.__class__, field)
 

@@ -67,7 +67,7 @@ class GeneralManager(object):
     def db__update(self):
         return '''
             UPDATE ONLY {table_name}
-            SET ({field_names}) = ({field_schema})
+            SET ({field_names}) = ROW({field_schema})
             WHERE {id_data}
             RETURNING *
         '''
