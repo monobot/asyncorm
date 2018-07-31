@@ -2,6 +2,9 @@
 History
 =======
 
+0.4.1 (2018-7-31)
+* uploaded to PYPI
+
 0.4.0 (2018-7-29)
 * added python3.7 support, added CI tools
 
