@@ -460,21 +460,20 @@ class Queryset(object):
                 raise QuerysetError('Negative indices are not allowed')
 
             conn = await self.db_manager.get_conn()
-
             cursor = self._cursor
             if not cursor:
                 query = self.db_manager.construct_query(self.query)
+                logger.debug('QUERY: {}'.format(query))
                 cursor = Cursor(
                     conn,
                     query[0],
                     values=query[1],
                     forward=key,
                 )
-                logger.debug('QUERY: {}'.format(query))
+                
             async for res in cursor:
                 item = self.modelconstructor(res)
-                pool = await self.db_manager.get_pool()
-                await pool.release(conn)
+                await cursor._conn.close()
                 return item
             raise IndexError('That {} index does not exist'.format(self.model.__name__))
 
@@ -488,6 +487,7 @@ class Queryset(object):
         if not self._cursor:
             conn = await self.db_manager.get_conn()
             query = self.db_manager.construct_query(self.query)
+            logger.debug('QUERY: {}'.format(query))
             self._cursor = Cursor(
                 conn,
                 query[0],
@@ -495,12 +495,10 @@ class Queryset(object):
                 forward=self.forward,
                 stop=self.stop,
             )
-            logger.debug('QUERY: {}'.format(query))
         async for rec in self._cursor:
             item = self.modelconstructor(rec)
             return item
-        pool = await self.db_manager.get_pool()
-        await pool.release(self._cursor._conn)
+        await self._cursor._conn.close()
         raise StopAsyncIteration()
 
 

@@ -155,31 +155,20 @@ class PostgresManager(GeneralManager):
 
     def __init__(self, conn_data):
         self._conn_data = conn_data
-        self._pool = None
 
     async def get_conn(self):
-        pool = await self.get_pool()
-        return await pool.acquire()
-
-    async def get_pool(self):
-        if not self._pool:
-            self._pool = await asyncpg.create_pool(**self._conn_data)
-        return self._pool
+        return await asyncpg.connect(**self._conn_data)
 
     async def request(self, query):
         logger.debug('QUERY: {}'.format(query))
-        result = None
-        pool = await self.get_pool()
-        conn = await pool.acquire()
-        try:
-            async with conn.transaction():
-                if isinstance(query, (tuple, list)):
-                    if query[1]:
-                        result = await conn.fetchrow(query[0], *query[1])
-                    else:
-                        result = await conn.fetchrow(query[0])
+        conn = await self.get_conn()
+        async with conn.transaction():
+            if isinstance(query, (tuple, list)):
+                if query[1]:
+                    result = await conn.fetchrow(query[0], *query[1])
                 else:
-                    result = await conn.fetchrow(query)
-        finally:
-            await pool.release(conn)
+                    result = await conn.fetchrow(query[0])
+            else:
+                result = await conn.fetchrow(query)
+        await conn.close()
         return result
