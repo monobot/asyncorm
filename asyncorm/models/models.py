@@ -334,13 +334,15 @@ class Model(BaseModel):
 
                         setattr(self, attr_name, model().construct(data))
                 else:
-                    for join in subitems[-1]["fields"]:
-                        if join['right_table'] == attr_name:
-                            field = getattr(self.__class__, join['orm_fieldname'])
-                            model = get_model(field.foreign_key)
-
-                            setattr(self, join['orm_fieldname'], model().construct(data))
-                            break
+                    for subitem in subitems:
+                        if "fields" not in subitem:
+                            continue
+                        for join in subitem["fields"]:
+                            if join['right_table'] == attr_name:
+                                field = getattr(self.__class__, join['orm_fieldname'])
+                                model = get_model(field.foreign_key)
+                                setattr(self, join['orm_fieldname'], model().construct(data))
+                                break
 
         self.deleted = deleted
         return self
