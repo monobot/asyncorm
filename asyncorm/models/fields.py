@@ -260,7 +260,7 @@ class DecimalField(NumberField):
             default=default, max_digits=max_digits, null=null, unique=unique)
 
 
-# time fields
+# Auto fields
 class AutoField(IntegerField):
     creation_string = 'serial PRIMARY KEY'
     args = ('choices', 'db_column', 'db_index', 'default', 'null', 'unique',)
@@ -269,6 +269,15 @@ class AutoField(IntegerField):
         super().__init__(db_column=db_column, unique=True, null=False)
 
 
+class BigAutoField(BigIntegerField):
+    creation_string = 'serial PRIMARY KEY'
+    args = ('choices', 'db_column', 'db_index', 'default', 'null', 'unique',)
+
+    def __init__(self, db_column='id'):
+        super().__init__(db_column=db_column, unique=True, null=False)
+
+
+# time fields
 class DateTimeField(Field):
     internal_type = datetime
     creation_string = 'timestamp'

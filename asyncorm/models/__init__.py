@@ -1,6 +1,7 @@
 from asyncorm.models.fields import (
     ArrayField,
     AutoField,
+    BigAutoField,
     BigIntegerField,
     BooleanField,
     CharField,
@@ -28,5 +29,5 @@ __all__ = (
     'DateField', 'DateTimeField', 'DecimalField', 'EmailField', 'Field',
     'ForeignKey', 'GenericIPAddressField', 'IntegerField', 'JsonField',
     'MACAdressField', 'ManyToManyField', 'Model', 'NumberField', 'TextField',
-    'TimeField', 'Uuid4Field', 'FloatField'
+    'TimeField', 'Uuid4Field', 'FloatField', 'BigAutoField'
 )
