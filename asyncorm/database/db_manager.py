@@ -1,5 +1,5 @@
-from asyncorm.log import logger
 import asyncpg
+from asyncorm.log import logger
 
 
 class GeneralManager(object):
@@ -153,22 +153,21 @@ class GeneralManager(object):
 
 class PostgresManager(GeneralManager):
 
-    def __init__(self, conn_data):
-        self._conn_data = conn_data
-
+    def __init__(self, pool):
+        self.pool = pool
+        
     async def get_conn(self):
-        return await asyncpg.connect(**self._conn_data)
+        return await self.pool.acquire()
 
     async def request(self, query):
         logger.debug('QUERY: {}'.format(query))
-        conn = await self.get_conn()
-        async with conn.transaction():
-            if isinstance(query, (tuple, list)):
-                if query[1]:
-                    result = await conn.fetchrow(query[0], *query[1])
+        async with self.pool.acquire() as conn:
+            async with conn.transaction():
+                if isinstance(query, (tuple, list)):
+                    if query[1]:
+                        result = await conn.fetchrow(query[0], *query[1])
+                    else:
+                        result = await conn.fetchrow(query[0])
                 else:
-                    result = await conn.fetchrow(query[0])
-            else:
-                result = await conn.fetchrow(query)
-        await conn.close()
+                    result = await conn.fetchrow(query)
         return result

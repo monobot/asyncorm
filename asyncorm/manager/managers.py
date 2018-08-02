@@ -459,21 +459,19 @@ class Queryset(object):
             if key < 0:
                 raise QuerysetError('Negative indices are not allowed')
 
-            conn = await self.db_manager.get_conn()
             cursor = self._cursor
             if not cursor:
                 query = self.db_manager.construct_query(self.query)
                 logger.debug('QUERY: {}'.format(query))
                 cursor = Cursor(
-                    conn,
+                    self.db_manager.pool,
                     query[0],
                     values=query[1],
                     forward=key,
                 )
-                
+
             async for res in cursor:
                 item = self.modelconstructor(res)
-                await cursor._conn.close()
                 return item
             raise IndexError('That {} index does not exist'.format(self.model.__name__))
 
@@ -485,11 +483,10 @@ class Queryset(object):
 
     async def __anext__(self):
         if not self._cursor:
-            conn = await self.db_manager.get_conn()
             query = self.db_manager.construct_query(self.query)
             logger.debug('QUERY: {}'.format(query))
             self._cursor = Cursor(
-                conn,
+                self.db_manager.pool,
                 query[0],
                 values=query[1],
                 forward=self.forward,
@@ -498,7 +495,6 @@ class Queryset(object):
         async for rec in self._cursor:
             item = self.modelconstructor(rec)
             return item
-        await self._cursor._conn.close()
         raise StopAsyncIteration()
 
 
@@ -531,7 +527,7 @@ class ModelManager(Queryset):
             field_data.append(data)
 
         for field in instanced_model.fields.keys():
-            if update_fields and k not in update_fields:
+            if update_fields and field not in update_fields:
                 continue
             if field not in fields:
                 f_class = getattr(instanced_model.__class__, field)

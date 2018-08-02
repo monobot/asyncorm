@@ -34,20 +34,19 @@ class OrmApp(object):
         and then we finish the models configurations using
         models_configure(): will take care of the inverse relations for foreignkeys and many2many
         '''
-
-        self._conf.update(config)
-
-        db_config = config.get('db_config', None)
-        if not db_config:
+        
+        db_pool = config.pop('db_pool', None)
+        if not db_pool:
             raise AppError('Imposible to configure without database configuration!')
 
-        db_config['loop'] = self.loop = self._conf.get('loop')
+        self._conf.update(config)
+        self.loop = self._conf.get('loop')
 
         database_module = importlib.import_module('asyncorm.database')
 
         # we get the manager defined in the config file
         manager = getattr(database_module, self._conf['manager'])
-        self.db_manager = manager(db_config)
+        self.db_manager = manager(db_pool)
 
         app_names = self._conf.pop('apps', []) or []
         self.apps = self._get_declared_apps(app_names)

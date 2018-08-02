@@ -1,7 +1,7 @@
 class Cursor(object):
 
-    def __init__(self, conn, query, values=None, step=20, forward=0, stop=None):
-        self._conn = conn
+    def __init__(self, pool, query, values=None, step=20, forward=0, stop=None):
+        self._pool = pool
         self._query = query
         self._values = values
         self._cursor = None
@@ -14,25 +14,26 @@ class Cursor(object):
 
     async def get_results(self):
         self._iddle = False
-        async with self._conn.transaction():
-            if self._values:
-                self._cursor = await self._conn.cursor(self._query, self._values)
-            else:
-                self._cursor = await self._conn.cursor(self._query)
+        async with self._pool.acquire() as conn:
+            async with conn.transaction():
+                if self._values:
+                    self._cursor = await conn.cursor(self._query, self._values)
+                else:
+                    self._cursor = await conn.cursor(self._query)
 
-            if self._forward:
-                await self._cursor.forward(self._forward)
+                if self._forward:
+                    await self._cursor.forward(self._forward)
 
-            no_stop = self._stop is not None
-            if no_stop and self._forward >= self._stop:
-                raise StopAsyncIteration()
-            if no_stop and self._forward + self._step >= self._stop:
-                self._step = self._stop - self._forward
+                no_stop = self._stop is not None
+                if no_stop and self._forward >= self._stop:
+                    raise StopAsyncIteration()
+                if no_stop and self._forward + self._step >= self._stop:
+                    self._step = self._stop - self._forward
 
-            results = await self._cursor.fetch(self._step)
+                results = await self._cursor.fetch(self._step)
 
-            if not results:
-                raise StopAsyncIteration()
+                if not results:
+                    raise StopAsyncIteration()
         self._iddle = True
         return results
 
