@@ -60,7 +60,7 @@ class GeneralManager(object):
             SELECT {select} FROM {other_tablename}
             WHERE {otherdb_pk} = ANY (
                 SELECT {other_column_pk} FROM {m2m_tablename} WHERE {id_data}
-            )
+            ) {ordering}
         '''
 
     @property
