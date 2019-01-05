@@ -1,2 +1,2 @@
-asyncpg==0.17.0
+asyncpg==0.18.3
 netaddr==0.7.19
