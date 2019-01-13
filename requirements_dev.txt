@@ -1,3 +1,4 @@
+-r requirements.txt
 -r requirements_ci.txt
 
 pip==18.1
