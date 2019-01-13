@@ -11,19 +11,19 @@ with open("HISTORY.rst") as history_file:
 
 
 def requirement_parser(file_name):
-    with open(file_name, 'r') as req_file:
+    with open(file_name, "r") as req_file:
         file_requirement = []
         for line in req_file.readlines():
-            line = line.rstrip('\n')
-            if line.startswith('-r'):
-                file_requirement += requirement_parser(line.split(' ')[1])
+            line = line.rstrip("\n")
+            if line.startswith("-r"):
+                file_requirement += requirement_parser(line.split(" ")[1])
             elif line:
                 file_requirement += [line]
     return file_requirement
 
 
-requirements = requirement_parser('requirements.txt')
-test_requirements = requirement_parser('requirements_dev.txt')
+requirements = requirement_parser("requirements.txt")
+test_requirements = requirement_parser("requirements_dev.txt")
 
 
 setup(
