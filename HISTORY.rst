@@ -2,6 +2,9 @@
 History
 =======
 
+0.4.3 (2019-1-13)
+* requirements update, uploaded to PYPI
+
 0.4.2 (2019-1-13)
 * pipenv support, uploaded to PYPI
 

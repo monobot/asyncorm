@@ -9,21 +9,22 @@ with open("README.rst") as readme_file:
 with open("HISTORY.rst") as history_file:
     history = history_file.read()
 
-requirements = ["asyncpg==0.14.0", "netaddr==0.7.19"]
 
-test_requirements = [
-    "asyncpg==0.17.0",
-    "netaddr==0.7.19",
-    "pip==18.0",
-    "bumpversion==0.5.3",
-    "wheel==0.31.1",
-    "watchdog==0.8.3",
-    "flake8==3.5.0",
-    "tox==3.1.2",
-    "coverage==4.5.1",
-    "codacy-coverage==1.3.11",
-    "Sphinx==1.7.6",
-]
+def requirement_parser(file_name):
+    with open(file_name, 'r') as req_file:
+        file_requirement = []
+        for line in req_file.readlines():
+            line = line.rstrip('\n')
+            if line.startswith('-r'):
+                file_requirement += requirement_parser(line.split(' ')[1])
+            elif line:
+                file_requirement += [line]
+    return file_requirement
+
+
+requirements = requirement_parser('requirements.txt')
+test_requirements = requirement_parser('requirements_dev.txt')
+
 
 setup(
     name="asyncorm",
