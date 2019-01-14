@@ -54,8 +54,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     entry_points={
-        "console_scripts": [
-            "orm_setup=asyncorm.application.commands.orm_setup:setup"
-        ]
+        "console_scripts": ["orm_setup=asyncorm.application.commands.orm_setup:setup"]
     },
 )
