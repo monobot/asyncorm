@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup
+from asyncorm import __version__
 
 with open("README.rst") as readme_file:
     readme = readme_file.read()
@@ -28,7 +29,7 @@ test_requirements = requirement_parser("requirements_dev.txt")
 
 setup(
     name="asyncorm",
-    version="0.4.2",
+    version=__version__,
     description="A fully asynchronous python ORM",
     long_description=readme + "\n\n" + history,
     author="Héctor Alvarez (monobot)",
@@ -53,6 +54,8 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     entry_points={
-        "console_scripts": ["orm_setup=asyncorm.application.commands.orm_setup:setup"]
+        "console_scripts": [
+            "orm_setup=asyncorm.application.commands.orm_setup:setup"
+        ]
     },
 )

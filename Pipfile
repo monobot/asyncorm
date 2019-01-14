@@ -18,8 +18,6 @@ Sphinx = "==1.8.3"
 [packages]
 asyncpg = "==0.18.3"
 netaddr = "==0.7.19"
-asyncorm = ">=0.4.2"
-sanic = "==18.12.0"
 
 [requires]
 python_version = "3.6"

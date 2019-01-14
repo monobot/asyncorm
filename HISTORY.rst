@@ -2,6 +2,9 @@
 History
 =======
 
+0.4.4 (2019-1-13)
+* requirements update
+
 0.4.3 (2019-1-13)
 * requirements update, uploaded to PYPI
 
