@@ -1,3 +1,4 @@
+from asyncorm.models.field import Field
 from asyncorm.models.fields import (
     ArrayField,
     AutoField,
@@ -8,7 +9,6 @@ from asyncorm.models.fields import (
     DateTimeField,
     DecimalField,
     EmailField,
-    Field,
     ForeignKey,
     GenericIPAddressField,
     IntegerField,

@@ -58,6 +58,13 @@ class Queryset(object):
         self.stop = None
         self.step = None
 
+    def _copy_me(self):
+        queryset = ModelManager(self.model)
+        queryset.set_orm(self.orm)
+        queryset.query = self.query_copy()
+
+        return queryset
+
     def query_copy(self):
         return self.query and deepcopy(self.query) or deepcopy(self.basic_query)
 
@@ -532,13 +539,6 @@ class ModelManager(Queryset):
         self.model = model
         self.field = field
         super().__init__(model)
-
-    def _copy_me(self):
-        queryset = ModelManager(self.model)
-        queryset.set_orm(self.orm)
-        queryset.query = self.query_copy()
-
-        return queryset
 
     async def get_or_create(self, **kwargs):
         try:
