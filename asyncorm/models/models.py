@@ -2,7 +2,11 @@ import inspect
 import os
 
 from asyncorm.application.configure import get_model
-from asyncorm.exceptions import FieldError, ModelDoesNotExist, ModelError
+from asyncorm.exceptions import (
+    AsyncOrmFieldError,
+    AsyncOrmModelDoesNotExist,
+    AsyncOrmModelError,
+)
 from asyncorm.manager import ModelManager
 from asyncorm.models.fields import AutoField, Field, ForeignKey, ManyToManyField
 from asyncorm.serializers import ModelSerializer, SerializerMethod
@@ -26,7 +30,7 @@ class ModelMeta(type):
         base_class.ordering = None
         base_class.unique_together = []
         base_class.table_name = ""
-        base_class.DoesNotExist = ModelDoesNotExist
+        base_class.DoesNotExist = AsyncOrmModelDoesNotExist
         base_class.meta_items = ("ordering", "unique_together", "table_name")
 
         if defined_meta:
@@ -215,7 +219,7 @@ class BaseModel(object, metaclass=ModelMeta):
                 fields[f_n] = field
 
         if len(cls.attr_names) != len(set(cls.attr_names)):
-            raise ModelError(
+            raise AsyncOrmModelError(
                 "Models should have unique attribute names and field_name if explicitly edited!"
             )
 
@@ -243,14 +247,14 @@ class BaseModel(object, metaclass=ModelMeta):
             error_list = [
                 err_string.format(k, self.__class__.__name__) for k in attr_errors
             ]
-            raise ModelError(error_list)
+            raise AsyncOrmModelError(error_list)
 
         for k, v in kwargs.items():
             att_field = getattr(self.__class__, k)
             att_field.validate(v)
 
             if att_field.__class__ is AutoField and v:
-                raise FieldError("Models can not be generated with forced id")
+                raise AsyncOrmFieldError("Models can not be generated with forced id")
 
     def migration_queries(self):
         migration_queries = [self.objects.create_table_builder()]
@@ -356,7 +360,7 @@ class Model(BaseModel):
     async def save(self, **kwargs):
         # external save method
         if self.deleted:
-            raise ModelError(
+            raise AsyncOrmModelError(
                 "That {model_name} has already been deleted!".format(
                     model_name=self.__class__.__name__
                 )

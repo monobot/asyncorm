@@ -2,10 +2,10 @@ from datetime import datetime
 from datetime import timedelta
 
 from asyncorm.exceptions import (
-    ModelError,
-    ModelDoesNotExist,
-    QuerysetError,
-    MultipleObjectsReturned,
+    AsyncOrmModelError,
+    AsyncOrmModelDoesNotExist,
+    AsyncOrmQuerysetError,
+    AsyncOrmMultipleObjectsReturned,
 )
 
 from tests.testapp.models import Author, Book
@@ -48,7 +48,7 @@ class ManageTestMethods(AioTestCase):
         # we can not create new books with same name and content together
         book = Book(**{"name": "book name 5", "content": "hard cover"})
 
-        with self.assertRaises(ModelError) as exc:
+        with self.assertRaises(AsyncOrmModelError) as exc:
             await book.save()
 
         self.assertEqual(
@@ -65,7 +65,7 @@ class ManageTestMethods(AioTestCase):
         # author name is unique, will raise an exception
         author2 = Author(**{"name": "Mnemonic", "age": 73})
 
-        with self.assertRaises(ModelError) as exc:
+        with self.assertRaises(AsyncOrmModelError) as exc:
             await author2.save()
 
         self.assertEqual(
@@ -76,7 +76,7 @@ class ManageTestMethods(AioTestCase):
         book = await Book.objects.all()[5]
 
         await book.delete()
-        with self.assertRaises(ModelError) as exc:
+        with self.assertRaises(AsyncOrmModelError) as exc:
             await book.save()
 
         self.assertIn("has already been deleted!", exc.exception.args[0])
@@ -85,7 +85,7 @@ class ManageTestMethods(AioTestCase):
         book = await Book.objects.all()[5]
 
         await book.delete()
-        with self.assertRaises(ModelDoesNotExist) as exc:
+        with self.assertRaises(AsyncOrmModelDoesNotExist) as exc:
             await Book.objects.get(**{"id": book.id})
 
         self.assertIn("does not exist", exc.exception.args[0])
@@ -135,25 +135,25 @@ class ManageTestMethods(AioTestCase):
         self.assertNotEqual(book.id, 24 - 5)
 
     async def test_slice_wrong_slice(self):
-        with self.assertRaises(QuerysetError) as exc:
+        with self.assertRaises(AsyncOrmQuerysetError) as exc:
             await Book.objects.filter(id__lte=30)[1:2:4]
 
         self.assertEqual("Step on Queryset is not allowed", exc.exception.args[0])
 
     async def test_slice_negative_slice(self):
-        with self.assertRaises(QuerysetError) as exc:
+        with self.assertRaises(AsyncOrmQuerysetError) as exc:
             await Book.objects.filter(id__lte=30)[-1]
 
         self.assertEqual("Negative indices are not allowed", exc.exception.args[0])
 
     async def test_slice_negative_slice_stop(self):
-        with self.assertRaises(QuerysetError) as exc:
+        with self.assertRaises(AsyncOrmQuerysetError) as exc:
             await Book.objects.filter(id__lte=30)[:-1]
 
         self.assertEqual("Negative indices are not allowed", exc.exception.args[0])
 
     async def test_slice_negative_slice_start(self):
-        with self.assertRaises(QuerysetError) as exc:
+        with self.assertRaises(AsyncOrmQuerysetError) as exc:
             await Book.objects.filter(id__lte=30)[-3:]
 
         self.assertEqual("Negative indices are not allowed", exc.exception.args[0])
@@ -173,7 +173,7 @@ class ManageTestMethods(AioTestCase):
 
     async def test_range_wrong_range(self):
         # upside doesnt really makes sense but also works
-        with self.assertRaises(QuerysetError) as exc:
+        with self.assertRaises(AsyncOrmQuerysetError) as exc:
             Book.objects.filter(id__range={282, 280})
 
         self.assertEqual("range should be list or a tuple", exc.exception.args[0])
@@ -187,14 +187,14 @@ class ManageTestMethods(AioTestCase):
 
     async def test_range_triple_tuple(self):
         # incorrect fitler tuple definition error catched
-        with self.assertRaises(QuerysetError) as exc:
+        with self.assertRaises(AsyncOrmQuerysetError) as exc:
             await Book.objects.get(id__range=(280, 234, 23))
 
         self.assertIn("Not a correct tuple/list definition, ", exc.exception.args[0])
 
     async def test_range_incorrect_tuple(self):
         # incorrect fitler tuple definition error catched
-        with self.assertRaises(QuerysetError) as exc:
+        with self.assertRaises(AsyncOrmQuerysetError) as exc:
             await Book.objects.get(id__range=(280,))
 
         self.assertIn("should be of size 2", exc.exception.args[0])
@@ -229,7 +229,7 @@ class ManageTestMethods(AioTestCase):
         self.assertEqual(await queryset.count(), 0)
 
     async def test_string_lookups_wrong_fieldtype(self):
-        with self.assertRaises(QuerysetError) as exc:
+        with self.assertRaises(AsyncOrmQuerysetError) as exc:
             Book.objects.filter(id__exact=3)
         self.assertEqual(
             "exact not allowed in non CharField fields", exc.exception.args[0]
@@ -348,7 +348,7 @@ class ManageTestMethods(AioTestCase):
 
     async def test_get_multiple_error(self):
         # now try to get using wrong arguments (more than one)
-        with self.assertRaises(MultipleObjectsReturned) as exc:
+        with self.assertRaises(AsyncOrmMultipleObjectsReturned) as exc:
             await Book.objects.get(id__range=[10, 25])
         self.assertIn(
             'More than one "Book" were returned, there are 16', exc.exception.args[0]
@@ -356,7 +356,7 @@ class ManageTestMethods(AioTestCase):
 
     async def test_get_no_exists_exception(self):
         # now try to get using wrong arguments (no object)
-        with self.assertRaises(ModelDoesNotExist) as exc:
+        with self.assertRaises(AsyncOrmModelDoesNotExist) as exc:
             await Book.objects.get(id=2800)
         self.assertIn("does not exist", exc.exception.args[0])
         count = await Book.objects.filter(id=2800).count()
@@ -446,7 +446,7 @@ class ManageTestMethods(AioTestCase):
 
     def test_select_related_wrong_field(self):
         field_name = "toto__noto"
-        with self.assertRaises(QuerysetError) as exc:
+        with self.assertRaises(AsyncOrmQuerysetError) as exc:
             Book.objects.select_related(field_name)
 
         self.assertEqual(
@@ -456,7 +456,7 @@ class ManageTestMethods(AioTestCase):
 
     def test_select_related_wrong_fieldtype(self):
         field_name = "name"
-        with self.assertRaises(QuerysetError) as exc:
+        with self.assertRaises(AsyncOrmQuerysetError) as exc:
             Book.objects.select_related(field_name)
 
         self.assertEqual(

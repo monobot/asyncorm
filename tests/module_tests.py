@@ -1,5 +1,5 @@
 from asyncorm.application.configure import get_model, orm_app, configure_orm
-from asyncorm.exceptions import ModelError, AppError
+from asyncorm.exceptions import AsyncOrmModelError, AsyncOrmAppError
 
 from tests.test_helper import AioTestCase
 
@@ -17,7 +17,7 @@ class ModuleTests(AioTestCase):
     def test_ormconfigure_no_models(self):
         orm = configure_orm({"db_config": db_config, "apps": None})
 
-        with self.assertRaises(AppError) as exc:
+        with self.assertRaises(AsyncOrmAppError) as exc:
             orm.get_model("here.what")
 
         self.assertTrue(
@@ -25,7 +25,7 @@ class ModuleTests(AioTestCase):
         )
 
     def test_ormconfigure_no_db_config(self):
-        with self.assertRaises(AppError) as exc:
+        with self.assertRaises(AsyncOrmAppError) as exc:
             configure_orm({"apps": ["tests.testapp", "tests.testapp2"]})
 
         self.assertIn("Imposible to configure without database", exc.exception.args[0])
@@ -35,13 +35,13 @@ class ModuleTests(AioTestCase):
             {"db_config": db_config, "apps": ["tests.testapp", "tests.testapp2"]}
         )
 
-        with self.assertRaises(ModelError) as exc:
+        with self.assertRaises(AsyncOrmModelError) as exc:
             orm.get_model("here.there.what")
 
         self.assertIn("The string declared should be in format ", exc.exception.args[0])
 
     def test_get_model_model_does_not_exist(self):
-        with self.assertRaises(AppError) as exc:
+        with self.assertRaises(AsyncOrmAppError) as exc:
             get_model("Tato")
 
         self.assertIn("The model does not exists", exc.exception.args[0])

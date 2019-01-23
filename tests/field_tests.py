@@ -3,7 +3,7 @@ from datetime import date, datetime, time
 from uuid import UUID
 from netaddr import EUI, IPNetwork, mac_eui48
 
-from asyncorm.exceptions import FieldError
+from asyncorm.exceptions import AsyncOrmFieldError
 from asyncorm import models
 from tests.testapp.models import Book, Publisher, Reader, Author
 from tests.testapp2.models import Organization, Client, Appointment, Skill, Developer
@@ -22,13 +22,13 @@ class FieldTests(AioTestCase):
 
     def test_required_kwargs_not_sent(self):
 
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.CharField()
 
         self.assertEqual(exc.exception.args[0], '"CharField" field requires max_length')
 
     def test_required_kwargs_wrong_value(self):
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.CharField(max_length="gt")
 
         self.assertEqual(exc.exception.args[0], "Wrong value for max_length")
@@ -38,19 +38,19 @@ class FieldTests(AioTestCase):
         self.assertTrue(models.CharField(max_length=45))
 
     def test_db_column_validation_wrong_start(self):
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.CharField(max_length=35, db_column="_oneone")
 
         self.assertEqual(exc.exception.args[0], 'db_column can not start with "_"')
 
     def test_db_column_validation_wrong_ending(self):
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.CharField(max_length=35, db_column="oneone_")
 
         self.assertEqual(exc.exception.args[0], 'db_column can not end with "_"')
 
     def test_db_column_validation_wrong_characters(self):
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.CharField(max_length=35, db_column="one__one")
 
         self.assertEqual(exc.exception.args[0], 'db_column can not contain "__"')
@@ -62,7 +62,7 @@ class FieldTests(AioTestCase):
     async def test_field_max_length(self):
         reader = Reader(size="M", name="name bigger than max")
 
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             await reader.save()
 
         self.assertEqual(
@@ -77,7 +77,7 @@ class FieldTests(AioTestCase):
 
     async def test_choices_content_not_in_choices(self):
         # choices defined as lists or tuples
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             book = Book(content="telomero")
             await book.save()
 
@@ -85,7 +85,7 @@ class FieldTests(AioTestCase):
 
     async def test_dictionary_choices_content_not_in_choices(self):
         # choices defined as dictionaries
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             read = Reader(power="flower")
             await read.save()
 
@@ -119,7 +119,7 @@ class FieldTests(AioTestCase):
         # you can also save an string as json
         publisher = Publisher(name="Oliver", json='{"last_name": "Gregory", 67: 6}')
 
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             await publisher.save()
 
         self.assertEqual(
@@ -133,7 +133,7 @@ class FieldTests(AioTestCase):
             json='{"last_name": "Gregory", "67": 6, "totorota": "of course"}',
         )
 
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             await publisher.save()
 
         self.assertEqual(
@@ -154,7 +154,7 @@ class FieldTests(AioTestCase):
         models.BooleanField(default=False).validate(True)
 
     async def test_booleanfield_validate_wrong_value(self):
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.BooleanField(default=False).validate("laadio@svgvgvcom")
 
         self.assertEqual(
@@ -170,31 +170,31 @@ class FieldTests(AioTestCase):
     def test_emailfield_no_domain_period(self):
         models.EmailField(max_length=35).validate("laadio@s.com")
 
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.EmailField(max_length=35).validate("laadio@svgvgvcom")
 
         self.assertTrue("not a valid email address" in exc.exception.args[0])
 
     def test_emailfield_wrong_starting_char(self):
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.EmailField(max_length=35).validate("@laadio@svgvgv.com")
 
         self.assertTrue("not a valid email address" in exc.exception.args[0])
 
     def test_emailfield_wrong_starting_char_2(self):
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.EmailField(max_length=35).validate(".laadio@svgv@gv.com")
 
         self.assertTrue("not a valid email address" in exc.exception.args[0])
 
     def test_emailfield_wrong_starting_char_3(self):
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.EmailField(max_length=35).validate("_laadio@svgv@gv.com")
 
         self.assertTrue("not a valid email address" in exc.exception.args[0])
 
     def test_emailfield_too_many_ats(self):
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.EmailField(max_length=35).validate("laadio@svgv@gv.com")
 
         self.assertTrue("not a valid email address" in exc.exception.args[0])
@@ -242,7 +242,7 @@ class FieldTests(AioTestCase):
         self.assertEqual(len(str(appmnt.uuid)), 36)
 
     async def test_uuidv4field(self):
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.Uuid4Field(uuid_type="mn")
 
         self.assertEqual(
@@ -279,7 +279,7 @@ class FieldTests(AioTestCase):
         self.assertIn("postgres", skill.specialization[1])
 
     async def test_arrayfield_wrong_dimensions_size(self):
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.ArrayField().validate([["backend", "nodejs"], ["frontend"]])
 
         self.assertEqual(
@@ -288,7 +288,7 @@ class FieldTests(AioTestCase):
         )
 
     async def test_arrayfield_wrong_dimensions_type(self):
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.ArrayField().validate([["backend", "nodejs"], "frontend"])
 
         self.assertEqual(
@@ -355,7 +355,7 @@ class FieldTests(AioTestCase):
         self.assertEqual(EUI(pub.mac), EUI(mac))
 
     async def test_model_with_macadressfield_field_error(self):
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             pub = Publisher(
                 name="Linda", json={"last_name": "Olson"}, mac="00-1B-77-49-54"
             )
@@ -365,7 +365,7 @@ class FieldTests(AioTestCase):
 
     def test_macadressfield_field_validation_error(self):
         dialect = "wrong"
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.MACAdressField(dialect=dialect)
 
         self.assertEqual(
@@ -376,13 +376,13 @@ class FieldTests(AioTestCase):
         models.MACAdressField().validate("00-1B-77-49-54-FD")
 
     def test_macadressfield_field_error(self):
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.MACAdressField().validate("00-1B-77-49-54")
 
         self.assertEqual(exc.exception.args[0], "Not a correct MAC address")
 
     def test_genericipaddressfield_validation_ipv4_error(self):
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.GenericIPAddressField(protocol="ipv4", unpack_protocol="ipv4")
 
         self.assertEqual(
@@ -393,7 +393,7 @@ class FieldTests(AioTestCase):
 
     def test_genericipaddressfield_validation_protocol_error_option(self):
         protocol = "ipv9"
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.GenericIPAddressField(protocol=protocol)
 
         self.assertEqual(
@@ -402,7 +402,7 @@ class FieldTests(AioTestCase):
 
     def test_genericipaddressfield_validation_unpack_protocol_error_option(self):
         unpack_protocol = "ipv9"
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.GenericIPAddressField(unpack_protocol=unpack_protocol)
 
         self.assertEqual(
@@ -421,7 +421,7 @@ class FieldTests(AioTestCase):
             models.GenericIPAddressField(unpack_protocol=prot)
 
     def test_genericipaddressfield_validation_ipv6_error(self):
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.GenericIPAddressField(protocol="ipv6", unpack_protocol="ipv4")
 
         self.assertEqual(
@@ -438,7 +438,7 @@ class FieldTests(AioTestCase):
         await pub.save()
 
     async def test_model_with_genericipaddressfield_error(self):
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             pub = Publisher(name="Linda", json={"last_name": "Olson"}, inet="300.3.3.3")
             await pub.save()
 
@@ -510,7 +510,7 @@ class FieldTests(AioTestCase):
     def test_genericipaddressfield_ipv4_error(self):
         value = "::ffff:1.2.3.0/128"
         protocol = "ipv4"
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.GenericIPAddressField(protocol=protocol).validate(value)
 
         self.assertEqual(
@@ -521,7 +521,7 @@ class FieldTests(AioTestCase):
     def test_genericipaddressfield_ipv6_error(self):
         value = "1.1.1.1"
         protocol = "ipv6"
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.GenericIPAddressField(protocol=protocol).validate(value)
 
         self.assertEqual(
@@ -530,7 +530,7 @@ class FieldTests(AioTestCase):
         )
 
     def test_genericipaddressfield_error(self):
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             models.GenericIPAddressField().validate("1.1.1.1000")
 
         self.assertEqual(exc.exception.args[0], "Not a correct IP address")

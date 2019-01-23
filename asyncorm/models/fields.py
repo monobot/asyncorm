@@ -17,7 +17,7 @@ from netaddr import (
 )
 from netaddr.core import AddrFormatError
 
-from asyncorm.exceptions import FieldError
+from asyncorm.exceptions import AsyncOrmFieldError
 from asyncorm.models.field import Field
 
 DATE_FIELDS = ["DateField"]
@@ -43,7 +43,7 @@ class BooleanField(Field):
         """method used to convert to SQL data"""
         if isinstance(value, bool) or value is None:
             return value
-        raise FieldError("not correct data for BooleanField")
+        raise AsyncOrmFieldError("not correct data for BooleanField")
 
 
 class CharField(Field):
@@ -89,7 +89,7 @@ class CharField(Field):
     def sanitize_data(self, value):
         value = super().sanitize_data(value)
         if len(value) > self.max_length:
-            raise FieldError(
+            raise AsyncOrmFieldError(
                 'The string entered is bigger than the "max_length" defined ({})'.format(
                     self.max_length
                 )
@@ -103,7 +103,7 @@ class EmailField(CharField):
         # now validate the emailfield here
         email_regex = r"^[\w][\w0-9_.+-]+@[\w0-9-]+\.[\w0-9-.]+$"
         if not re.match(email_regex, value):
-            raise FieldError('"{}" not a valid email address'.format(value))
+            raise AsyncOrmFieldError('"{}" not a valid email address'.format(value))
 
 
 class TextField(Field):
@@ -401,11 +401,13 @@ class JsonField(Field):
                 try:
                     value = json.loads(value)
                 except JSONDecodeError:
-                    raise FieldError("The data entered can not be converted to json")
+                    raise AsyncOrmFieldError(
+                        "The data entered can not be converted to json"
+                    )
             value = json.dumps(value)
 
         if len(value) > self.max_length:
-            raise FieldError(
+            raise AsyncOrmFieldError(
                 'The string entered is bigger than the "max_length" defined ({})'.format(
                     self.max_length
                 )
@@ -424,7 +426,7 @@ class Uuid4Field(Field):
         self.field_requirement = 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
 
         if uuid_type not in ["v1", "v4"]:
-            raise FieldError("{} is not a recognized type".format(uuid_type))
+            raise AsyncOrmFieldError("{} is not a recognized type".format(uuid_type))
 
         super().__init__(
             db_column=db_column,
@@ -444,7 +446,7 @@ class Uuid4Field(Field):
         exp = r"^[a-zA-Z0-9\-\b]{36}$"
         if re.match(exp, value):
             return value
-        raise FieldError(
+        raise AsyncOrmFieldError(
             "The expresion doesn't validate as a correct {}".format(
                 self.__class__.__name__
             )
@@ -480,10 +482,10 @@ class ArrayField(Field):
         if value:
             items_type = self.homogeneous_type(value)
             if not items_type:
-                raise FieldError("Array elements are not of the same type")
+                raise AsyncOrmFieldError("Array elements are not of the same type")
             if items_type == list:
                 if not all(len(item) == len(value[0]) for item in value):
-                    raise FieldError(
+                    raise AsyncOrmFieldError(
                         "Multi-dimensional arrays must have items of the same size"
                     )
         return value
@@ -511,13 +513,15 @@ class GenericIPAddressField(Field):
         unpack_protocol="same",
     ):
         if protocol.lower() not in ("both", "ipv6", "ipv4"):
-            raise FieldError('"{}" is not a recognized protocol'.format(protocol))
+            raise AsyncOrmFieldError(
+                '"{}" is not a recognized protocol'.format(protocol)
+            )
         if unpack_protocol.lower() not in ("same", "ipv6", "ipv4"):
-            raise FieldError(
+            raise AsyncOrmFieldError(
                 '"{}" is not a recognized unpack_protocol'.format(unpack_protocol)
             )
         if protocol.lower() != "both" and unpack_protocol != "same":
-            raise FieldError(
+            raise AsyncOrmFieldError(
                 "if the protocol is restricted the output will always be in the same protocol version, "
                 'so unpack_protocol should be default value, "same"'
             )
@@ -536,12 +540,12 @@ class GenericIPAddressField(Field):
         try:
             IPNetwork(value)
         except AddrFormatError:
-            raise FieldError("Not a correct IP address")
+            raise AsyncOrmFieldError("Not a correct IP address")
 
         if self.protocol.lower() != "both" and IPNetwork(value).version != int(
             self.protocol[-1:]
         ):
-            raise FieldError(
+            raise AsyncOrmFieldError(
                 "{} is not a correct {} IP address".format(value, self.protocol)
             )
 
@@ -582,7 +586,9 @@ class MACAdressField(Field):
         unique=True,
     ):
         if dialect not in (self.mac_dialects.keys()):
-            raise FieldError('"{}" is not a correct mac dialect'.format(dialect))
+            raise AsyncOrmFieldError(
+                '"{}" is not a correct mac dialect'.format(dialect)
+            )
 
         super().__init__(
             db_column=db_column,
@@ -597,7 +603,7 @@ class MACAdressField(Field):
         try:
             EUI(value)
         except AddrFormatError:
-            raise FieldError("Not a correct MAC address")
+            raise AsyncOrmFieldError("Not a correct MAC address")
 
     def recompose(self, value):
         if value is not None:

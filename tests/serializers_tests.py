@@ -1,5 +1,5 @@
 from asyncorm.application.configure import get_model
-from asyncorm.exceptions import SerializerError
+from asyncorm.exceptions import AsyncOrmSerializerError
 from asyncorm.serializers import ModelSerializer, SerializerMethod
 
 from tests.testapp.serializer import BookSerializer
@@ -15,7 +15,7 @@ Author2 = get_model("testapp.Author")
 class SerializerTests(AioTestCase):
     async def test_serialize_wrong_model(self):
         # complains if we try to serialize an incorrect model
-        with self.assertRaises(SerializerError) as exc:
+        with self.assertRaises(AsyncOrmSerializerError) as exc:
             author = Author()
             BookSerializer().serialize(author)
 
@@ -31,7 +31,7 @@ class SerializerTests(AioTestCase):
 
     async def test_wrong_serializer_no_model(self):
         # complains if we have a model serializer without model
-        with self.assertRaises(SerializerError) as exc:
+        with self.assertRaises(AsyncOrmSerializerError) as exc:
 
             class NooneSerializer(ModelSerializer):
                 class Meta:
@@ -44,7 +44,7 @@ class SerializerTests(AioTestCase):
 
     async def test_wrong_serializer_no_fields(self):
         # complains if we have a model serializer without fields to serialize defined
-        with self.assertRaises(SerializerError) as exc:
+        with self.assertRaises(AsyncOrmSerializerError) as exc:
 
             class Noone2Serializer(ModelSerializer):
                 class Meta:
@@ -68,7 +68,7 @@ class SerializerTests(AioTestCase):
                 model = Book
                 fields = ["its_a_2", "its_a_3"]
 
-        with self.assertRaises(SerializerError) as exc:
+        with self.assertRaises(AsyncOrmSerializerError) as exc:
             BookSerializerNew().serialize(await Book.objects.get(id=3))
 
         self.assertIn(

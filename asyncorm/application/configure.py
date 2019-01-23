@@ -7,7 +7,11 @@ import os
 
 from asyncorm.apps.app import App
 from asyncorm.apps.app_config import AppConfig
-from asyncorm.exceptions import ConfigError, AppError, ModelError
+from asyncorm.exceptions import (
+    AsyncOrmConfigError,
+    AsyncOrmAppError,
+    AsyncOrmModelError,
+)
 
 logger = logging.getLogger("asyncorm")
 
@@ -39,7 +43,9 @@ class OrmApp(object):
 
         db_config = config.get("db_config", None)
         if not db_config:
-            raise AppError("Imposible to configure without database configuration!")
+            raise AsyncOrmAppError(
+                "Imposible to configure without database configuration!"
+            )
 
         db_config["loop"] = self.loop = self._conf.get("loop")
 
@@ -87,7 +93,7 @@ class OrmApp(object):
 
     def get_model(self, model_name):
         if len(self.models) == 1:
-            raise AppError("There are no apps declared in the orm")
+            raise AsyncOrmAppError("There are no apps declared in the orm")
 
         try:
             model_split = model_name.split(".")
@@ -96,11 +102,11 @@ class OrmApp(object):
             elif len(model_split) == 1:
                 return self.models[model_name]
             else:
-                raise ModelError(
+                raise AsyncOrmModelError(
                     'The string declared should be in format "module.Model" or "Model"'
                 )
         except KeyError:
-            raise AppError("The model does not exists")
+            raise AsyncOrmAppError("The model does not exists")
 
     def models_configure(self):
         # and we set it to all the different models defined
@@ -166,7 +172,7 @@ def parse_config(config_file):
     # check all sections exist
     for section in ["db_config", "orm"]:
         if section not in parsed_file.sections():
-            raise ConfigError(
+            raise AsyncOrmConfigError(
                 "the file {} does not contain {} section!".format(config_file, section)
             )
 

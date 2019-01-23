@@ -3,10 +3,10 @@ from copy import deepcopy
 
 from asyncorm.database import Cursor
 from asyncorm.exceptions import (
-    ModelDoesNotExist,
-    ModelError,
-    MultipleObjectsReturned,
-    QuerysetError,
+    AsyncOrmModelDoesNotExist,
+    AsyncOrmModelError,
+    AsyncOrmMultipleObjectsReturned,
+    AsyncOrmQuerysetError,
 )
 from asyncorm.models.fields import (
     CharField,
@@ -114,7 +114,7 @@ class Queryset(object):
             for query in self.model.field_requirements:
                 await self.db_manager.request(query)
         except InsufficientPrivilegeError:
-            raise ModelError(
+            raise AsyncOrmModelError(
                 "Not enought privileges to add the needed requirement in the database"
             )
 
@@ -236,13 +236,13 @@ class Queryset(object):
         if hasattr(self.model, field_name):
             field = getattr(self.model, field_name)
         else:
-            raise QuerysetError(
+            raise AsyncOrmQuerysetError(
                 "{} wrong field name for model {}".format(
                     field_name, self.model.__name__
                 )
             )
         if not isinstance(field, NumberField):
-            raise QuerysetError("{} is not a numeric field".format(field_name))
+            raise AsyncOrmQuerysetError("{} is not a numeric field".format(field_name))
 
         query = self.query_copy()
         query[0]["select"] = "{}({})".format(operation, field_name)
@@ -274,7 +274,7 @@ class Queryset(object):
             count += 1
 
         if count > 1:
-            raise MultipleObjectsReturned(
+            raise AsyncOrmMultipleObjectsReturned(
                 'More than one "{}" were returned, there are {}!'.format(
                     self.model.__name__, count
                 )
@@ -306,11 +306,11 @@ class Queryset(object):
             if "__" in arg:
                 arg = arg.split("__")[0]
             if not hasattr(self.model, arg):
-                raise QuerysetError(
+                raise AsyncOrmQuerysetError(
                     "{} is not a {} attribute.".format(arg, self.model.__name__)
                 )
             if not isinstance(getattr(self.model, arg), ForeignKey):
-                raise QuerysetError(
+                raise AsyncOrmQuerysetError(
                     "{} is not a ForeignKey Field for {}.".format(
                         arg, self.model.__name__
                     )
@@ -375,9 +375,11 @@ class Queryset(object):
             }
             if operator == "({t_n}.{k}>={min} AND {t_n}.{k}<={max})":
                 if not isinstance(v, (tuple, list)):
-                    raise QuerysetError("{} should be list or a tuple".format(lookup))
+                    raise AsyncOrmQuerysetError(
+                        "{} should be list or a tuple".format(lookup)
+                    )
                 if len(v) != 2:
-                    raise QuerysetError(
+                    raise AsyncOrmQuerysetError(
                         "Not a correct tuple/list definition, should be of size 2"
                     )
                 operator_formater.update(
@@ -388,7 +390,7 @@ class Queryset(object):
                 # is_othercharfield = issubclass(field, CharField)
                 # if not is_charfield or not is_othercharfield:
                 if not is_charfield:
-                    raise QuerysetError(
+                    raise AsyncOrmQuerysetError(
                         "{} not allowed in non CharField fields".format(lookup)
                     )
                 operator_formater["v"] = field.sanitize_data(v)
@@ -435,7 +437,7 @@ class Queryset(object):
         # all the rest come as None
         for arg in args:
             if not hasattr(self.model, arg):
-                raise QuerysetError(
+                raise AsyncOrmQuerysetError(
                     "{} is not a correct field for {}".format(arg, self.model.__name__)
                 )
 
@@ -457,7 +459,7 @@ class Queryset(object):
                 final_args.append(arg)
 
             if not hasattr(self.model, arg):
-                raise QuerysetError(
+                raise AsyncOrmQuerysetError(
                     "{} is not a correct field for {}".format(arg, self.model.__name__)
                 )
 
@@ -485,11 +487,11 @@ class Queryset(object):
         if isinstance(key, slice):
             # control the keys values
             if key.start is not None and key.start < 0:
-                raise QuerysetError("Negative indices are not allowed")
+                raise AsyncOrmQuerysetError("Negative indices are not allowed")
             if key.stop is not None and key.stop < 0:
-                raise QuerysetError("Negative indices are not allowed")
+                raise AsyncOrmQuerysetError("Negative indices are not allowed")
             if key.step is not None:
-                raise QuerysetError("Step on Queryset is not allowed")
+                raise AsyncOrmQuerysetError("Step on Queryset is not allowed")
 
             # asign forward and stop to the modelmanager and return it
             self.forward = key.start
@@ -501,7 +503,7 @@ class Queryset(object):
         elif isinstance(key, int):
             # if its an int, the developer wants the object directly
             if key < 0:
-                raise QuerysetError("Negative indices are not allowed")
+                raise AsyncOrmQuerysetError("Negative indices are not allowed")
 
             conn = await self.db_manager.get_conn()
 
@@ -543,7 +545,7 @@ class ModelManager(Queryset):
     async def get_or_create(self, **kwargs):
         try:
             return await self.get(**kwargs), False
-        except ModelDoesNotExist:
+        except AsyncOrmModelDoesNotExist:
             return await self.create(**kwargs), True
 
     async def save(self, instanced_model):
@@ -605,7 +607,7 @@ class ModelManager(Queryset):
         try:
             response = await self.db_request(db_request)
         except UniqueViolationError:
-            raise ModelError("The model violates a unique constraint")
+            raise AsyncOrmModelError("The model violates a unique constraint")
 
         self.modelconstructor(response, instanced_model)
 

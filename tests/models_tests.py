@@ -1,5 +1,5 @@
 from asyncorm.application.configure import get_model
-from asyncorm.exceptions import FieldError, ModelError
+from asyncorm.exceptions import AsyncOrmFieldError, AsyncOrmModelError
 
 from tests.testapp.models import Book, Author
 from tests.testapp2.models import Developer, Client, Organization
@@ -58,7 +58,7 @@ class ModelTests(AioTestCase):
         kwargs = {"name": 67}
 
         # raises the validate content has an incorrect value
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             book = Book()
             book.validate_kwargs(kwargs)
 
@@ -68,7 +68,7 @@ class ModelTests(AioTestCase):
         kwargs = {"id": 34, "name": "name"}
 
         # also raises fielderror because you can not pre-set the object's id
-        with self.assertRaises(FieldError) as exc:
+        with self.assertRaises(AsyncOrmFieldError) as exc:
             book = Book()
             book.validate_kwargs(kwargs)
 
@@ -79,7 +79,7 @@ class ModelTests(AioTestCase):
     def test_validate_kwargs_with_wrong_fieldname(self):
         kwargs = {"name": "name", "volume": 23}
         # raises the validate error because volume is not a correct attrib
-        with self.assertRaises(ModelError) as exc:
+        with self.assertRaises(AsyncOrmModelError) as exc:
             book = Book()
             book.validate_kwargs(kwargs)
 

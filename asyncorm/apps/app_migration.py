@@ -6,7 +6,7 @@ import re
 import types
 from datetime import datetime
 
-from asyncorm.exceptions import MigrationError
+from asyncorm.exceptions import AsyncOrmMigrationError
 from asyncorm.orm_migrations.migration_actions import CreateModel
 
 logger = logging.getLogger("asyncorm")
@@ -39,7 +39,7 @@ class AppMigration:
                 migrations_status[db_migrated[-1]] if db_migrated else {}
             )
         except KeyError:
-            raise MigrationError(
+            raise AsyncOrmMigrationError(
                 'Something went wrong, migration "{}" does not exist in the filesystem.'.format(
                     db_migrated[-1]
                 )
@@ -70,18 +70,18 @@ class AppMigration:
         # the database doesn't have any migration
         if not _latest_db_migrated:
             if _latest_fs_declared:
-                raise MigrationError(
+                raise AsyncOrmMigrationError(
                     "The model is not in the latest filesystem status, so the migration created will "
                     'not be consistent.\nPlease "migrate" the database before "makemigrations" again.'
                 )
         else:
             if not _latest_fs_declared:
-                raise MigrationError(
+                raise AsyncOrmMigrationError(
                     "Severe inconsistence detected, the database has at least one migration applied and no "
                     "migration described in the filesystem."
                 )
             if _latest_db_migrated_number > _latest_fs_declared_number:
-                raise MigrationError(
+                raise AsyncOrmMigrationError(
                     'There is an inconsistency, the database has a migration named "{}" '
                     'more advanced than the filesystem "{}"'.format(
                         _latest_db_migrated, _latest_fs_declared
@@ -89,12 +89,12 @@ class AppMigration:
                 )
 
             elif _latest_db_migrated_number < _latest_fs_declared_number:
-                raise MigrationError(
+                raise AsyncOrmMigrationError(
                     "The model is not in the latest filesystem status, so the migration created will "
                     'not be consistent.\nPlease "migrate" the database before "makemigrations" again.'
                 )
             elif _latest_fs_declared != _latest_db_migrated:
-                raise MigrationError(
+                raise AsyncOrmMigrationError(
                     'The migration in the filesystem "{}" is not the same migration '
                     'applied in the database "{}" .'.format(
                         _latest_fs_declared, _latest_db_migrated
@@ -119,13 +119,13 @@ class AppMigration:
                 if fn.startswith(target)
             ]
         if not target_fs_migration:
-            raise MigrationError(
+            raise AsyncOrmMigrationError(
                 "the migration {} does not exist for app {}".format(target, self.name)
             )
 
         if latest_db_migration is not None and target_fs_migration is not None:
             if latest_db_migration > target_fs_migration:
-                raise MigrationError(
+                raise AsyncOrmMigrationError(
                     'There is an inconsistency, the database has a migration named "{}" '
                     'more advanced than the filesystem "{}"'.format(
                         latest_db_migration, target_fs_migration
@@ -205,7 +205,7 @@ class AppMigration:
 
     def next_fs_migration_name(self, stage="auto"):
         if stage not in ("auto", "data", "initial"):
-            raise MigrationError("that migration stage is not supported")
+            raise AsyncOrmMigrationError("that migration stage is not supported")
         target_fs_migration = self._migration_integer_number(self.latest_fs_migration())
         random_hash = hashlib.sha1()
         random_hash.update(

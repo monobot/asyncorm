@@ -1,4 +1,4 @@
-from asyncorm.exceptions import FieldError
+from asyncorm.exceptions import AsyncOrmFieldError
 
 DATE_FIELDS = ["DateField"]
 
@@ -79,7 +79,7 @@ class Field(object):
     def validate_kwargs(self, kwargs):
         for kw in self.required_kwargs:
             if not kwargs.get(kw, None):
-                raise FieldError(
+                raise AsyncOrmFieldError(
                     '"{cls}" field requires {kw}'.format(
                         cls=self.__class__.__name__, kw=kw
                     )
@@ -88,21 +88,21 @@ class Field(object):
         for k, v in kwargs.items():
             null_choices = v is None and k == "choices"
             if not isinstance(v, KWARGS_TYPES[k]) and not null_choices:
-                raise FieldError("Wrong value for {k}".format(k=k))
+                raise AsyncOrmFieldError("Wrong value for {k}".format(k=k))
 
         if kwargs.get("db_column", ""):
             self.set_field_name(kwargs["db_column"])
 
     def validate(self, value):
         if value is None and not self.null:
-            raise FieldError("null value in NOT NULL field")
+            raise AsyncOrmFieldError("null value in NOT NULL field")
 
         if hasattr(self, "choices") and self.choices is not None:
             if value not in self.choices.keys():
-                raise FieldError('"{}" not in model choices'.format(value))
+                raise AsyncOrmFieldError('"{}" not in model choices'.format(value))
 
         if value is not None and not isinstance(value, self.internal_type):
-            raise FieldError(
+            raise AsyncOrmFieldError(
                 "{value} is a wrong datatype for field {cls}".format(
                     value=value, cls=self.__class__.__name__
                 )
@@ -132,9 +132,9 @@ class Field(object):
 
     def set_field_name(self, db_column):
         if "__" in db_column:
-            raise FieldError('db_column can not contain "__"')
+            raise AsyncOrmFieldError('db_column can not contain "__"')
         if db_column.startswith("_"):
-            raise FieldError('db_column can not start with "_"')
+            raise AsyncOrmFieldError('db_column can not start with "_"')
         if db_column.endswith("_"):
-            raise FieldError('db_column can not end with "_"')
+            raise AsyncOrmFieldError('db_column can not end with "_"')
         self.db_column = db_column
