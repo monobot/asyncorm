@@ -16,7 +16,7 @@ KWARGS_TYPES = {
     "null": bool,
     "protocol": str,
     "reverse_field": str,
-    "strftime": str,
+    "format": str,
     "unpack_protocol": str,
     "unique": bool,
     "uuid_type": str,
@@ -118,7 +118,7 @@ class Field(object):
         return value
 
     def serialize_data(self, value):
-        """to directly serialize the data field pased"""
+        """to directly serialize the data field passed"""
         return value
 
     def current_state(self):

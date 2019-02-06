@@ -37,7 +37,7 @@ class Migration(MigrationBase):
                     "db_index": False,
                     "default": None,
                     "null": False,
-                    "strftime": "%Y-%m-%d  %H:%s",
+                    "format": "%Y-%m-%d  %H:%s",
                     "unique": False,
                 },
                 "id": {

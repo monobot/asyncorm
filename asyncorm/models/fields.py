@@ -236,7 +236,7 @@ class AutoField(IntegerField):
 class DateTimeField(Field):
     internal_type = datetime
     creation_string = "timestamp"
-    strftime = "%Y-%m-%d  %H:%s"
+    format = "%Y-%m-%d  %H:%s"
     args = (
         "auto_now",
         "choices",
@@ -244,7 +244,7 @@ class DateTimeField(Field):
         "db_index",
         "default",
         "null",
-        "strftime",
+        "format",
         "unique",
     )
 
@@ -259,7 +259,7 @@ class DateTimeField(Field):
         db_index=False,
         default=None,
         null=False,
-        strftime=None,
+        format=None,
         unique=False,
     ):
         super().__init__(
@@ -269,7 +269,7 @@ class DateTimeField(Field):
             db_index=db_index,
             default=default,
             null=null,
-            strftime=strftime or self.strftime,
+            format=format or self.format,
             unique=unique,
         )
 
@@ -284,16 +284,16 @@ class DateField(DateTimeField):
         "db_index",
         "default",
         "null",
-        "strftime",
+        "format",
         "unique",
     )
-    strftime = "%Y-%m-%d"
+    format = "%Y-%m-%d"
 
 
 class TimeField(DateTimeField):
     internal_type = time
     creation_string = "time"
-    strftime = "%H:%s"
+    format = "%H:%s"
 
 
 # relational fields

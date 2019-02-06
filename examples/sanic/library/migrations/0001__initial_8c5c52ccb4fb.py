@@ -117,7 +117,7 @@ class Migration(MigrationBase):
                     "db_index": False,
                     "default": None,
                     "null": False,
-                    "strftime": "%Y-%m-%d",
+                    "format": "%Y-%m-%d",
                     "unique": False,
                 },
                 "author": {
