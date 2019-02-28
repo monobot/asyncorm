@@ -55,6 +55,7 @@ nosetests.xml
 
 # Sphinx documentation
 docs/_build/
+docs/asyncorm.*
 
 # PyBuilder
 target/
@@ -64,3 +65,6 @@ target/
 
 # IDES
 .vscode/
+
+# pipenv
+Pipfile.lock

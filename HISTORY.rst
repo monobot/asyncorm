@@ -6,13 +6,13 @@ History
 * requirements update
 
 0.4.3 (2019-1-13)
-* requirements update, uploaded to PYPI
+* requirements update, uploaded to PyPi
 
 0.4.2 (2019-1-13)
-* pipenv support, uploaded to PYPI
+* pipenv support, uploaded to PyPi
 
 0.4.1 (2018-7-31)
-* uploaded to PYPI
+* uploaded to PyPi
 
 0.4.0 (2018-7-29)
 * added python3.7 support, added CI tools
@@ -99,4 +99,4 @@ History
 * Small update, include log
 
 0.0.1 (2017-03-02)
-* First release on PyPI.
+* First release on PyPi.

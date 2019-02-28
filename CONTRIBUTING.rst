@@ -45,7 +45,8 @@ articles, and such.
 Submit Feedback
 ~~~~~~~~~~~~~~~
 
-The best way to send feedback is to file an issue at https://github.com/monobot/asyncorm/issues.
+The best way to send feedback is to file an issue at
+https://github.com/monobot/asyncorm/issues.
 
 If you are proposing a feature:
 
@@ -64,23 +65,28 @@ Ready to contribute? Here's how to set up `asyncorm` for local development.
 
     $ git clone git@github.com:your_name_here/asyncorm.git
 
-3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
+3. The recomended install form is with pipenv::
+
+    $ cd asyncorm/
+    $ pipenv install --dev
+
+4. As alternative, you can also install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
 
     $ mkvirtualenv asyncorm
     $ cd asyncorm/
     $ python setup.py develop
 
-4. Create a branch for local development::
+5. Create a branch for local development::
 
     $ git checkout -b name-of-your-bugfix-or-feature
 
    Now you can make your changes locally.
 
-5. When you're done making changes, check that your changes pass al existing tests, including testing other Python versions with tox::
+6. When you're done making changes, check that your changes pass al existing tests, including testing other Python versions with tox::
 
     $ python -m tests
 
-6. Make sure that your code style is black compliant:
+7. Make sure that your code style is black compliant:
 
     check with
     $ black --check --verbose .
@@ -88,13 +94,13 @@ Ready to contribute? Here's how to set up `asyncorm` for local development.
     or let black make it for you
     $ black .
 
-7. Commit your changes and push your branch to GitHub::
+8. Commit your changes and push your branch to GitHub::
 
     $ git add .
     $ git commit -m "Your detailed description of your changes."
     $ git push origin name-of-your-bugfix-or-feature
 
-8. Submit a pull request through the GitHub website.
+9. Submit a pull request through the GitHub website.
 
 Pull Request Guidelines
 -----------------------

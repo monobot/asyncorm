@@ -4,12 +4,12 @@ Welcome to asyncorm's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
 
    readme
    installation
    setup
-   api/api
+   modules
    contributing
    authors
    history

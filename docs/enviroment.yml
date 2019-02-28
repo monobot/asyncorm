@@ -1,4 +1,0 @@
-name: py35
-dependencies:
-- asyncpg=0.14.0=0
-- netaddr=0.7.19=0

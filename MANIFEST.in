@@ -12,12 +12,12 @@ recursive-include asyncorm/apps *
 recursive-include asyncorm/database *
 recursive-include asyncorm/log *
 recursive-include asyncorm/manager *
-recursive-include asyncorm/models *
 recursive-include asyncorm/migrations *
+recursive-include asyncorm/migrations/migrations *
+recursive-include asyncorm/models *
 recursive-include asyncorm/orm_migrations *
 recursive-include asyncorm/serializers *
-recursive-include tests *
+recursive-exclude tests *
+recursive-exclude docs *
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
-
-recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif

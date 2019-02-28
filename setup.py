@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 from setuptools import setup
 from asyncorm import __version__
 
@@ -25,7 +22,6 @@ def requirement_parser(file_name):
 
 requirements = requirement_parser("requirements.txt")
 test_requirements = requirement_parser("requirements_dev.txt")
-
 
 setup(
     name="asyncorm",
