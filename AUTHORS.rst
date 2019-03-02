@@ -6,7 +6,7 @@ Development Lead
 ----------------
 
 * Héctor Alvarez (monobot)
-    + find me on:
+    + find me on
         - twitter https://twitter.com/monobotBlog
         - github http://github.com/monobot/
         - linkedin https://www.linkedin.com/in/hector-alvarez/

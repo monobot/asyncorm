@@ -18,60 +18,55 @@ class AsyncormException(Exception):
 
 
 class AsyncOrmCommandError(AsyncormException):
-    """Exceptions to be raised when command errors"""
-
+    """Exceptions Raised when command errors"""
     pass
 
 
 class AsyncOrmFieldError(AsyncormException):
-    """to be raised when there are field errors detected"""
-
-    pass
-
-
-class AsyncOrmModelError(AsyncormException):
-    """to be raised when there are model errors detected"""
-
-    pass
-
-
-class AsyncOrmQuerysetError(AsyncormException):
-    """to be raised when there are queryset errors detected"""
-
-    pass
-
-
-class AsyncOrmConfigError(AsyncormException):
-    """to be raised when there are configuration errors detected"""
-
-    pass
-
-
-class AsyncOrmMigrationError(AsyncormException):
-    """to be raised when there are configuration errors detected"""
-
+    """Raised when there are field errors detected."""
     pass
 
 
 class AsyncOrmModelDoesNotExist(AsyncormException):
-    """to be raised when there are model errors detected"""
+    """Raised when the object requested does not exist."""
+    pass
 
+
+class AsyncOrmModelNotDefined(AsyncormException):
+    """Raised when the model does not exist in the ORM."""
+    pass
+
+
+class AsyncOrmModelError(AsyncormException):
+    """Raised when there are model errors detected."""
+    pass
+
+
+class AsyncOrmQuerysetError(AsyncormException):
+    """Raised when there are queryset errors detected."""
+    pass
+
+
+class AsyncOrmConfigError(AsyncormException):
+    """Raised when there are configuration errors detected."""
+    pass
+
+
+class AsyncOrmMigrationError(AsyncormException):
+    """Raised when there are configuration errors detected."""
     pass
 
 
 class AsyncOrmMultipleObjectsReturned(AsyncormException):
-    """to be raised when there are model errors detected"""
-
+    """Raised when there are model errors detected."""
     pass
 
 
 class AsyncOrmSerializerError(AsyncormException):
-    """to be raised when there are model errors detected"""
-
+    """Raised when there are model errors detected."""
     pass
 
 
 class AsyncOrmAppError(AsyncormException):
-    """to be raised when there are class App or config errors detected"""
-
+    """Raised when there are class App or configuration errors detected."""
     pass

@@ -18,13 +18,10 @@ class App(AppMigration):
 
         :param name: the name of the app.
         :type name: string
-
         :param relative_name: This is the relative path to the app from the source code of the whole program.
         :type relative_name: string
-
         :param abs_path: This is the absolute path of the app.
         :type abs_path: string
-
         :param orm: The ORM singleton been handled to the App constructor.
         :type orm: OrmApp
         """
@@ -36,6 +33,11 @@ class App(AppMigration):
         self.models = self.get_declared_models()
 
     def get_declared_models(self):
+        """Constructs the declared models in the App via introspection.
+
+        :return: list of models for an specific App
+        :rtype: list(Model)
+        """
         # this import should be here otherwise causes circular import
         from asyncorm import models
 
@@ -43,7 +45,7 @@ class App(AppMigration):
         try:
             module = importlib.import_module("{}.models".format(self.relative_name))
         except ImportError:
-            logger.error("unable to import {}".format(self.relative_name))
+            logger.exception("unable to import %s", self.relative_name)
 
         for k, v in inspect.getmembers(module):
             try:

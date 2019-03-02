@@ -67,7 +67,7 @@ class ModelTests(AioTestCase):
     def test_validate_kwargs_with_forced_id(self):
         kwargs = {"id": 34, "name": "name"}
 
-        # also raises fielderror because you can not pre-set the object's id
+        # also raises AsyncOrmFieldError because you can not pre-set the object's id
         with self.assertRaises(AsyncOrmFieldError) as exc:
             book = Book()
             book.validate_kwargs(kwargs)
@@ -113,12 +113,12 @@ class ModelTests(AioTestCase):
         # create a developer
         dev = Developer(name="developboy", age=24)
         await dev.save()
-
         # a client that has assigned developer
         client = Client(name="devman", dev=dev.id)
         await client.save()
         # get all of the developer clients
         clients_returned = dev.client_set()
+
         client_set = await clients_returned[0]
 
         # the client has the dev correctly set
@@ -134,10 +134,9 @@ class ModelTests(AioTestCase):
         # new organization
         org_list = []
         for _ in range(1, 6):
-            org = Organization(name="ong molona")
+            org = Organization(name="kool org")
             await org.save()
             org_list.append(org.id)
-
         # create a developer
         dev = Developer(name="developer", age=55, org=org_list)
         await dev.save()
@@ -146,6 +145,7 @@ class ModelTests(AioTestCase):
         devs_returned = org.developer_set()
         developer_set = await devs_returned[0]
         orgs_returned = dev.organization_set()
+
         organization_set = await orgs_returned[0]
 
         # and they are correct

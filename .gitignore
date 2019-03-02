@@ -65,6 +65,3 @@ target/
 
 # IDES
 .vscode/
-
-# pipenv
-Pipfile.lock

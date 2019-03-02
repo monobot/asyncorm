@@ -8,8 +8,6 @@ from asyncorm.exceptions import AsyncOrmCommandError, AsyncOrmMigrationError
 from asyncorm.orm_migrations.migration_constructor import MigrationConstructor
 from asyncorm.migrations.models import AsyncormMigrations
 
-# from asyncpg.exceptions import UndefinedTableError
-
 cwd = os.getcwd()
 
 logger = logging.getLogger("asyncorm_stream")
@@ -174,9 +172,9 @@ class Migrator(object):
 
     async def makemigrations(self, apps):
         """Creates the file that can be used to migrate the table from a state to the next."""
-        logger.info("migrations for {}".format(apps))
+        logger.info("migrations for %s", apps)
         for app in [self.orm.apps[m] for m in apps]:
-            logger.info('##### checking models for "{}" #####'.format(app.name))
+            logger.info('##### checking models for "%s" #####', app.name)
             try:
                 _migration_status = await app._construct_migrations_status()
                 _latest_fs_declared = _migration_status["_latest_fs_declared"]
@@ -203,35 +201,37 @@ class Migrator(object):
                     app.get_migration_actions(),
                     initial=True,
                 )
-            except AsyncOrmMigrationError as e:
-                logger.error("\nMigration Error: {}\n".format(e))
+            except AsyncOrmMigrationError:
+                logger.exception("Migration Error")
 
     async def migrate(self, apps, migration):
         """Migrates the database from an state to the next using the migration files defined."""
-        logger.info("migrate {} {}".format(apps, migration if migration else ""))
+        logger.info("migrate %s %s", apps, migration if migration else "")
         for module in [self.orm.apps[m] for m in apps]:
             await module.check_current_migrations_status(migration)
 
     async def datamigration(self, apps, migration):
         """ Creates an empty migration file, so the user can create their own migration."""
-        logger.info("datamigration {} {}".format(apps, migration))
+        logger.info("datamigration %s %s", apps, migration)
 
     async def showmigrations(self, apps):
         """Shows the list of migrations defined in the filesystem and its status in database."""
         for app in [self.orm.apps[m] for m in apps]:
             logger.info(
-                '{}\n Migration list for "{}" app\n{}'.format(
-                    "~" * 50, app.name, "-" * 50
-                )
+                '%s\n Migration list for "%s" app\n%s',
+                "~" * 50,
+                app.name,
+                "-" * 50
+
             )
             _migration_status = await app._construct_migrations_status()
             for mig_name in [
                 k for k in _migration_status.keys() if not k.startswith("_")
             ]:
                 logger.info(
-                    " [{}] {}".format(
-                        "x" if _migration_status[mig_name]["migrated"] else " ",
-                        mig_name,
+                    " [%s] %s",
+                    "x" if _migration_status[mig_name]["migrated"] else " ",
+                    mig_name,
                     )
                 )
-            logger.info("{}\n".format("~" * 50))
+            logger.info("%s\n", "~" * 50)

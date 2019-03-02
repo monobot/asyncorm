@@ -8,9 +8,10 @@ import os
 from asyncorm.apps.app import App
 from asyncorm.apps.app_config import AppConfig
 from asyncorm.exceptions import (
-    AsyncOrmConfigError,
     AsyncOrmAppError,
+    AsyncOrmConfigError,
     AsyncOrmModelError,
+    AsyncOrmModelNotDefined
 )
 
 logger = logging.getLogger("asyncorm")
@@ -77,21 +78,32 @@ class OrmApp(object):
                     import_str = ".".join(import_str.split(".")[:-1])
                     module = importlib.import_module(import_str)
                 except ImportError:
-                    logger.error("unable to import {}".format(import_str))
-            for k, v in inspect.getmembers(module):
+                    logger.exception("unable to import %s", import_str)
+            for k, app_config in inspect.getmembers(module):
                 try:
-                    if issubclass(v, AppConfig) and v is not AppConfig:
+                    if issubclass(app_config, AppConfig) and app_config is not AppConfig:
                         # the instance directory is the import_str without the app.py file_name
                         dir_name = ".".join(import_str.split(".")[:-1])
                         abs_path = os.sep.join(module.__file__.split(os.sep)[:-1])
 
-                        app = App(v.name, dir_name, abs_path, self)
-                        _apps.update({v.name: app})
+                        app = App(app_config.name, dir_name, abs_path, self)
+                        _apps.update({app_config.name: app})
                 except TypeError:
-                    logger.debug("typerror")
+                    pass
         return _apps
 
     def get_model(self, model_name):
+        """Get the model that is defined in the ORM.
+
+        :param model_name: name of the model to get
+        :type model_name: str
+        :raises AsyncOrmAppError: When there is no model declared
+        :raises AsyncOrmModelError: When model_name is not in the correct format
+        :raises AsyncOrmModelDoesNotExist: When the model does not exist
+        :return: model requested
+
+        :rtype: asyncorm.models.Model
+        """
         if len(self.models) == 1:
             raise AsyncOrmAppError("There are no apps declared in the orm")
 
@@ -106,7 +118,7 @@ class OrmApp(object):
                     'The string declared should be in format "module.Model" or "Model"'
                 )
         except KeyError:
-            raise AsyncOrmAppError("The model does not exists")
+            raise AsyncOrmModelNotDefined("The model does not exists")
 
     def models_configure(self):
         # and we set it to all the different models defined

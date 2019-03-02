@@ -1,6 +1,5 @@
-from asyncorm.application.configure import get_model, orm_app, configure_orm
-from asyncorm.exceptions import AsyncOrmModelError, AsyncOrmAppError
-
+from asyncorm.application.configure import configure_orm, get_model, orm_app
+from asyncorm.exceptions import AsyncOrmAppError, AsyncOrmModelError, AsyncOrmModelNotDefined
 from tests.test_helper import AioTestCase
 
 Book = get_model("Book")
@@ -41,7 +40,7 @@ class ModuleTests(AioTestCase):
         self.assertIn("The string declared should be in format ", exc.exception.args[0])
 
     def test_get_model_model_does_not_exist(self):
-        with self.assertRaises(AsyncOrmAppError) as exc:
+        with self.assertRaises(AsyncOrmModelNotDefined) as exc:
             get_model("Tato")
 
         self.assertIn("The model does not exists", exc.exception.args[0])

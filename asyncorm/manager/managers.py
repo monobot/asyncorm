@@ -115,7 +115,7 @@ class Queryset(object):
                 await self.db_manager.request(query)
         except InsufficientPrivilegeError:
             raise AsyncOrmModelError(
-                "Not enought privileges to add the needed requirement in the database"
+                "Not enough privileges to add the needed requirement in the database"
             )
 
     def unique_together_builder(self):
