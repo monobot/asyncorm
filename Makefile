@@ -46,7 +46,7 @@ clean: clean-build clean-pyc clean-test
 
 .PHONY: lint
 lint: ## check style with black code style
-	black --check asyncorm
+	black --check --diff asyncorm
 
 test: ## run tests quickly with the default Python
 	python -m tests

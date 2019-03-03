@@ -1,42 +1,15 @@
-from asyncpg.exceptions import UniqueViolationError, InsufficientPrivilegeError
+import datetime
 from copy import deepcopy
 
-from asyncorm.database import Cursor
+from asyncpg.exceptions import InsufficientPrivilegeError
+
 from asyncorm.exceptions import (
-    AsyncOrmModelDoesNotExist,
     AsyncOrmModelError,
     AsyncOrmMultipleObjectsReturned,
     AsyncOrmQuerysetError,
 )
-from asyncorm.models.fields import (
-    CharField,
-    ForeignKey,
-    ManyToManyField,
-    NumberField,
-    AutoField,
-)
-import datetime
-
-__all__ = ["ModelManager", "Queryset"]
-
-LOOKUP_OPERATOR = {
-    "gt": "{t_n}.{k} > {v}",
-    "lt": "{t_n}.{k} < {v}",
-    "gte": "{t_n}.{k} >= {v}",
-    "lte": "{t_n}.{k} <= {v}",
-    "range": "({t_n}.{k}>={min} AND {t_n}.{k}<={max})",
-    "in": "{t_n}.{k} = ANY (array[{v}])",
-    "exact": "{t_n}.{k} LIKE '{v}'",
-    "iexact": "{t_n}.{k} ILIKE '{v}'",
-    "contains": "{t_n}.{k} LIKE '%{v}%'",
-    "icontains": "{t_n}.{k} ILIKE '%{v}%'",
-    "startswith": "{t_n}.{k} LIKE '{v}%'",
-    "istartswith": "{t_n}.{k} ILIKE '{v}%'",
-    "endswith": "{t_n}.{k} LIKE '%{v}'",
-    "iendswith": "{t_n}.{k} ILIKE '%{v}'",
-    "regex": "{t_n}.{k} ~ {v}",
-    "iregex": "{t_n}.{k} ~* {v}",
-}
+from asyncorm.manager.constants import LOOKUP_OPERATOR
+from asyncorm.models.fields import CharField, ForeignKey, ManyToManyField, NumberField
 
 
 class Queryset(object):
@@ -57,13 +30,6 @@ class Queryset(object):
         self.forward = 0
         self.stop = None
         self.step = None
-
-    def _copy_me(self):
-        queryset = ModelManager(self.model)
-        queryset.set_orm(self.orm)
-        queryset.query = self.query_copy()
-
-        return queryset
 
     def query_copy(self):
         return self.query and deepcopy(self.query) or deepcopy(self.basic_query)
@@ -483,38 +449,57 @@ class Queryset(object):
         query = self.db_manager._construct_query(db_request)
         return await self.db_manager.request(query)
 
+    def _get_queryset_slice(self, queryset_slice):
+        """Private method to get a slice given the original queryset.
+
+        :param queryset_slice: Slice to be retrieved
+        :type queryset_slice: slice
+
+        :return: The slice of the queryset
+        :rtype: Queryset
+        """
+        self.forward = queryset_slice.start
+        self.stop = queryset_slice.stop
+        if queryset_slice.start is None:
+            self.forward = 0
+        return self
+
+    async def _get_item(self, key):
+        """Return the item selected from the iterator.
+
+        :param key: The position in the slice
+        :type key: int
+        :raises IndexError: When the item selected does not exist in the slice
+        :return: Model object from the Queryset
+        :rtype: Model
+        """
+        if not self._cursor:
+            self._cursor = await self.db_manager.get_cursor(
+                deepcopy(self.query), forward=key, stop=None
+            )
+
+        async for res in self._cursor:
+            return self.modelconstructor(res)
+
+        raise IndexError("That {} index does not exist".format(self.model.__name__))
+
     async def __getitem__(self, key):
         if isinstance(key, slice):
-            # control the keys values
-            if key.start is not None and key.start < 0:
+            wrong_start_key = key.start is not None and key.start < 0
+            wrong_stop_key = key.stop is not None and key.stop < 0
+            if wrong_start_key or wrong_stop_key:
                 raise AsyncOrmQuerysetError("Negative indices are not allowed")
-            if key.stop is not None and key.stop < 0:
-                raise AsyncOrmQuerysetError("Negative indices are not allowed")
+
             if key.step is not None:
                 raise AsyncOrmQuerysetError("Step on Queryset is not allowed")
 
-            # asign forward and stop to the modelmanager and return it
-            self.forward = key.start
-            self.stop = key.stop
-            if key.start is None:
-                self.forward = 0
-            return self
+            return self._get_queryset_slice(key)
 
         elif isinstance(key, int):
-            # if its an int, the developer wants the object directly
             if key < 0:
                 raise AsyncOrmQuerysetError("Negative indices are not allowed")
 
-            conn = await self.db_manager.get_conn()
-
-            cursor = self._cursor
-            if not cursor:
-                query = self.db_manager._construct_query(deepcopy(self.query))
-                cursor = Cursor(conn, query[0], values=query[1], forward=key)
-
-            async for res in cursor:
-                return self.modelconstructor(res)
-            raise IndexError("That {} index does not exist".format(self.model.__name__))
+            return await self._get_item(key)
 
         else:
             raise TypeError("Invalid argument type.")
@@ -524,153 +509,12 @@ class Queryset(object):
 
     async def __anext__(self):
         if not self._cursor:
-            conn = await self.db_manager.get_conn()
-            query = self.db_manager._construct_query(self.query)
-            self._cursor = Cursor(
-                conn, query[0], values=query[1], forward=self.forward, stop=self.stop
+            self._cursor = await self.db_manager.get_cursor(
+                self.query, forward=self.forward, stop=self.stop
             )
 
         async for rec in self._cursor:
             item = self.modelconstructor(rec)
             return item
+
         raise StopAsyncIteration()
-
-
-class ModelManager(Queryset):
-    def __init__(self, model, field=None):
-        self.model = model
-        self.field = field
-        super().__init__(model)
-
-    async def get_or_create(self, **kwargs):
-        try:
-            return await self.get(**kwargs), False
-        except AsyncOrmModelDoesNotExist:
-            return await self.create(**kwargs), True
-
-    async def save(self, instanced_model):
-        # performs the database save
-        fields, field_data = [], []
-
-        for k, data in instanced_model.data.items():
-            f_class = getattr(instanced_model.__class__, k)
-
-            field_name = f_class.db_column or k
-
-            data = f_class.sanitize_data(data)
-
-            fields.append(field_name)
-            field_data.append(data)
-
-        for field in instanced_model.fields.keys():
-            if field not in fields:
-                f_class = getattr(instanced_model.__class__, field)
-
-                field_name = f_class.db_column or field
-                data = getattr(instanced_model, field)
-                field_has_default = hasattr(instanced_model.fields[field], "default")
-                default_not_none = instanced_model.fields[field].default is not None
-                not_auto_field = not isinstance(f_class, AutoField)
-                if (
-                    data is None
-                    and field_has_default
-                    and default_not_none
-                    and not_auto_field
-                ):
-                    data = instanced_model.fields[field].default
-
-                    data = f_class.sanitize_data(data)
-
-                    fields.append(field_name)
-                    field_data.append(data)
-
-        db_request = [
-            {
-                "action": getattr(instanced_model, instanced_model.orm_pk)
-                and "_db__update"
-                or "_db__insert",
-                "id_data": "{}={}".format(
-                    instanced_model.db_pk,
-                    getattr(instanced_model, instanced_model.orm_pk),
-                ),
-                "field_names": ", ".join(fields),
-                "field_values": field_data,
-                "field_schema": ", ".join(
-                    ["${}".format(value + 1) for value in range(len(field_data))]
-                ),
-                "condition": "{}={}".format(
-                    instanced_model.db_pk,
-                    getattr(instanced_model, instanced_model.orm_pk),
-                ),
-            }
-        ]
-        try:
-            response = await self.db_request(db_request)
-        except UniqueViolationError:
-            raise AsyncOrmModelError("The model violates a unique constraint")
-
-        self.modelconstructor(response, instanced_model)
-
-        # now we have to save the m2m relations: m2m_data
-        fields, field_data = [], []
-        for k, data in instanced_model.m2m_data.items():
-            # for each of the m2m fields in the model, we have to check
-            # if the table register already exists in the table otherwise
-            # and delete the ones that are not in the list
-            # first get the table_name
-            cls_field = getattr(instanced_model.__class__, k)
-            table_name = cls_field.table_name
-            foreign_column = cls_field.foreign_key
-
-            model_column = instanced_model.cls_tablename()
-
-            model_id = getattr(instanced_model, instanced_model.orm_pk)
-
-            db_request = [
-                {
-                    "table_name": table_name,
-                    "action": "_db__insert",
-                    "field_names": ", ".join([model_column, foreign_column]),
-                    "field_values": [model_id, data],
-                    "field_schema": ", ".join(
-                        [
-                            "${}".format(value + 1)
-                            for value in range(len([model_id, data]))
-                        ]
-                    ),
-                }
-            ]
-
-            if isinstance(data, list):
-                for d in data:
-                    db_request[0].update(
-                        {
-                            "field_values": [model_id, d],
-                            "field_schema": ", ".join(
-                                [
-                                    "${}".format(value + 1)
-                                    for value in range(len([model_id, d]))
-                                ]
-                            ),
-                        }
-                    )
-                    await self.db_request(db_request)
-            else:
-                await self.db_request(db_request)
-
-    async def delete(self, instanced_model):
-        db_request = [
-            {
-                "action": "_db__delete",
-                "id_data": "{}={}".format(
-                    instanced_model.db_pk,
-                    getattr(instanced_model, instanced_model.db_pk),
-                ),
-            }
-        ]
-        return await self.db_request(db_request)
-
-    async def create(self, **kwargs):
-        n_object = self.model(**kwargs)
-        await self.model.objects.save(n_object)
-        return n_object

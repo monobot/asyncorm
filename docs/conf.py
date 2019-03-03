@@ -56,7 +56,7 @@ master_doc = "index"
 
 # General information about the project.
 project = u"asyncorm"
-copyright = u"2017, Héctor Alvarez (monobot)"
+copyright = u"2019, Héctor Alvarez (monobot)"
 
 # The version info for the project you're documenting, acts as replacement
 # for |version| and |release|, also used in various other places throughout

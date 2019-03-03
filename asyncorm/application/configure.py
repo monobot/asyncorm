@@ -32,7 +32,7 @@ class OrmApp(object):
         """
         Configures the system:
         get all the models declared
-        sets the database configured and adds the loop
+        set the database configured and add the loop
 
         Then the database manager is configured, and set to all the
         models previously declared
