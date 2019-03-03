@@ -232,6 +232,5 @@ class Migrator(object):
                     " [%s] %s",
                     "x" if _migration_status[mig_name]["migrated"] else " ",
                     mig_name,
-                    )
                 )
             logger.info("%s\n", "~" * 50)
