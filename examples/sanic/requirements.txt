@@ -1,2 +1,2 @@
-asyncorm==0.4.4
+asyncorm==0.4.5
 sanic==18.12.0
