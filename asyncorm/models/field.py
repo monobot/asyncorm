@@ -24,17 +24,23 @@ KWARGS_TYPES = {
 
 
 class Field(object):
+    """
+    Base Field of AsyncOrm.
+
+    Any developer defined Field should subclass Field.
+    """
+
     internal_type = None
     creation_string = None
     required_kwargs = []
     table_name = None
 
-    def __new__(mcs, **kwargs):
-        if not getattr(mcs, "internal_type"):
+    def __new__(cls, **kwargs):
+        if cls.internal_type is None:
             raise NotImplementedError(
                 'Missing "internal_type" attribute from class definition'
             )
-        return super().__new__(mcs)
+        return super().__new__(cls)
 
     def __init__(self, **kwargs):
         self.validate_kwargs(kwargs)
@@ -52,6 +58,11 @@ class Field(object):
                     self.choices = {k: v for k, v in kwargs.get(kw)}
 
     def creation_query(self):
+        """Create the field's database creation query.
+
+        :return: query constructed
+        :rtype: str
+        """
         creation_string = "{db_column} " + self.creation_string
         date_field = self.field_type in DATE_FIELDS
 
@@ -77,6 +88,14 @@ class Field(object):
         return creation_string.format(**self.__dict__)
 
     def validate_kwargs(self, kwargs):
+        """Validate the kwargs provided.
+
+        :param kwargs: Field creation kwargs
+        :type kwargs: dict
+        :raises AsyncOrmFieldError:
+            If a required field is not provided or when a value
+            provided doesn't comply to Field requirements.
+        """
         for kw in self.required_kwargs:
             if not kwargs.get(kw, None):
                 raise AsyncOrmFieldError(
@@ -94,12 +113,21 @@ class Field(object):
             self.set_field_name(kwargs["db_column"])
 
     def validate(self, value):
+        """Validate the value.
+
+        :param value: value in the field
+        :type value: self.internal_type
+        :raises AsyncOrmFieldError:
+            * When a null value sent to a non nullable field.
+            * When the value provided is not in the field choices.
+            * When the value provided is not in the self.internal_type
+        """
         if value is None and not self.null:
-            raise AsyncOrmFieldError("null value in NOT NULL field")
+            raise AsyncOrmFieldError("null value in NOT NULLABLE field")
 
         if hasattr(self, "choices") and self.choices is not None:
             if value not in self.choices.keys():
-                raise AsyncOrmFieldError('"{}" not in model choices'.format(value))
+                raise AsyncOrmFieldError('"{}" not in field choices'.format(value))
 
         if value is not None and not isinstance(value, self.internal_type):
             raise AsyncOrmFieldError(
@@ -113,7 +141,7 @@ class Field(object):
         return value
 
     def sanitize_data(self, value):
-        """method used to convert python to SQL data"""
+        """Sanitize the query before send to database."""
         self.validate(value)
         return value
 

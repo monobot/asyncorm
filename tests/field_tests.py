@@ -81,7 +81,7 @@ class FieldTests(AioTestCase):
             book = Book(content="telomero")
             await book.save()
 
-        self.assertEqual(exc.exception.args[0], '"telomero" not in model choices')
+        self.assertEqual(exc.exception.args[0], '"telomero" not in field choices')
 
     async def test_dictionary_choices_content_not_in_choices(self):
         # choices defined as dictionaries
@@ -89,7 +89,7 @@ class FieldTests(AioTestCase):
             read = Reader(power="flower")
             await read.save()
 
-        self.assertEqual(exc.exception.args[0], '"flower" not in model choices')
+        self.assertEqual(exc.exception.args[0], '"flower" not in field choices')
 
     async def test_default_callable(self):
         # when the fields with default value are not esecifically defined

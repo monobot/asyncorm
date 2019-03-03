@@ -204,6 +204,19 @@ def parse_config(config_file):
 
 
 def configure_orm(config=None, loop=None):
+    """Configure the orm
+
+    :param config: Configuration information that can be provided.
+                   Defaults to None, that means it will get the configuration
+                   from the .ini file in the base directory.
+    :param config: dict
+    :param loop: The loop your application will be working on.
+                 Defaults to None, means it will get the loop using
+                 asyncio.get_event_loop
+    :param loop: asyncio.loop
+    :return: orm configured
+    :rtype: OrmApp
+    """
     # configure and return the already configured orm
     global orm_app
 
@@ -221,5 +234,15 @@ def configure_orm(config=None, loop=None):
 
 
 def get_model(model_name):
-    # wrapper around the orm method
+    """Wrapper around the OrmApp class method.
+
+    :param model_name: name of the model to get
+    :type model_name: str
+    :raises AsyncOrmAppError: When there is no model declared
+    :raises AsyncOrmModelError: When model_name is not in the correct format
+    :raises AsyncOrmModelDoesNotExist: When the model does not exist
+    :return: model requested
+
+    :rtype: asyncorm.models.Model
+    """
     return orm_app.get_model(model_name)

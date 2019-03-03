@@ -13,14 +13,14 @@ logger = logging.getLogger("asyncorm")
 
 
 class AppMigration:
-    def check_migration_dir(self, initial=True):
+    def _check_migration_dir(self, initial=True):
         self.migrations_dir = os.path.join(self.abs_path, "migrations")
 
         if initial:
             os.makedirs(self.migrations_dir, exist_ok=True)
 
     async def _construct_migrations_status(self):
-        fs_declared = self.fs_migration_list()
+        fs_declared = self._fs_migration_list()
         db_migrated = await self._app_db_applied_migrations()
 
         migrations_status = {}
@@ -56,8 +56,9 @@ class AppMigration:
 
         return migrations_status
 
-    async def check_makemigrations_status(self):
-        """ Checks that the migration is correcly synced and everything is fine
+    async def _check_makemigrations_status(self):
+        """
+        Checks that the migration is correcly synced and everything is fine
         returns the latest migration applied file_name
         """
         _migration_status = await self._construct_migrations_status()
@@ -101,16 +102,16 @@ class AppMigration:
                     )
                 )
 
-    async def check_current_migrations_status(self, target):
-        self.check_migration_dir()
-        latest_db_migration = self._migration_integer_number(
-            await self.latest_db_migration()
+    async def _check_current_migrations_status(self, target):
+        self._check_migration_dir()
+        _latest_db_migration = self._migration_integer_number(
+            await self._latest_db_migration()
         )
 
         forward = False
         if target is None:
             target_fs_migration = self._migration_integer_number(
-                self.latest_fs_migration()
+                self._latest_fs_migration()
             )
         else:
             target_fs_migration = [
@@ -123,19 +124,19 @@ class AppMigration:
                 "the migration {} does not exist for app {}".format(target, self.name)
             )
 
-        if latest_db_migration is not None and target_fs_migration is not None:
-            if latest_db_migration > target_fs_migration:
+        if _latest_db_migration is not None and target_fs_migration is not None:
+            if _latest_db_migration > target_fs_migration:
                 raise AsyncOrmMigrationError(
                     'There is an inconsistency, the database has a migration named "{}" '
                     'more advanced than the filesystem "{}"'.format(
-                        latest_db_migration, target_fs_migration
+                        _latest_db_migration, target_fs_migration
                     )
                 )
-            if latest_db_migration < target_fs_migration:
+            if _latest_db_migration < target_fs_migration:
                 forward = True
         return forward
 
-    def get_migration(self, migration_name):
+    def _get_migration(self, migration_name):
         migration_name += ".py"
         migration_path = os.path.join(self.relative_name, "migrations", migration_name)
         _loader = importlib.machinery.SourceFileLoader("Migration", migration_path)
@@ -159,7 +160,7 @@ class AppMigration:
 
         return [r.name for r in results] if results else []
 
-    async def latest_db_migration(self):
+    async def _latest_db_migration(self):
         kwargs = {
             "select": "name",
             "table_name": "asyncorm_migrations",
@@ -169,11 +170,11 @@ class AppMigration:
         }
 
         result = await self.db_manager.request(
-            self.db_manager.db__select.format(**kwargs)
+            self.db_manager._db__select.format(**kwargs)
         )
         return result and result["name"] or ""
 
-    async def check_migration_applied(self, migration_name):
+    async def _check_migration_applied(self, migration_name):
         kwargs = {
             "select": "*",
             "table_name": "asyncorm_migrations",
@@ -184,13 +185,13 @@ class AppMigration:
             ),
         }
         result = await self.db_manager.request(
-            self.db_manager.db__select.format(**kwargs)
+            self.db_manager._db__select.format(**kwargs)
         )
         return result
 
-    def fs_migration_list(self):
+    def _fs_migration_list(self):
         py_ext = ".py"
-        self.check_migration_dir()
+        self._check_migration_dir()
         return sorted(
             [
                 fn.rstrip(py_ext)
@@ -199,14 +200,16 @@ class AppMigration:
             ]
         )
 
-    def latest_fs_migration(self):
-        filenames = self.fs_migration_list()
+    def _latest_fs_migration(self):
+        filenames = self._fs_migration_list()
         return filenames and filenames[-1] or ""
 
-    def next_fs_migration_name(self, stage="auto"):
+    def _next_fs_migration_name(self, stage="auto"):
         if stage not in ("auto", "data", "initial"):
             raise AsyncOrmMigrationError("that migration stage is not supported")
-        target_fs_migration = self._migration_integer_number(self.latest_fs_migration())
+        target_fs_migration = self._migration_integer_number(
+            self._latest_fs_migration()
+        )
         random_hash = hashlib.sha1()
         random_hash.update(
             "{}{}".format(target_fs_migration, str(datetime.now())).encode("utf-8")
@@ -215,10 +218,10 @@ class AppMigration:
             "000{}".format(target_fs_migration + 1)[-4:], stage, random_hash.hexdigest()
         )[:26]
 
-    def get_absolute_migration(self, migration_name):
+    def _get_absolute_migration(self, migration_name):
         return os.path.join(self.abs_path, "migrations", migration_name)
 
-    def get_migration_actions(self):
+    def _get_migration_actions(self):
         actions = []
         for model_name, model in self.models.items():
             final_migration_state = {}
@@ -239,7 +242,7 @@ class AppMigration:
                 actions.append(action_type(model_name, fields, meta))
         return actions
 
-    def get_migration_depends(self):
+    def _get_migration_depends(self):
         from asyncorm.models import ForeignKey, ManyToManyField
 
         depends = []

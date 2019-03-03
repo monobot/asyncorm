@@ -72,7 +72,7 @@ class Queryset(object):
     def basic_query(self):
         return [
             {
-                "action": "db__select_all",
+                "action": "_db__select_all",
                 "select": "*",
                 "table_name": self.model.cls_tablename(),
                 "ordering": self.model.ordering,
@@ -99,7 +99,7 @@ class Queryset(object):
         return [
             {
                 "table_name": self.model.cls_tablename(),
-                "action": "db__create_table",
+                "action": "_db__create_table",
                 "field_queries": self.get_field_queries(),
             }
         ]
@@ -125,7 +125,7 @@ class Queryset(object):
             return [
                 {
                     "table_name": self.model.cls_tablename(),
-                    "action": "db__constrain_table",
+                    "action": "_db__constrain_table",
                     "constrain": unique_together,
                 }
             ]
@@ -160,7 +160,7 @@ class Queryset(object):
         return [
             {
                 "table_name": field.table_name,
-                "action": "db__create_table",
+                "action": "_db__create_table",
                 "field_queries": field.creation_query(),
             }
         ]
@@ -173,7 +173,7 @@ class Queryset(object):
                     field.table_name, field.orm_field_name
                 )[:30],
                 "table_name": field.table_name,
-                "action": "db__create_field_index",
+                "action": "_db__create_field_index",
                 "colum_name": field.orm_field_name,
             }
         ]
@@ -226,7 +226,7 @@ class Queryset(object):
 
     async def exists(self):
         query = self.query_copy()
-        query[0]["action"] = "db__exists"
+        query[0]["action"] = "_db__exists"
 
         resp = await self.db_request(query)
         for v in resp.values():
@@ -300,7 +300,7 @@ class Queryset(object):
         return queryset.filter(**kwargs)
 
     def select_related(self, *args):
-        select_related = {"action": "db__select_related", "fields": []}
+        select_related = {"action": "_db__select_related", "fields": []}
         for arg in args:
             # fr the time been we overlook the after the '__'
             if "__" in arg:
@@ -426,7 +426,7 @@ class Queryset(object):
 
         queryset = self.queryset()
 
-        queryset.query.append({"action": "db__where", "condition": condition})
+        queryset.query.append({"action": "_db__where", "condition": condition})
         return queryset
 
     def exclude(self, **kwargs):
@@ -480,7 +480,7 @@ class Queryset(object):
                 ),
             }
         )
-        query = self.db_manager.construct_query(db_request)
+        query = self.db_manager._construct_query(db_request)
         return await self.db_manager.request(query)
 
     async def __getitem__(self, key):
@@ -509,7 +509,7 @@ class Queryset(object):
 
             cursor = self._cursor
             if not cursor:
-                query = self.db_manager.construct_query(deepcopy(self.query))
+                query = self.db_manager._construct_query(deepcopy(self.query))
                 cursor = Cursor(conn, query[0], values=query[1], forward=key)
 
             async for res in cursor:
@@ -525,7 +525,7 @@ class Queryset(object):
     async def __anext__(self):
         if not self._cursor:
             conn = await self.db_manager.get_conn()
-            query = self.db_manager.construct_query(self.query)
+            query = self.db_manager._construct_query(self.query)
             self._cursor = Cursor(
                 conn, query[0], values=query[1], forward=self.forward, stop=self.stop
             )
@@ -587,8 +587,8 @@ class ModelManager(Queryset):
         db_request = [
             {
                 "action": getattr(instanced_model, instanced_model.orm_pk)
-                and "db__update"
-                or "db__insert",
+                and "_db__update"
+                or "_db__insert",
                 "id_data": "{}={}".format(
                     instanced_model.db_pk,
                     getattr(instanced_model, instanced_model.orm_pk),
@@ -629,7 +629,7 @@ class ModelManager(Queryset):
             db_request = [
                 {
                     "table_name": table_name,
-                    "action": "db__insert",
+                    "action": "_db__insert",
                     "field_names": ", ".join([model_column, foreign_column]),
                     "field_values": [model_id, data],
                     "field_schema": ", ".join(
@@ -661,7 +661,7 @@ class ModelManager(Queryset):
     async def delete(self, instanced_model):
         db_request = [
             {
-                "action": "db__delete",
+                "action": "_db__delete",
                 "id_data": "{}={}".format(
                     instanced_model.db_pk,
                     getattr(instanced_model, instanced_model.db_pk),

@@ -133,7 +133,7 @@ class BaseModel(object, metaclass=ModelMeta):
         def m2m_set(self):
             queryset.query = [
                 {
-                    "action": "db__select_m2m",
+                    "action": "_db__select_m2m",
                     "select": "*",
                     "m2m_tablename": table_name,
                     "other_tablename": other_column,

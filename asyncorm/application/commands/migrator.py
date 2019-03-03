@@ -192,13 +192,13 @@ class Migrator(object):
                         "migration declared."
                     )
 
-                file_name = app.next_fs_migration_name(
+                file_name = app._next_fs_migration_name(
                     stage="initial" if initial else "auto"
                 )
                 MigrationConstructor(
-                    app.get_absolute_migration("{}.py".format(file_name)),
-                    app.get_migration_depends(),
-                    app.get_migration_actions(),
+                    app._get_absolute_migration("{}.py".format(file_name)),
+                    app._get_migration_depends(),
+                    app._get_migration_actions(),
                     initial=True,
                 )
             except AsyncOrmMigrationError:
@@ -208,7 +208,7 @@ class Migrator(object):
         """Migrates the database from an state to the next using the migration files defined."""
         logger.info("migrate %s %s", apps, migration if migration else "")
         for module in [self.orm.apps[m] for m in apps]:
-            await module.check_current_migrations_status(migration)
+            await module._check_current_migrations_status(migration)
 
     async def datamigration(self, apps, migration):
         """ Creates an empty migration file, so the user can create their own migration."""
