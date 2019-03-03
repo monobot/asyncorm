@@ -2,6 +2,12 @@
 History
 =======
 
+0.4.6 (2019-3-3)
+* Mismatched versions fixed.
+
+0.4.5 (2019-3-3)
+* enrich docstrings, better documentation, clean up Makefiles.
+
 0.4.4 (2019-1-13)
 * requirements update
 

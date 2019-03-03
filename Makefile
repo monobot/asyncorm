@@ -1,4 +1,3 @@
-.PHONY: clean clean-test clean-pyc clean-build docs help
 .DEFAULT_GOAL := help
 
 define PRINT_HELP_PYSCRIPT
@@ -12,30 +11,40 @@ for line in sys.stdin:
 endef
 export PRINT_HELP_PYSCRIPT
 
+.PHONY: help
+help: ## shows the help menu
 help:
 	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
 
-clean: ## remove all build, test, coverage and Python artifacts
-	clean-build clean-pyc clean-test
-
+.PHONY: clean-build
 clean-build: ## remove build artifacts
+clean-build:
 	rm -fr build/
 	rm -fr dist/
 	rm -fr .eggs/
 	find . -name '*.egg-info' -exec rm -fr {} +
 	find . -name '*.egg' -exec rm -f {} +
 
+.PHONY: clean-pyc
 clean-pyc: ## remove Python file artifacts
+clean-pyc:
 	find . -name '*.pyc' -exec rm -f {} +
 	find . -name '*.pyo' -exec rm -f {} +
 	find . -name '*~' -exec rm -f {} +
 	find . -name '__pycache__' -exec rm -fr {} +
 
+.PHONY: clean-test
 clean-test: ## remove test and coverage artifacts
+clean-test:
 	rm -fr .tox/
 	rm -f .coverage
 	rm -fr htmlcov/
 
+.PHONY: clean
+clean: ## remove all build, test, coverage and Python artifacts
+clean: clean-build clean-pyc clean-test
+
+.PHONY: lint
 lint: ## check style with black code style
 	black --check asyncorm
 
@@ -46,30 +55,35 @@ test-all: ## run tests on every Python version with tox
 	tox
 
 coverage: ## check code coverage quickly with the default Python
-	coverage run --source asyncorm setup.py test
-
+coverage: coverage run --source asyncorm setup.py test
 	coverage report -m
 	coverage html
 	$(BROWSER) htmlcov/index.html
 
+.PHONY: docs
 docs: ## generate Sphinx HTML documentation, including API docs
+docs:
 	rm -f docs/asyncorm.rst
 	rm -f docs/modules.rst
 	sphinx-apidoc -o docs/ asyncorm
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 
-servedocs: docs ## compile the docs watching for changes
+servedocs: ## compile the docs watching for changes
+servedocs: docs
 	watchmedo shell-command -p '*.rst' -c '$(MAKE) -C docs html' -R -D .
 
-release: clean ## package and upload a release
+release: ## package and upload a release
+release: clean
 	python setup.py sdist upload
 	python setup.py bdist_wheel upload
 
-dist: clean ## builds source and wheel package
+dist: ## builds source and wheel package
+dist: clean
 	python setup.py sdist
 	python setup.py bdist_wheel
 	ls -l dist
 
-install: clean ## install the package to the active Python's site-packages
+install: ## install the package to the active Python's site-packages
+install: clean
 	python setup.py install
