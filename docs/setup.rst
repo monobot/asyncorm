@@ -75,7 +75,7 @@ create tables
 Once **asyncOrm** is configured you can create all the tables for the defined
 models in different apps declared in the configuration.
 
-- We are planing to create a migration system so its possible to migrate the
+We are planing to create a migration system so its possible to migrate the
 different database states.
 
 To create all the tables:

@@ -8,21 +8,25 @@ logger = logging.getLogger("asyncorm")
 
 
 class App(AppMigration):
-    """An App (application) describes a set of features for your development, all the kind of objects that related
-    together should be defined in the same Application.
+    """An App (application) describes a set of features for your
+    development, all the kind of objects that related together should
+    be defined in the same Application.
     """
 
     def __init__(self, name, relative_name, abs_path, orm):
-        """The Apps are constructed via introspection by asyncOrm, you should only have to set the entry point of the
-        app by setting the AppConfig.
+        """The Apps are constructed via introspection by asyncOrm, you
+        should only have to set the entry point of the app by setting
+        the AppConfig.
 
         :param name: the name of the app.
         :type name: string
-        :param relative_name: This is the relative path to the app from the source code of the whole program.
+        :param relative_name: This is the relative path to the app from
+        the source code of the whole program.
         :type relative_name: string
         :param abs_path: This is the absolute path of the app.
         :type abs_path: string
-        :param orm: The ORM singleton been handled to the App constructor.
+        :param orm: The ORM singleton been handled to the App
+        constructor.
         :type orm: OrmApp
         """
         self.relative_name = relative_name
@@ -36,7 +40,7 @@ class App(AppMigration):
         """Constructs the declared models in the App via introspection.
 
         :return: list of models for an specific App
-        :rtype: list(Model)
+        :rtype: list(asyncorm.models.Model)
         """
         # this import should be here otherwise causes circular import
         from asyncorm import models

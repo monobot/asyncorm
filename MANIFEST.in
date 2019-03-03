@@ -17,7 +17,8 @@ recursive-include asyncorm/migrations/migrations *
 recursive-include asyncorm/models *
 recursive-include asyncorm/orm_migrations *
 recursive-include asyncorm/serializers *
-recursive-exclude tests *
+recursive-exclude examples *
 recursive-exclude docs *
+recursive-exclude tests *
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
