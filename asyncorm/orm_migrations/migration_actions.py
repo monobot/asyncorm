@@ -3,11 +3,13 @@ class MigrationAction:
 
 
 class FieldMigration(MigrationAction):
-    def __init__(self, field_name, field_kwargs, state={}):
+    def __init__(self, field_name, field_kwargs, state=None):
         self.current_state = self._get_current_state(state)
 
         self.field_name = field_name
         self.field_kwargs = field_kwargs
+
+        self.state = state or dict()
 
     def _get_current_state(self, state):
         return state.update(self.field_kwargs)

@@ -3,7 +3,7 @@ from datetime import date, datetime, time
 from uuid import UUID
 from netaddr import EUI, IPNetwork, mac_eui48
 
-from asyncorm.exceptions import AsyncOrmFieldError
+from asyncorm.exceptions import AsyncormException, AsyncOrmFieldError
 from asyncorm import models
 from tests.testapp.models import Book, Publisher, Reader, Author
 from tests.testapp2.models import Organization, Client, Appointment, Skill, Developer
@@ -347,7 +347,7 @@ class FieldTests(AioTestCase):
         pub = Publisher(name="Linda", json={"last_name": "Olson"}, mac=mac)
         await pub.save()
 
-        # diferent dialects
+        # different dialects
         self.assertNotEqual(pub.mac, mac)
         # equal when converted on same dialect
         self.assertEqual(str(EUI(pub.mac, dialect=mac_eui48)), mac)
@@ -373,7 +373,10 @@ class FieldTests(AioTestCase):
         )
 
     def test_macadressfield_field_ok(self):
-        models.MACAdressField().validate("00-1B-77-49-54-FD")
+        try:
+            models.MACAdressField().validate("00-1B-77-49-54-FD")
+        except AsyncOrmFieldError:
+            self.fail("unexpectedly exception raised!")
 
     def test_macadressfield_field_error(self):
         with self.assertRaises(AsyncOrmFieldError) as exc:
@@ -418,7 +421,10 @@ class FieldTests(AioTestCase):
     def test_genericipaddressfield_validation_unpack_protocol_correct_options(self):
         unpack_protocol = ("same", "ipv4", "ipv6")
         for prot in unpack_protocol:
-            models.GenericIPAddressField(unpack_protocol=prot)
+            try:
+                models.GenericIPAddressField(unpack_protocol=prot)
+            except AsyncOrmFieldError:
+                self.fail("Unexpectedly not a recognized protocol")
 
     def test_genericipaddressfield_validation_ipv6_error(self):
         with self.assertRaises(AsyncOrmFieldError) as exc:
@@ -431,11 +437,17 @@ class FieldTests(AioTestCase):
         )
 
     def test_genericipaddressfield_validation_ok(self):
-        models.GenericIPAddressField(protocol="ipv6", unpack_protocol="same")
+        try:
+            models.GenericIPAddressField(protocol="ipv6", unpack_protocol="same")
+        except AsyncOrmFieldError:
+                self.fail("Unexpectedly not correctly matced")
 
     async def test_model_with_genericipaddressfield_ok(self):
-        pub = Publisher(name="Linda", json={"last_name": "Olson"}, inet="1.1.1.1")
-        await pub.save()
+        try:
+            pub = Publisher(name="Linda", json={"last_name": "Olson"}, inet="1.1.1.1")
+            await pub.save()
+        except AsyncormException:
+            self.fail("Unexpectedly could not save.")
 
     async def test_model_with_genericipaddressfield_error(self):
         with self.assertRaises(AsyncOrmFieldError) as exc:
@@ -505,7 +517,10 @@ class FieldTests(AioTestCase):
         )
 
         for ip_address in correct_formats:
-            models.GenericIPAddressField(protocol="ipv6").validate(ip_address)
+            try:
+                models.GenericIPAddressField(protocol="ipv6").validate(ip_address)
+            except AsyncOrmFieldError:
+                self.fail("Unexpectedly not a correct format")
 
     def test_genericipaddressfield_ipv4_error(self):
         value = "::ffff:1.2.3.0/128"

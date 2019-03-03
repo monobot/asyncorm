@@ -236,7 +236,7 @@ class AutoField(IntegerField):
 class DateTimeField(Field):
     internal_type = datetime
     creation_string = "timestamp"
-    format = "%Y-%m-%d  %H:%s"
+    strftime = "%Y-%m-%d  %H:%s"
     args = (
         "auto_now",
         "choices",
@@ -244,7 +244,7 @@ class DateTimeField(Field):
         "db_index",
         "default",
         "null",
-        "format",
+        "strftime",
         "unique",
     )
 
@@ -259,7 +259,7 @@ class DateTimeField(Field):
         db_index=False,
         default=None,
         null=False,
-        format=None,
+        strftime=None,
         unique=False,
     ):
         super().__init__(
@@ -269,7 +269,7 @@ class DateTimeField(Field):
             db_index=db_index,
             default=default,
             null=null,
-            format=format or self.format,
+            strftime=strftime or self.strftime,
             unique=unique,
         )
 
@@ -284,16 +284,16 @@ class DateField(DateTimeField):
         "db_index",
         "default",
         "null",
-        "format",
+        "strftime",
         "unique",
     )
-    format = "%Y-%m-%d"
+    strftime = "%Y-%m-%d"
 
 
 class TimeField(DateTimeField):
     internal_type = time
     creation_string = "time"
-    format = "%H:%s"
+    strftime = "%H:%s"
 
 
 # relational fields
@@ -447,7 +447,7 @@ class Uuid4Field(Field):
         if re.match(exp, value):
             return value
         raise AsyncOrmFieldError(
-            "The expresion doesn't validate as a correct {}".format(
+            "The expression doesn't validate as a correct {}".format(
                 self.__class__.__name__
             )
         )
@@ -497,7 +497,7 @@ class ArrayField(Field):
         return first_type if all(isinstance(x, first_type) for x in iseq) else False
 
 
-# networkfields
+# network fields
 class GenericIPAddressField(Field):
     internal_type = IPNetwork
     creation_string = "INET"

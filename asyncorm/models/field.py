@@ -16,7 +16,7 @@ KWARGS_TYPES = {
     "null": bool,
     "protocol": str,
     "reverse_field": str,
-    "format": str,
+    "strftime": str,
     "unpack_protocol": str,
     "unique": bool,
     "uuid_type": str,

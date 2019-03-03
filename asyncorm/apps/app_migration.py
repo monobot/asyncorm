@@ -246,7 +246,7 @@ class AppMigration:
         from asyncorm.models import ForeignKey, ManyToManyField
 
         depends = []
-        for model_name, model in self.models.items():
+        for _, model in self.models.items():
             if isinstance(model.fields, (ForeignKey, ManyToManyField)):
                 pass
         return depends

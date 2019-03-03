@@ -1,4 +1,5 @@
 from setuptools import setup
+
 from asyncorm import __version__
 
 with open("README.rst") as readme_file:
