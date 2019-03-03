@@ -218,11 +218,7 @@ class Migrator(object):
         """Shows the list of migrations defined in the filesystem and its status in database."""
         for app in [self.orm.apps[m] for m in apps]:
             logger.info(
-                '%s\n Migration list for "%s" app\n%s',
-                "~" * 50,
-                app.name,
-                "-" * 50
-
+                '%s\n Migration list for "%s" app\n%s', "~" * 50, app.name, "-" * 50
             )
             _migration_status = await app._construct_migrations_status()
             for mig_name in [

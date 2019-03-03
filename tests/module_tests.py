@@ -1,5 +1,9 @@
 from asyncorm.application.configure import configure_orm, get_model, orm_app
-from asyncorm.exceptions import AsyncOrmAppError, AsyncOrmModelError, AsyncOrmModelNotDefined
+from asyncorm.exceptions import (
+    AsyncOrmAppError,
+    AsyncOrmModelError,
+    AsyncOrmModelNotDefined,
+)
 from tests.test_helper import AioTestCase
 
 Book = get_model("Book")

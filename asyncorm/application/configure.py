@@ -11,7 +11,7 @@ from asyncorm.exceptions import (
     AsyncOrmAppError,
     AsyncOrmConfigError,
     AsyncOrmModelError,
-    AsyncOrmModelNotDefined
+    AsyncOrmModelNotDefined,
 )
 
 logger = logging.getLogger("asyncorm")
@@ -81,7 +81,10 @@ class OrmApp(object):
                     logger.exception("unable to import %s", import_str)
             for k, app_config in inspect.getmembers(module):
                 try:
-                    if issubclass(app_config, AppConfig) and app_config is not AppConfig:
+                    if (
+                        issubclass(app_config, AppConfig)
+                        and app_config is not AppConfig
+                    ):
                         # the instance directory is the import_str without the app.py file_name
                         dir_name = ".".join(import_str.split(".")[:-1])
                         abs_path = os.sep.join(module.__file__.split(os.sep)[:-1])
