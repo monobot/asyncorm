@@ -415,7 +415,10 @@ class FieldTests(AioTestCase):
     def test_genericipaddressfield_validation_protocol_correct_options(self):
         protocol = ("both", "ipv4", "ipv6")
         for prot in protocol:
-            models.GenericIPAddressField(protocol=prot)
+            try:
+                models.GenericIPAddressField(protocol=prot)
+            except AsyncOrmFieldError:
+                self.fail("Unexpectedly not recognized ip address")
 
     def test_genericipaddressfield_validation_unpack_protocol_correct_options(self):
         unpack_protocol = ("same", "ipv4", "ipv6")
@@ -486,7 +489,10 @@ class FieldTests(AioTestCase):
         )
 
         for ip_address in correct_formats:
-            models.GenericIPAddressField().validate(ip_address)
+            try:
+                models.GenericIPAddressField().validate(ip_address)
+            except AsyncOrmFieldError:
+                self.fail("unexpectedly not valid IP address")
 
     def test_genericipaddressfield_ok_ipv4(self):
         correct_formats = (
@@ -505,7 +511,10 @@ class FieldTests(AioTestCase):
         )
 
         for ip_address in correct_formats:
-            models.GenericIPAddressField(protocol="ipv4").validate(ip_address)
+            try:
+                models.GenericIPAddressField(protocol="ipv4").validate(ip_address)
+            except AsyncOrmFieldError:
+                self.fail("unexpectedly not valid IP address")
 
     def test_genericipaddressfield_ok_ipv6(self):
         correct_formats = (

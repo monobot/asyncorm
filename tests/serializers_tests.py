@@ -33,7 +33,7 @@ class SerializerTests(AioTestCase):
         # complains if we have a model serializer without model
         with self.assertRaises(AsyncOrmSerializerError) as exc:
 
-            class NooneSerializer(ModelSerializer):
+            class _(ModelSerializer):
                 class Meta:
                     fields = ["name", "content"]
 
@@ -46,7 +46,7 @@ class SerializerTests(AioTestCase):
         # complains if we have a model serializer without fields to serialize defined
         with self.assertRaises(AsyncOrmSerializerError) as exc:
 
-            class Noone2Serializer(ModelSerializer):
+            class _2(ModelSerializer):
                 class Meta:
                     model = Book
 

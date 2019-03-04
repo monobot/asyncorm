@@ -210,13 +210,14 @@ class AppMigration:
         target_fs_migration = self._migration_integer_number(
             self._latest_fs_migration()
         )
-        random_hash = hashlib.sha1()
-        random_hash.update(
+        random_hash = hashlib.sha3_512(
             "{}{}".format(target_fs_migration, str(datetime.now())).encode("utf-8")
         )
         return "{}__{}_{}".format(
-            "000{}".format(target_fs_migration + 1)[-4:], stage, random_hash.hexdigest()
-        )[:26]
+            "0000{}".format(target_fs_migration + 1)[-5:],
+            stage,
+            random_hash.hexdigest()[:20],
+        )
 
     def _get_absolute_migration(self, migration_name):
         return os.path.join(self.abs_path, "migrations", migration_name)

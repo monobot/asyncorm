@@ -79,7 +79,7 @@ class OrmApp(object):
                     module = importlib.import_module(import_str)
                 except ImportError:
                     logger.exception("unable to import %s", import_str)
-            for k, app_config in inspect.getmembers(module):
+            for _, app_config in inspect.getmembers(module):
                 try:
                     if (
                         issubclass(app_config, AppConfig)
