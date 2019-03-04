@@ -34,7 +34,6 @@ class FieldTests(AioTestCase):
         self.assertEqual(exc.exception.args[0], "Wrong value for max_length")
 
     def test_now_correcly_valuates(self):
-        # correctly valuates if max_length correctly defined
         self.assertTrue(models.CharField(max_length=45))
 
     def test_db_column_validation_wrong_start(self):
@@ -440,7 +439,7 @@ class FieldTests(AioTestCase):
         try:
             models.GenericIPAddressField(protocol="ipv6", unpack_protocol="same")
         except AsyncOrmFieldError:
-                self.fail("Unexpectedly not correctly matced")
+            self.fail("Unexpectedly not correctly matched")
 
     async def test_model_with_genericipaddressfield_ok(self):
         try:
