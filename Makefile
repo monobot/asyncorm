@@ -63,7 +63,7 @@ coverage: coverage run --source asyncorm setup.py test
 
 .PHONY: docs
 docs: ## generate Sphinx HTML documentation, including API docs
-docs:
+docs: clean
 	rm -f docs/asyncorm.rst
 	rm -f docs/modules.rst
 	sphinx-apidoc -o docs/ asyncorm
