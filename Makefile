@@ -57,7 +57,7 @@ test: ## run tests quickly with the default Python
 	pipenv run python -m tests
 
 test-all: ## run tests on every Python version with tox
-	tox
+	pipenv run tox
 
 coverage: ## check code coverage quickly with the default Python
 coverage: coverage run --source asyncorm setup.py test
