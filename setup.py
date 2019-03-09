@@ -20,7 +20,7 @@ def requirement_parser(file_name):
                 elif line:
                     file_requirement += [line]
     except FileNotFoundError:
-        file_requirement = ''
+        file_requirement = ""
     return file_requirement
 
 
