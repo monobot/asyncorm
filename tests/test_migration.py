@@ -1,5 +1,5 @@
 from tests.app_1.models import Book
-from tests.test_helper import AioTestCase
+from tests.helper_tests import AioTestCase
 
 
 class MigrationTests(AioTestCase):

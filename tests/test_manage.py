@@ -10,7 +10,7 @@ from asyncorm.exceptions import (
 
 from tests.app_1.models import Author, Book
 from tests.app_2.models import Appointment, Developer, Client
-from tests.test_helper import AioTestCase
+from tests.helper_tests import AioTestCase
 
 
 class ManageTestMethods(AioTestCase):

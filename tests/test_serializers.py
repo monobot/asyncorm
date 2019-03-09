@@ -4,7 +4,7 @@ from asyncorm.serializers import ModelSerializer, SerializerMethod
 
 from tests.app_1.serializer import BookSerializer
 from tests.app_1.models import Book, Author
-from tests.test_helper import AioTestCase
+from tests.helper_tests import AioTestCase
 
 # You can get the book by model_name
 Book2 = get_model("Book")

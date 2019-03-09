@@ -62,11 +62,11 @@ for x in range(300):
 
 
 if __name__ == "__main__":
-    from tests.models_tests import ModelTests
-    from tests.serializers_tests import SerializerTests
-    from tests.manage_tests import ManageTestMethods
-    from tests.module_tests import ModuleTests
-    from tests.field_tests import FieldTests
-    from tests.migration_tests import MigrationTests
+    from tests.test_fields import FieldTests
+    from tests.test_manage import ManageTestMethods
+    from tests.test_migration import MigrationTests
+    from tests.test_models import ModelTests
+    from tests.test_module import ModuleTests
+    from tests.test_serializers import SerializerTests
 
     unittest.main()

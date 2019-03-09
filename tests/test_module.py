@@ -4,7 +4,7 @@ from asyncorm.exceptions import (
     AsyncOrmModelError,
     AsyncOrmModelNotDefined,
 )
-from tests.test_helper import AioTestCase
+from tests.helper_tests import AioTestCase
 
 Book = get_model("Book")
 

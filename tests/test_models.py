@@ -3,7 +3,7 @@ from asyncorm.exceptions import AsyncOrmFieldError, AsyncOrmModelError
 
 from tests.app_1.models import Book, Author
 from tests.app_2.models import Developer, Client, Organization
-from tests.test_helper import AioTestCase
+from tests.helper_tests import AioTestCase
 
 # You can get the book by model_name
 Book2 = get_model("Book")
