@@ -1,14 +1,14 @@
 from asyncorm.application.configure import get_model
 from asyncorm.exceptions import AsyncOrmFieldError, AsyncOrmModelError
 
-from tests.testapp.models import Book, Author
-from tests.testapp2.models import Developer, Client, Organization
+from tests.app_1.models import Book, Author
+from tests.app_2.models import Developer, Client, Organization
 from tests.test_helper import AioTestCase
 
 # You can get the book by model_name
 Book2 = get_model("Book")
 # And get the author by module.model_name
-Author2 = get_model("testapp.Author")
+Author2 = get_model("app_1.Author")
 
 
 class ModelTests(AioTestCase):

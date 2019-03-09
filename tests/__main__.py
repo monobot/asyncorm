@@ -2,7 +2,7 @@ import asyncio
 import unittest
 import os
 
-from tests.testapp.models import Author, Book
+from tests.app_1.models import Author, Book
 
 from asyncorm.application import configure_orm
 

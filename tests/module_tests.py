@@ -29,13 +29,13 @@ class ModuleTests(AioTestCase):
 
     def test_ormconfigure_no_db_config(self):
         with self.assertRaises(AsyncOrmAppError) as exc:
-            configure_orm({"apps": ["tests.testapp", "tests.testapp2"]})
+            configure_orm({"apps": ["tests.app_1", "tests.app_2"]})
 
         self.assertIn("Imposible to configure without database", exc.exception.args[0])
 
     def test_get_model_not_correct_format(self):
         orm = configure_orm(
-            {"db_config": db_config, "apps": ["tests.testapp", "tests.testapp2"]}
+            {"db_config": db_config, "apps": ["tests.app_1", "tests.app_2"]}
         )
 
         with self.assertRaises(AsyncOrmModelError) as exc:
@@ -62,7 +62,7 @@ class ModuleTests(AioTestCase):
 
     def test_the_data_is_persistent_orm_model(self):
         configure_orm(
-            {"db_config": db_config, "apps": ["tests.testapp.appo", "tests.testapp2"]}
+            {"db_config": db_config, "apps": ["tests.app_1.appo", "tests.app_2"]}
         )
         # every model declared has the same db_manager
         self.assertTrue(orm_app.db_manager is Book.objects.db_manager)

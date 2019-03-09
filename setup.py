@@ -10,14 +10,17 @@ with open("HISTORY.rst") as history_file:
 
 
 def requirement_parser(file_name):
-    with open(file_name, "r") as req_file:
-        file_requirement = []
-        for line in req_file.readlines():
-            line = line.rstrip("\n")
-            if line.startswith("-r"):
-                file_requirement += requirement_parser(line.split(" ")[1])
-            elif line:
-                file_requirement += [line]
+    try:
+        with open(file_name, "r") as req_file:
+            file_requirement = []
+            for line in req_file.readlines():
+                line = line.rstrip("\n")
+                if line.startswith("-r"):
+                    file_requirement += requirement_parser(line.split(" ")[1])
+                elif line:
+                    file_requirement += [line]
+    except FileNotFoundError:
+        file_requirement = ''
     return file_requirement
 
 

@@ -8,8 +8,8 @@ from asyncorm.exceptions import (
     AsyncOrmMultipleObjectsReturned,
 )
 
-from tests.testapp.models import Author, Book
-from tests.testapp2.models import Appointment, Developer, Client
+from tests.app_1.models import Author, Book
+from tests.app_2.models import Appointment, Developer, Client
 from tests.test_helper import AioTestCase
 
 

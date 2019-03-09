@@ -5,8 +5,8 @@ from netaddr import EUI, IPNetwork, mac_eui48
 
 from asyncorm.exceptions import AsyncormException, AsyncOrmFieldError
 from asyncorm import models
-from tests.testapp.models import Book, Publisher, Reader, Author
-from tests.testapp2.models import Organization, Client, Appointment, Skill, Developer
+from tests.app_1.models import Book, Publisher, Reader, Author
+from tests.app_2.models import Organization, Client, Appointment, Skill, Developer
 from tests.test_helper import AioTestCase
 
 
