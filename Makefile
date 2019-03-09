@@ -49,8 +49,12 @@ lint: ## check style with black code style
 lint: clean
 	black --check --diff .
 
+setup:
+	pip install pipenv
+	pipenv install --dev --three
+
 test: ## run tests quickly with the default Python
-	python -m tests
+	pipenv run python -m tests
 
 test-all: ## run tests on every Python version with tox
 	tox
