@@ -18,3 +18,7 @@ def event_loop(request):
 def orm_setup(request, event_loop):
     config_file = os.path.join(os.getcwd(), "tests", "asyncorm.ini")
     orm_app = configure_orm(config_file, loop=event_loop)
+
+
+def _assert(expression):
+    assert expression
