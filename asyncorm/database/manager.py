@@ -1,6 +1,7 @@
 import asyncpg
 
-from asyncorm.database.db_cursor import Cursor
+from asyncorm.database.cursor import Cursor
+from asyncorm.database.query_list import QueryStack
 from asyncorm.log import logger
 
 
@@ -191,6 +192,7 @@ class PostgresManager(GeneralManager):
         :return: asyncpg Record object
         :rtype: asyncpg.Record
         """
+        QueryStack.append(query)
         await self._get_pool()
 
         conn = await self._get_connection()

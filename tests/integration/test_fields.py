@@ -355,15 +355,15 @@ async def test_check_all_indices_were_created(orm_setup, event_loop):
 
 @pytest.mark.asyncio
 async def test_model_with_macadressfield_field_ok(orm_setup, event_loop):
-    mac = "00-1B-77-49-54-FD"
-    pub = Publisher(name="Linda", json={"last_name": "Olson"}, mac=mac)
-    await pub.save()
+    mac = "00-1B-77-49-54-F6"
+    # remove existing
+    previous = await Publisher.objects.get(mac=mac)
+    await previous.delete()
 
-    # different dialects
+    pub = await Publisher(name="Linda", json={"last_name": "Olson"}, mac=mac).save()
+
     assert pub.mac != mac
-    # equal when converted on same dialect
     assert str(EUI(pub.mac, dialect=mac_eui48)) == mac
-    # equal before representation
     assert EUI(pub.mac) == EUI(mac)
 
 
@@ -555,7 +555,7 @@ def test_genericipaddressfield_ok_ipv6(orm_setup, event_loop):
 
 
 def test_genericipaddressfield_ipv4_error(orm_setup, event_loop):
-    value = "::ffff:1.2.3.0/128"
+    value = "::ffff:1.2.3.0/64"
     protocol = "ipv4"
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.GenericIPAddressField(protocol=protocol).validate(value)
