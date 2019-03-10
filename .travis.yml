@@ -26,4 +26,4 @@ activate: pipenv shell -c
 # command to run tests
 script:
   - make test
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then black --check --diff . ; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then make lint ; fi
