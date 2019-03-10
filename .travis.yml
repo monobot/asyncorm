@@ -21,8 +21,7 @@ services:
 # command to install dependencies
 install: make setup
 
-activate:
-	pipenv shell -c
+activate: pipenv shell -c
 
 # command to run tests
 script:
