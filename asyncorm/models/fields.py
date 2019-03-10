@@ -5,16 +5,7 @@ from decimal import Decimal
 from json.decoder import JSONDecodeError
 from uuid import UUID
 
-from netaddr import (
-    EUI,
-    IPNetwork,
-    mac_bare,
-    mac_cisco,
-    mac_eui48,
-    mac_pgsql,
-    mac_unix,
-    mac_unix_expanded,
-)
+from netaddr import EUI, IPNetwork, mac_bare, mac_cisco, mac_eui48, mac_pgsql, mac_unix, mac_unix_expanded
 from netaddr.core import AddrFormatError
 
 from asyncorm.exceptions import AsyncOrmFieldError
@@ -28,16 +19,8 @@ class BooleanField(Field):
     creation_string = "boolean"
     args = ("choices", "db_column", "db_index", "default", "null", "unique")
 
-    def __init__(
-        self, db_column="", db_index=False, default=None, null=False, unique=False
-    ):
-        super().__init__(
-            db_column=db_column,
-            db_index=db_index,
-            default=default,
-            null=null,
-            unique=unique,
-        )
+    def __init__(self, db_column="", db_index=False, default=None, null=False, unique=False):
+        super().__init__(db_column=db_column, db_index=db_index, default=default, null=null, unique=unique)
 
     def sanitize_data(self, value):
         """method used to convert to SQL data"""
@@ -50,25 +33,10 @@ class CharField(Field):
     internal_type = str
     required_kwargs = ["max_length"]
     creation_string = "varchar({max_length})"
-    args = (
-        "choices",
-        "db_column",
-        "db_index",
-        "default",
-        "max_length",
-        "null",
-        "unique",
-    )
+    args = ("choices", "db_column", "db_index", "default", "max_length", "null", "unique")
 
     def __init__(
-        self,
-        choices=None,
-        db_column="",
-        db_index=False,
-        default=None,
-        max_length=0,
-        null=False,
-        unique=False,
+        self, choices=None, db_column="", db_index=False, default=None, max_length=0, null=False, unique=False
     ):
         super().__init__(
             choices=choices,
@@ -90,9 +58,7 @@ class CharField(Field):
         value = super().sanitize_data(value)
         if len(value) > self.max_length:
             raise AsyncOrmFieldError(
-                'The string entered is bigger than the "max_length" defined ({})'.format(
-                    self.max_length
-                )
+                'The string entered is bigger than the "max_length" defined ({})'.format(self.max_length)
             )
         return str(value)
 
@@ -111,22 +77,9 @@ class TextField(Field):
     creation_string = "text"
     args = ("choices", "db_column", "db_index", "default", "null", "unique")
 
-    def __init__(
-        self,
-        choices=None,
-        db_column="",
-        db_index=False,
-        default=None,
-        null=False,
-        unique=False,
-    ):
+    def __init__(self, choices=None, db_column="", db_index=False, default=None, null=False, unique=False):
         super().__init__(
-            choices=choices,
-            db_column=db_column,
-            db_index=db_index,
-            default=default,
-            null=null,
-            unique=unique,
+            choices=choices, db_column=db_column, db_index=db_index, default=default, null=null, unique=unique
         )
 
 
@@ -140,22 +93,9 @@ class IntegerField(NumberField):
     creation_string = "integer"
     args = ("choices", "db_column", "db_index", "default", "null", "unique")
 
-    def __init__(
-        self,
-        choices=None,
-        db_column="",
-        db_index=False,
-        default=None,
-        null=False,
-        unique=False,
-    ):
+    def __init__(self, choices=None, db_column="", db_index=False, default=None, null=False, unique=False):
         super().__init__(
-            choices=choices,
-            db_column=db_column,
-            db_index=db_index,
-            default=default,
-            null=null,
-            unique=unique,
+            choices=choices, db_column=db_column, db_index=db_index, default=default, null=null, unique=unique
         )
 
 
@@ -168,38 +108,16 @@ class FloatField(NumberField):
     creation_string = "double precision"
     args = ("choices", "db_column", "db_index", "default", "null", "unique")
 
-    def __init__(
-        self,
-        choices=None,
-        db_column="",
-        db_index=False,
-        default=None,
-        null=False,
-        unique=False,
-    ):
+    def __init__(self, choices=None, db_column="", db_index=False, default=None, null=False, unique=False):
         super().__init__(
-            choices=choices,
-            db_column=db_column,
-            db_index=db_index,
-            default=default,
-            null=null,
-            unique=unique,
+            choices=choices, db_column=db_column, db_index=db_index, default=default, null=null, unique=unique
         )
 
 
 class DecimalField(NumberField):
     internal_type = (Decimal, float, int)
     creation_string = "decimal({max_digits},{decimal_places})"
-    args = (
-        "choices",
-        "db_column",
-        "db_index",
-        "decimal_places",
-        "default",
-        "null",
-        "unique",
-        "max_digits",
-    )
+    args = ("choices", "db_column", "db_index", "decimal_places", "default", "null", "unique", "max_digits")
 
     def __init__(
         self,
@@ -237,16 +155,7 @@ class DateTimeField(Field):
     internal_type = datetime
     creation_string = "timestamp"
     strftime = "%Y-%m-%d  %H:%s"
-    args = (
-        "auto_now",
-        "choices",
-        "db_column",
-        "db_index",
-        "default",
-        "null",
-        "strftime",
-        "unique",
-    )
+    args = ("auto_now", "choices", "db_column", "db_index", "default", "null", "strftime", "unique")
 
     def serialize_data(self, value):
         return value
@@ -277,16 +186,7 @@ class DateTimeField(Field):
 class DateField(DateTimeField):
     internal_type = date
     creation_string = "date"
-    args = (
-        "auto_now",
-        "choices",
-        "db_column",
-        "db_index",
-        "default",
-        "null",
-        "strftime",
-        "unique",
-    )
+    args = ("auto_now", "choices", "db_column", "db_index", "default", "null", "strftime", "unique")
     strftime = "%Y-%m-%d"
 
 
@@ -303,22 +203,9 @@ class ForeignKey(Field):
     creation_string = "integer references {foreign_key}"
     args = ("db_column", "db_index", "default", "foreign_key", "null", "unique")
 
-    def __init__(
-        self,
-        db_column="",
-        db_index=False,
-        default=None,
-        foreign_key="",
-        null=False,
-        unique=False,
-    ):
+    def __init__(self, db_column="", db_index=False, default=None, foreign_key="", null=False, unique=False):
         super().__init__(
-            db_column=db_column,
-            db_index=db_index,
-            default=default,
-            foreign_key=foreign_key,
-            null=null,
-            unique=unique,
+            db_column=db_column, db_index=db_index, default=default, foreign_key=foreign_key, null=null, unique=unique
         )
 
 
@@ -331,15 +218,9 @@ class ManyToManyField(Field):
     """
     args = ("db_column", "db_index", "default", "foreign_key", "unique")
 
-    def __init__(
-        self, db_column="", db_index=False, default=None, foreign_key=None, unique=False
-    ):
+    def __init__(self, db_column="", db_index=False, default=None, foreign_key=None, unique=False):
         super().__init__(
-            db_column=db_column,
-            db_index=db_index,
-            default=default,
-            foreign_key=foreign_key,
-            unique=unique,
+            db_column=db_column, db_index=db_index, default=default, foreign_key=foreign_key, unique=unique
         )
 
     def creation_query(self):
@@ -359,25 +240,10 @@ class JsonField(Field):
     required_kwargs = ["max_length"]
     creation_string = "JSON"
     # creation_string = 'varchar({max_length})'
-    args = (
-        "choices",
-        "db_column",
-        "db_index",
-        "default",
-        "max_length",
-        "null",
-        "unique",
-    )
+    args = ("choices", "db_column", "db_index", "default", "max_length", "null", "unique")
 
     def __init__(
-        self,
-        choices=None,
-        db_column="",
-        db_index=False,
-        default=None,
-        max_length=0,
-        null=False,
-        unique=False,
+        self, choices=None, db_column="", db_index=False, default=None, max_length=0, null=False, unique=False
     ):
         super().__init__(
             choices=choices,
@@ -401,16 +267,12 @@ class JsonField(Field):
                 try:
                     value = json.loads(value)
                 except JSONDecodeError:
-                    raise AsyncOrmFieldError(
-                        "The data entered can not be converted to json"
-                    )
+                    raise AsyncOrmFieldError("The data entered can not be converted to json")
             value = json.dumps(value)
 
         if len(value) > self.max_length:
             raise AsyncOrmFieldError(
-                'The string entered is bigger than the "max_length" defined ({})'.format(
-                    self.max_length
-                )
+                'The string entered is bigger than the "max_length" defined ({})'.format(self.max_length)
             )
 
         return value
@@ -420,21 +282,14 @@ class Uuid4Field(Field):
     internal_type = UUID
     args = ("db_column", "db_index", "null", "unique", "uuid_type")
 
-    def __init__(
-        self, db_column="", db_index=False, null=False, unique=True, uuid_type="v4"
-    ):
+    def __init__(self, db_column="", db_index=False, null=False, unique=True, uuid_type="v4"):
         self.field_requirement = 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
 
         if uuid_type not in ["v1", "v4"]:
             raise AsyncOrmFieldError("{} is not a recognized type".format(uuid_type))
 
         super().__init__(
-            db_column=db_column,
-            db_index=db_index,
-            default=None,
-            null=null,
-            unique=unique,
-            uuid_type=uuid_type,
+            db_column=db_column, db_index=db_index, default=None, null=null, unique=unique, uuid_type=uuid_type
         )
 
     @property
@@ -446,11 +301,7 @@ class Uuid4Field(Field):
         exp = r"^[a-zA-Z0-9\-\b]{36}$"
         if re.match(exp, value):
             return value
-        raise AsyncOrmFieldError(
-            "The expression doesn't validate as a correct {}".format(
-                self.__class__.__name__
-            )
-        )
+        raise AsyncOrmFieldError("The expression doesn't validate as a correct {}".format(self.__class__.__name__))
 
 
 class ArrayField(Field):
@@ -459,22 +310,8 @@ class ArrayField(Field):
     args = ("db_column", "db_index", "default", "null", "unique", "value_type")
     value_types = ("text", "varchar", "integer")
 
-    def __init__(
-        self,
-        db_column="",
-        db_index=False,
-        default=None,
-        null=True,
-        unique=False,
-        value_type="text",
-    ):
-        super().__init__(
-            db_column=db_column,
-            db_index=db_index,
-            default=default,
-            null=null,
-            unique=unique,
-        )
+    def __init__(self, db_column="", db_index=False, default=None, null=True, unique=False, value_type="text"):
+        super().__init__(db_column=db_column, db_index=db_index, default=default, null=null, unique=unique)
         self.value_type = value_type
 
     def validate(self, value):
@@ -485,9 +322,7 @@ class ArrayField(Field):
                 raise AsyncOrmFieldError("Array elements are not of the same type")
             if items_type == list:
                 if not all(len(item) == len(value[0]) for item in value):
-                    raise AsyncOrmFieldError(
-                        "Multi-dimensional arrays must have items of the same size"
-                    )
+                    raise AsyncOrmFieldError("Multi-dimensional arrays must have items of the same size")
         return value
 
     @staticmethod
@@ -504,22 +339,12 @@ class GenericIPAddressField(Field):
     args = ("db_column", "db_index", "null", "protocol", "unique", "unpack_protocol")
 
     def __init__(
-        self,
-        db_column="",
-        db_index=False,
-        null=False,
-        protocol="both",
-        unique=False,
-        unpack_protocol="same",
+        self, db_column="", db_index=False, null=False, protocol="both", unique=False, unpack_protocol="same"
     ):
         if protocol.lower() not in ("both", "ipv6", "ipv4"):
-            raise AsyncOrmFieldError(
-                '"{}" is not a recognized protocol'.format(protocol)
-            )
+            raise AsyncOrmFieldError('"{}" is not a recognized protocol'.format(protocol))
         if unpack_protocol.lower() not in ("same", "ipv6", "ipv4"):
-            raise AsyncOrmFieldError(
-                '"{}" is not a recognized unpack_protocol'.format(unpack_protocol)
-            )
+            raise AsyncOrmFieldError('"{}" is not a recognized unpack_protocol'.format(unpack_protocol))
         if protocol.lower() != "both" and unpack_protocol != "same":
             raise AsyncOrmFieldError(
                 "if the protocol is restricted the output will always be in the same protocol version, "
@@ -542,12 +367,8 @@ class GenericIPAddressField(Field):
         except AddrFormatError:
             raise AsyncOrmFieldError("Not a correct IP address")
 
-        if self.protocol.lower() != "both" and IPNetwork(value).version != int(
-            self.protocol[-1:]
-        ):
-            raise AsyncOrmFieldError(
-                "{} is not a correct {} IP address".format(value, self.protocol)
-            )
+        if self.protocol.lower() != "both" and IPNetwork(value).version != int(self.protocol[-1:]):
+            raise AsyncOrmFieldError("{} is not a correct {} IP address".format(value, self.protocol))
 
     def recompose(self, value):
         if value is not None:
@@ -576,27 +397,12 @@ class MACAdressField(Field):
         "unix_expanded": mac_unix_expanded,
     }
 
-    def __init__(
-        self,
-        db_column="",
-        db_index=False,
-        default=None,
-        dialect="unix",
-        null=False,
-        unique=True,
-    ):
+    def __init__(self, db_column="", db_index=False, default=None, dialect="unix", null=False, unique=True):
         if dialect not in (self.mac_dialects.keys()):
-            raise AsyncOrmFieldError(
-                '"{}" is not a correct mac dialect'.format(dialect)
-            )
+            raise AsyncOrmFieldError('"{}" is not a correct mac dialect'.format(dialect))
 
         super().__init__(
-            db_column=db_column,
-            db_index=db_index,
-            default=default,
-            dialect=dialect,
-            null=null,
-            unique=unique,
+            db_column=db_column, db_index=db_index, default=default, dialect=dialect, null=null, unique=unique
         )
 
     def validate(self, value):

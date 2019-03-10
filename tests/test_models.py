@@ -27,19 +27,14 @@ class ModelTests(AioTestCase):
         self.assertEqual(len(fields), 7)
         self.assertEqual(
             sorted(list(fields.keys())),
-            sorted(
-                ["id", "content", "name", "author", "date_created", "price", "quantity"]
-            ),
+            sorted(["id", "content", "name", "author", "date_created", "price", "quantity"]),
         )
 
     def test_get_fields_with_changed_db_column(self):
         fields = Author.get_fields()
 
         self.assertEqual(len(fields), 5)
-        self.assertEqual(
-            sorted(list(fields.keys())),
-            sorted(["na", "name", "age", "publisher", "email"]),
-        )
+        self.assertEqual(sorted(list(fields.keys())), sorted(["na", "name", "age", "publisher", "email"]))
 
     def test_instantiated__init__(self):
         # classmethods tests
@@ -72,9 +67,7 @@ class ModelTests(AioTestCase):
             book = Book()
             book.validate_kwargs(kwargs)
 
-        self.assertEqual(
-            exc.exception.args[0], "Models can not be generated with forced id"
-        )
+        self.assertEqual(exc.exception.args[0], "Models can not be generated with forced id")
 
     def test_validate_kwargs_with_wrong_fieldname(self):
         kwargs = {"name": "name", "volume": 23}
@@ -84,9 +77,7 @@ class ModelTests(AioTestCase):
             book.validate_kwargs(kwargs)
 
         # its a list because we validate all kwargs
-        self.assertEqual(
-            exc.exception.args[0], ['"volume" is not an attribute for Book']
-        )
+        self.assertEqual(exc.exception.args[0], ['"volume" is not an attribute for Book'])
 
     def test_validate_kwargs_no_error(self):
         kwargs = {"name": "name"}

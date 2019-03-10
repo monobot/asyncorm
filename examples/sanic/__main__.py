@@ -23,24 +23,14 @@ def orm_configure(sanic, loop):
 @app.exception(NotFound)
 def ignore_404s(request, exception):
     return json(
-        {
-            "error": exception.args[0],
-            "method": request.method,
-            "results": None,
-            "status": exception.status_code,
-        }
+        {"error": exception.args[0], "method": request.method, "results": None, "status": exception.status_code}
     )
 
 
 @app.exception(URLBuildError)
 def ignore_urlbuilderrors(request, exception):
     return json(
-        {
-            "error": exception.args[0],
-            "method": request.method,
-            "results": None,
-            "status": exception.status_code,
-        }
+        {"error": exception.args[0], "method": request.method, "results": None, "status": exception.status_code}
     )
 
 
@@ -61,14 +51,7 @@ class BooksView(HTTPMethodView):
         async for book in q_books:
             books.append(BookSerializer.serialize(book))
 
-        return json(
-            {
-                "method": request.method,
-                "status": 200,
-                "results": books or None,
-                "count": len(books),
-            }
-        )
+        return json({"method": request.method, "status": 200, "results": books or None, "count": len(books)})
 
     async def post(self, request):
         # populate the book with the data in the request
@@ -77,13 +60,7 @@ class BooksView(HTTPMethodView):
         # and await on save
         await book.save()
 
-        return json(
-            {
-                "method": request.method,
-                "status": 201,
-                "results": BookSerializer.serialize(book),
-            }
-        )
+        return json({"method": request.method, "status": 201, "results": BookSerializer.serialize(book)})
 
 
 class BookView(HTTPMethodView):
@@ -99,13 +76,7 @@ class BookView(HTTPMethodView):
         # await on database consults
         book = await self.get_object(request, book_id)
 
-        return json(
-            {
-                "method": request.method,
-                "status": 200,
-                "results": BookSerializer.serialize(book),
-            }
-        )
+        return json({"method": request.method, "status": 200, "results": BookSerializer.serialize(book)})
 
     async def put(self, request, book_id):
         # await on database consults
@@ -113,13 +84,7 @@ class BookView(HTTPMethodView):
         # await on save
         await book.save(**request.json)
 
-        return json(
-            {
-                "method": request.method,
-                "status": 200,
-                "results": BookSerializer.serialize(book),
-            }
-        )
+        return json({"method": request.method, "status": 200, "results": BookSerializer.serialize(book)})
 
     async def patch(self, request, book_id):
         # await on database consults
@@ -127,13 +92,7 @@ class BookView(HTTPMethodView):
         # await on save
         await book.save(**request.json)
 
-        return json(
-            {
-                "method": request.method,
-                "status": 200,
-                "results": BookSerializer.serialize(book),
-            }
-        )
+        return json({"method": request.method, "status": 200, "results": BookSerializer.serialize(book)})
 
     async def delete(self, request, book_id):
         # await on database consults

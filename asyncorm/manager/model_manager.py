@@ -47,12 +47,7 @@ class ModelManager(Queryset):
                 field_has_default = hasattr(instanced_model.fields[field], "default")
                 default_not_none = instanced_model.fields[field].default is not None
                 not_auto_field = not isinstance(f_class, AutoField)
-                if (
-                    data is None
-                    and field_has_default
-                    and default_not_none
-                    and not_auto_field
-                ):
+                if data is None and field_has_default and default_not_none and not_auto_field:
                     data = instanced_model.fields[field].default
 
                     data = f_class.sanitize_data(data)
@@ -62,22 +57,12 @@ class ModelManager(Queryset):
 
         db_request = [
             {
-                "action": getattr(instanced_model, instanced_model.orm_pk)
-                and "_db__update"
-                or "_db__insert",
-                "id_data": "{}={}".format(
-                    instanced_model.db_pk,
-                    getattr(instanced_model, instanced_model.orm_pk),
-                ),
+                "action": getattr(instanced_model, instanced_model.orm_pk) and "_db__update" or "_db__insert",
+                "id_data": "{}={}".format(instanced_model.db_pk, getattr(instanced_model, instanced_model.orm_pk)),
                 "field_names": ", ".join(fields),
                 "field_values": field_data,
-                "field_schema": ", ".join(
-                    ["${}".format(value + 1) for value in range(len(field_data))]
-                ),
-                "condition": "{}={}".format(
-                    instanced_model.db_pk,
-                    getattr(instanced_model, instanced_model.orm_pk),
-                ),
+                "field_schema": ", ".join(["${}".format(value + 1) for value in range(len(field_data))]),
+                "condition": "{}={}".format(instanced_model.db_pk, getattr(instanced_model, instanced_model.orm_pk)),
             }
         ]
         try:
@@ -108,12 +93,7 @@ class ModelManager(Queryset):
                     "action": "_db__insert",
                     "field_names": ", ".join([model_column, foreign_column]),
                     "field_values": [model_id, data],
-                    "field_schema": ", ".join(
-                        [
-                            "${}".format(value + 1)
-                            for value in range(len([model_id, data]))
-                        ]
-                    ),
+                    "field_schema": ", ".join(["${}".format(value + 1) for value in range(len([model_id, data]))]),
                 }
             ]
 
@@ -123,10 +103,7 @@ class ModelManager(Queryset):
                         {
                             "field_values": [model_id, d],
                             "field_schema": ", ".join(
-                                [
-                                    "${}".format(value + 1)
-                                    for value in range(len([model_id, d]))
-                                ]
+                                ["${}".format(value + 1) for value in range(len([model_id, d]))]
                             ),
                         }
                     )
@@ -138,10 +115,7 @@ class ModelManager(Queryset):
         db_request = [
             {
                 "action": "_db__delete",
-                "id_data": "{}={}".format(
-                    instanced_model.db_pk,
-                    getattr(instanced_model, instanced_model.db_pk),
-                ),
+                "id_data": "{}={}".format(instanced_model.db_pk, getattr(instanced_model, instanced_model.db_pk)),
             }
         ]
         return await self.db_request(db_request)

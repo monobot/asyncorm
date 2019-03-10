@@ -40,15 +40,11 @@ class GeneralManager(object):
     @property
     def _db__select_related(self):
         # LEFT JOIN inventory ON inventory.film_id = film.film_id;
-        return (
-            "LEFT JOIN {right_table} ON {foreign_field} = {right_table}.{model_db_pk} "
-        )
+        return "LEFT JOIN {right_table} ON {foreign_field} = {right_table}.{model_db_pk} "
 
     @property
     def _db__select(self):
-        return self._db__select_all.replace(
-            "{ordering}", "WHERE ( {condition} ) {ordering}"
-        )
+        return self._db__select_all.replace("{ordering}", "WHERE ( {condition} ) {ordering}")
 
     @property
     def _db__exists(self):
@@ -133,8 +129,7 @@ class GeneralManager(object):
                         select = select.replace(
                             "*",
                             "{left_table}.*, {f_formatter}".format(
-                                left_table=model_join["left_table"],
-                                f_formatter=model_join["fields_formatter"],
+                                left_table=model_join["left_table"], f_formatter=model_join["fields_formatter"]
                             ),
                         )
                         res_dict["select"] = select
@@ -151,9 +146,7 @@ class GeneralManager(object):
         query = getattr(self, res_dict["action"]).format(**res_dict)
         query = self._query_clean(query)
 
-        logger.debug(
-            "QUERY: {}, VALUES: {}".format(query, res_dict.get("field_values"))
-        )
+        logger.debug("QUERY: {}, VALUES: {}".format(query, res_dict.get("field_values")))
         return query, res_dict.get("field_values")
 
 

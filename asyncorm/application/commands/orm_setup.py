@@ -41,9 +41,7 @@ if __name__ == "__main__":
         "command",
         type=str,
         choices=("setup",),
-        help=(
-            "sets up the orm_migrator.py command and also an empty asyncorm.ini in the same directory"
-        ),
+        help=("sets up the orm_migrator.py command and also an empty asyncorm.ini in the same directory"),
     )
 
     args = parser.parse_args()

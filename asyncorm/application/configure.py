@@ -7,12 +7,7 @@ import os
 
 from asyncorm.apps.app import App
 from asyncorm.apps.app_config import AppConfig
-from asyncorm.exceptions import (
-    AsyncOrmAppError,
-    AsyncOrmConfigError,
-    AsyncOrmModelError,
-    AsyncOrmModelNotDefined,
-)
+from asyncorm.exceptions import AsyncOrmAppError, AsyncOrmConfigError, AsyncOrmModelError, AsyncOrmModelNotDefined
 
 logger = logging.getLogger("asyncorm")
 
@@ -21,12 +16,7 @@ DEFAULT_CONFIG_FILE = "asyncorm.ini"
 
 
 class OrmApp(object):
-    _conf = {
-        "db_config": None,
-        "loop": asyncio.get_event_loop(),
-        "manager": "PostgresManager",
-        "apps": None,
-    }
+    _conf = {"db_config": None, "loop": asyncio.get_event_loop(), "manager": "PostgresManager", "apps": None}
 
     def configure(self, config):
         """
@@ -44,9 +34,7 @@ class OrmApp(object):
 
         db_config = config.get("db_config", None)
         if not db_config:
-            raise AsyncOrmAppError(
-                "Imposible to configure without database configuration!"
-            )
+            raise AsyncOrmAppError("Imposible to configure without database configuration!")
 
         db_config["loop"] = self.loop = self._conf.get("loop")
 
@@ -81,10 +69,7 @@ class OrmApp(object):
                     logger.exception("unable to import %s", import_str)
             for _, app_config in inspect.getmembers(module):
                 try:
-                    if (
-                        issubclass(app_config, AppConfig)
-                        and app_config is not AppConfig
-                    ):
+                    if issubclass(app_config, AppConfig) and app_config is not AppConfig:
                         # the instance directory is the import_str without the app.py file_name
                         dir_name = ".".join(import_str.split(".")[:-1])
                         abs_path = os.sep.join(module.__file__.split(os.sep)[:-1])
@@ -117,9 +102,7 @@ class OrmApp(object):
             elif len(model_split) == 1:
                 return self.models[model_name]
             else:
-                raise AsyncOrmModelError(
-                    'The string declared should be in format "module.Model" or "Model"'
-                )
+                raise AsyncOrmModelError('The string declared should be in format "module.Model" or "Model"')
         except KeyError:
             raise AsyncOrmModelNotDefined("The model does not exists")
 
@@ -171,9 +154,7 @@ class OrmApp(object):
             await model().objects.unique_together()
 
     def sync_db(self):
-        self.loop.run_until_complete(
-            asyncio.gather(self.loop.create_task(self.create_db()))
-        )
+        self.loop.run_until_complete(asyncio.gather(self.loop.create_task(self.create_db())))
 
 
 orm_app = OrmApp()
@@ -187,9 +168,7 @@ def parse_config(config_file):
     # check all sections exist
     for section in ["db_config", "orm"]:
         if section not in parsed_file.sections():
-            raise AsyncOrmConfigError(
-                "the file {} does not contain {} section!".format(config_file, section)
-            )
+            raise AsyncOrmConfigError("the file {} does not contain {} section!".format(config_file, section))
 
     return {
         "db_config": {

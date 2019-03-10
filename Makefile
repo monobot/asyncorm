@@ -47,7 +47,7 @@ clean: clean-build clean-pyc clean-test
 .PHONY: lint
 lint: ## check style with black code style
 lint: clean
-	pipenv run black --check --diff .
+	pipenv run black --diff -l 119 .
 
 setup:
 	pip install pipenv

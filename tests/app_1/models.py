@@ -17,9 +17,7 @@ class Publisher(models.Model):
     json = models.JsonField(max_length=50, null=True)
 
     mac = models.MACAdressField(null=True, dialect="unix")
-    inet = models.GenericIPAddressField(
-        null=True, protocol="both", unpack_protocol="ipv4"
-    )
+    inet = models.GenericIPAddressField(null=True, protocol="both", unpack_protocol="ipv4")
 
 
 class Author(models.Model):

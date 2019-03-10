@@ -37,10 +37,7 @@ class SerializerTests(AioTestCase):
                 class Meta:
                     fields = ["name", "content"]
 
-        self.assertEqual(
-            "The serializer has to define the model it's serializing",
-            exc.exception.args[0],
-        )
+        self.assertEqual("The serializer has to define the model it's serializing", exc.exception.args[0])
 
     async def test_wrong_serializer_no_fields(self):
         # complains if we have a model serializer without fields to serialize defined
@@ -50,10 +47,7 @@ class SerializerTests(AioTestCase):
                 class Meta:
                     model = Book
 
-        self.assertEqual(
-            "The serializer has to define the fields's to serialize",
-            exc.exception.args[0],
-        )
+        self.assertEqual("The serializer has to define the fields's to serialize", exc.exception.args[0])
 
     async def test_wrong_serializer_not_defined_methodfield(self):
         # complains if we have a model serializer with incorrect field names
@@ -71,9 +65,7 @@ class SerializerTests(AioTestCase):
         with self.assertRaises(AsyncOrmSerializerError) as exc:
             BookSerializerNew().serialize(await Book.objects.get(id=3))
 
-        self.assertIn(
-            "its_a_3 is not a correct argument for model", exc.exception.args[0]
-        )
+        self.assertIn("its_a_3 is not a correct argument for model", exc.exception.args[0])
 
     async def test_serializer_correctly_defined_methodfield(self):
         class BookSerializerNew(ModelSerializer):

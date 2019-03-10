@@ -3,11 +3,7 @@ from copy import deepcopy
 
 from asyncpg.exceptions import InsufficientPrivilegeError
 
-from asyncorm.exceptions import (
-    AsyncOrmModelError,
-    AsyncOrmMultipleObjectsReturned,
-    AsyncOrmQuerysetError,
-)
+from asyncorm.exceptions import AsyncOrmModelError, AsyncOrmMultipleObjectsReturned, AsyncOrmQuerysetError
 from asyncorm.manager.constants import LOOKUP_OPERATOR
 from asyncorm.models.fields import CharField, ForeignKey, ManyToManyField, NumberField
 
@@ -80,9 +76,7 @@ class Queryset(object):
             for query in self.model.field_requirements:
                 await self.db_manager.request(query)
         except InsufficientPrivilegeError:
-            raise AsyncOrmModelError(
-                "Not enough privileges to add the needed requirement in the database"
-            )
+            raise AsyncOrmModelError("Not enough privileges to add the needed requirement in the database")
 
     def unique_together_builder(self):
         unique_together = self.get_unique_together()
@@ -124,20 +118,14 @@ class Queryset(object):
     @staticmethod
     def _add_m2m_columns_builder(field):
         return [
-            {
-                "table_name": field.table_name,
-                "action": "_db__create_table",
-                "field_queries": field.creation_query(),
-            }
+            {"table_name": field.table_name, "action": "_db__create_table", "field_queries": field.creation_query()}
         ]
 
     @staticmethod
     def _add_table_indices_builder(field):
         return [
             {
-                "index_name": "idx_{}_{}".format(
-                    field.table_name, field.orm_field_name
-                )[:30],
+                "index_name": "idx_{}_{}".format(field.table_name, field.orm_field_name)[:30],
                 "table_name": field.table_name,
                 "action": "_db__create_field_index",
                 "colum_name": field.orm_field_name,
@@ -202,11 +190,7 @@ class Queryset(object):
         if hasattr(self.model, field_name):
             field = getattr(self.model, field_name)
         else:
-            raise AsyncOrmQuerysetError(
-                "{} wrong field name for model {}".format(
-                    field_name, self.model.__name__
-                )
-            )
+            raise AsyncOrmQuerysetError("{} wrong field name for model {}".format(field_name, self.model.__name__))
         if not isinstance(field, NumberField):
             raise AsyncOrmQuerysetError("{} is not a numeric field".format(field_name))
 
@@ -241,14 +225,10 @@ class Queryset(object):
 
         if count > 1:
             raise AsyncOrmMultipleObjectsReturned(
-                'More than one "{}" were returned, there are {}!'.format(
-                    self.model.__name__, count
-                )
+                'More than one "{}" were returned, there are {}!'.format(self.model.__name__, count)
             )
         elif count == 0:
-            raise self.model.DoesNotExist(
-                "That {} does not exist".format(self.model.__name__)
-            )
+            raise self.model.DoesNotExist("That {} does not exist".format(self.model.__name__))
 
         return itm
 
@@ -272,15 +252,9 @@ class Queryset(object):
             if "__" in arg:
                 arg = arg.split("__")[0]
             if not hasattr(self.model, arg):
-                raise AsyncOrmQuerysetError(
-                    "{} is not a {} attribute.".format(arg, self.model.__name__)
-                )
+                raise AsyncOrmQuerysetError("{} is not a {} attribute.".format(arg, self.model.__name__))
             if not isinstance(getattr(self.model, arg), ForeignKey):
-                raise AsyncOrmQuerysetError(
-                    "{} is not a ForeignKey Field for {}.".format(
-                        arg, self.model.__name__
-                    )
-                )
+                raise AsyncOrmQuerysetError("{} is not a ForeignKey Field for {}.".format(arg, self.model.__name__))
             model = self.orm.get_model(getattr(self.model, arg).foreign_key)
 
             right_table = model.table_name or model.__name__.lower()
@@ -288,9 +262,7 @@ class Queryset(object):
 
             fields_formatter = ", ".join(
                 [
-                    "{right_table}.{field} AS {right_table}€$$€{field}".format(
-                        right_table=right_table, field=field
-                    )
+                    "{right_table}.{field} AS {right_table}€$$€{field}".format(right_table=right_table, field=field)
                     for field in model.get_db_columns()
                 ]
             )
@@ -341,42 +313,27 @@ class Queryset(object):
             }
             if operator == "({t_n}.{k}>={min} AND {t_n}.{k}<={max})":
                 if not isinstance(v, (tuple, list)):
-                    raise AsyncOrmQuerysetError(
-                        "{} should be list or a tuple".format(lookup)
-                    )
+                    raise AsyncOrmQuerysetError("{} should be list or a tuple".format(lookup))
                 if len(v) != 2:
-                    raise AsyncOrmQuerysetError(
-                        "Not a correct tuple/list definition, should be of size 2"
-                    )
-                operator_formater.update(
-                    {"min": field.sanitize_data(v[0]), "max": field.sanitize_data(v[1])}
-                )
+                    raise AsyncOrmQuerysetError("Not a correct tuple/list definition, should be of size 2")
+                operator_formater.update({"min": field.sanitize_data(v[0]), "max": field.sanitize_data(v[1])})
             elif lookup in string_lookups:
                 is_charfield = isinstance(field, CharField)
                 # is_othercharfield = issubclass(field, CharField)
                 # if not is_charfield or not is_othercharfield:
                 if not is_charfield:
-                    raise AsyncOrmQuerysetError(
-                        "{} not allowed in non CharField fields".format(lookup)
-                    )
+                    raise AsyncOrmQuerysetError("{} not allowed in non CharField fields".format(lookup))
                 operator_formater["v"] = field.sanitize_data(v)
             else:
                 if isinstance(v, (list, tuple)):
                     # check they are correct items and serialize
                     v = ",".join(
-                        [
-                            "'{}'".format(field.sanitize_data(si))
-                            if isinstance(si, str)
-                            else str(si)
-                            for si in v
-                        ]
+                        ["'{}'".format(field.sanitize_data(si)) if isinstance(si, str) else str(si) for si in v]
                     )
                 elif v is None:
                     v = field.sanitize_data(v)[1:-1]
                     operator = operator.replace("=", "IS")
-                elif isinstance(v, (datetime.datetime, datetime.date)) or isinstance(
-                    field, (CharField)
-                ):
+                elif isinstance(v, (datetime.datetime, datetime.date)) or isinstance(field, (CharField)):
                     v = "'{}'".format(v)
                 else:
                     v = field.sanitize_data(v)
@@ -403,9 +360,7 @@ class Queryset(object):
         # all the rest come as None
         for arg in args:
             if not hasattr(self.model, arg):
-                raise AsyncOrmQuerysetError(
-                    "{} is not a correct field for {}".format(arg, self.model.__name__)
-                )
+                raise AsyncOrmQuerysetError("{} is not a correct field for {}".format(arg, self.model.__name__))
 
         queryset = self.queryset()
         queryset.query = self.query_copy()
@@ -425,9 +380,7 @@ class Queryset(object):
                 final_args.append(arg)
 
             if not hasattr(self.model, arg):
-                raise AsyncOrmQuerysetError(
-                    "{} is not a correct field for {}".format(arg, self.model.__name__)
-                )
+                raise AsyncOrmQuerysetError("{} is not a correct field for {}".format(arg, self.model.__name__))
 
         queryset = self.queryset()
         queryset.query = self.query_copy()
@@ -441,9 +394,7 @@ class Queryset(object):
         db_request[0].update(
             {
                 "select": db_request[0].get("select", self.select),
-                "table_name": db_request[0].get(
-                    "table_name", self.model.cls_tablename()
-                ),
+                "table_name": db_request[0].get("table_name", self.model.cls_tablename()),
             }
         )
         query = self.db_manager._construct_query(db_request)
@@ -474,9 +425,7 @@ class Queryset(object):
         :rtype: Model
         """
         if not self._cursor:
-            self._cursor = await self.db_manager.get_cursor(
-                deepcopy(self.query), forward=key, stop=None
-            )
+            self._cursor = await self.db_manager.get_cursor(deepcopy(self.query), forward=key, stop=None)
 
         async for res in self._cursor:
             return self.modelconstructor(res)
@@ -509,9 +458,7 @@ class Queryset(object):
 
     async def __anext__(self):
         if not self._cursor:
-            self._cursor = await self.db_manager.get_cursor(
-                self.query, forward=self.forward, stop=self.stop
-            )
+            self._cursor = await self.db_manager.get_cursor(self.query, forward=self.forward, stop=self.stop)
 
         async for rec in self._cursor:
             item = self.modelconstructor(rec)

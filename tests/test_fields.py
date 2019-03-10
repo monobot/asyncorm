@@ -15,10 +15,7 @@ class FieldTests(AioTestCase):
         with self.assertRaises(NotImplementedError) as exc:
             models.Field()
 
-        self.assertEqual(
-            exc.exception.args[0],
-            'Missing "internal_type" attribute from class definition',
-        )
+        self.assertEqual(exc.exception.args[0], 'Missing "internal_type" attribute from class definition')
 
     def test_required_kwargs_not_sent(self):
 
@@ -64,10 +61,7 @@ class FieldTests(AioTestCase):
         with self.assertRaises(AsyncOrmFieldError) as exc:
             await reader.save()
 
-        self.assertEqual(
-            exc.exception.args[0],
-            'The string entered is bigger than the "max_length" defined (15)',
-        )
+        self.assertEqual(exc.exception.args[0], 'The string entered is bigger than the "max_length" defined (15)')
 
     async def test_choices_display(self):
         book = Book(content="hard cover")
@@ -121,24 +115,16 @@ class FieldTests(AioTestCase):
         with self.assertRaises(AsyncOrmFieldError) as exc:
             await publisher.save()
 
-        self.assertEqual(
-            exc.exception.args[0], "The data entered can not be converted to json"
-        )
+        self.assertEqual(exc.exception.args[0], "The data entered can not be converted to json")
 
     async def test_jsonfield_saving_over_max_length(self):
         # if not bigger than max_length
-        publisher = Publisher(
-            name="Oliver",
-            json='{"last_name": "Gregory", "67": 6, "totorota": "of course"}',
-        )
+        publisher = Publisher(name="Oliver", json='{"last_name": "Gregory", "67": 6, "totorota": "of course"}')
 
         with self.assertRaises(AsyncOrmFieldError) as exc:
             await publisher.save()
 
-        self.assertEqual(
-            exc.exception.args[0],
-            'The string entered is bigger than the "max_length" defined (50)',
-        )
+        self.assertEqual(exc.exception.args[0], 'The string entered is bigger than the "max_length" defined (50)')
 
     async def test_jsonfield_correct_format(self):
         # only if its correctly formated
@@ -156,10 +142,7 @@ class FieldTests(AioTestCase):
         with self.assertRaises(AsyncOrmFieldError) as exc:
             models.BooleanField(default=False).validate("laadio@svgvgvcom")
 
-        self.assertEqual(
-            "laadio@svgvgvcom is a wrong datatype for field BooleanField",
-            exc.exception.args[0],
-        )
+        self.assertEqual("laadio@svgvgvcom is a wrong datatype for field BooleanField", exc.exception.args[0])
 
     async def test_booleanfield_correct(self):
         org = await Organization.objects.create(**{"name": "chapulin", "active": True})
@@ -199,21 +182,15 @@ class FieldTests(AioTestCase):
         self.assertTrue("not a valid email address" in exc.exception.args[0])
 
     def test_emailfield_correct(self):
-        self.assertEqual(
-            models.EmailField(max_length=35).validate("laadio@s.com"), None
-        )
+        self.assertEqual(models.EmailField(max_length=35).validate("laadio@s.com"), None)
 
     async def test_datetimefield_correct(self):
-        org = await Organization.objects.create(
-            date=datetime.now(), name="nonameneeded"
-        )
+        org = await Organization.objects.create(date=datetime.now(), name="nonameneeded")
 
         self.assertTrue(isinstance(org.date, datetime))
 
     async def test_datefield_correct(self):
-        appmnt = await Appointment.objects.create(
-            date=date.today(), name="nonameneeded"
-        )
+        appmnt = await Appointment.objects.create(date=date.today(), name="nonameneeded")
 
         self.assertTrue(isinstance(appmnt.date, date))
 
@@ -232,9 +209,7 @@ class FieldTests(AioTestCase):
         self.assertTrue(len(str(org.uuid)), 36)
 
     async def test_uuidv4field_correct(self):
-        appmnt = await Appointment.objects.create(
-            date=date.today(), time=datetime.now().timetz(), name="nonam34"
-        )
+        appmnt = await Appointment.objects.create(date=date.today(), time=datetime.now().timetz(), name="nonam34")
 
         self.assertTrue(isinstance(appmnt.uuid, UUID))
         self.assertEqual(len(str(appmnt.uuid).split("-")), 5)
@@ -244,16 +219,12 @@ class FieldTests(AioTestCase):
         with self.assertRaises(AsyncOrmFieldError) as exc:
             models.Uuid4Field(uuid_type="mn")
 
-        self.assertEqual(
-            exc.exception.args[0], "{} is not a recognized type".format("mn")
-        )
+        self.assertEqual(exc.exception.args[0], "{} is not a recognized type".format("mn"))
 
     async def test_arrayfield_correct(self):
         dev = Developer(name="oldscholl", age=38)
         await dev.save()
-        skill = await Skill.objects.create(
-            dev=dev.id, name="Python", specialization=["backend", "frontend"]
-        )
+        skill = await Skill.objects.create(dev=dev.id, name="Python", specialization=["backend", "frontend"])
 
         self.assertIsInstance(skill.specialization, list)
         self.assertIn("backend", skill.specialization)
@@ -265,9 +236,7 @@ class FieldTests(AioTestCase):
         await dev.save()
 
         skill = await Skill.objects.create(
-            dev=dev.id,
-            name="Rust",
-            specialization=[["backend", "web"], ["sql", "postgres"]],
+            dev=dev.id, name="Rust", specialization=[["backend", "web"], ["sql", "postgres"]]
         )
 
         self.assertIsInstance(skill.specialization, list)
@@ -281,18 +250,13 @@ class FieldTests(AioTestCase):
         with self.assertRaises(AsyncOrmFieldError) as exc:
             models.ArrayField().validate([["backend", "nodejs"], ["frontend"]])
 
-        self.assertEqual(
-            exc.exception.args[0],
-            "Multi-dimensional arrays must have items of the same size",
-        )
+        self.assertEqual(exc.exception.args[0], "Multi-dimensional arrays must have items of the same size")
 
     async def test_arrayfield_wrong_dimensions_type(self):
         with self.assertRaises(AsyncOrmFieldError) as exc:
             models.ArrayField().validate([["backend", "nodejs"], "frontend"])
 
-        self.assertEqual(
-            exc.exception.args[0], "Array elements are not of the same type"
-        )
+        self.assertEqual(exc.exception.args[0], "Array elements are not of the same type")
 
     async def test_arrayfield_empty_array(self):
         dev = Developer(name="walkie", age=43)
@@ -308,36 +272,19 @@ class FieldTests(AioTestCase):
         await dev.save()
 
         skill = await Skill.objects.create(
-            dev=dev.id,
-            name="Ruby",
-            specialization=["Rails"],
-            notes="Wish I could help you developing something cool",
+            dev=dev.id, name="Ruby", specialization=["Rails"], notes="Wish I could help you developing something cool"
         )
 
         self.assertIsInstance(skill.notes, str)
 
     async def test_check_all_indices_were_created(self):
-        for m in (
-            Book,
-            Publisher,
-            Reader,
-            Author,
-            Organization,
-            Client,
-            Appointment,
-            Skill,
-            Developer,
-        ):
+        for m in (Book, Publisher, Reader, Author, Organization, Client, Appointment, Skill, Developer):
             for field in m.fields.values():
                 if field.db_index:
-                    field_index = "idx_{}_{}".format(
-                        field.table_name, field.orm_field_name
-                    ).lower()[:30]
+                    field_index = "idx_{}_{}".format(field.table_name, field.orm_field_name).lower()[:30]
                     self.assertTrue(
                         await Developer.objects.db_manager.request(
-                            "SELECT * FROM pg_indexes WHERE indexname = '{}'".format(
-                                field_index
-                            )
+                            "SELECT * FROM pg_indexes WHERE indexname = '{}'".format(field_index)
                         )
                     )
 
@@ -355,9 +302,7 @@ class FieldTests(AioTestCase):
 
     async def test_model_with_macadressfield_field_error(self):
         with self.assertRaises(AsyncOrmFieldError) as exc:
-            pub = Publisher(
-                name="Linda", json={"last_name": "Olson"}, mac="00-1B-77-49-54"
-            )
+            pub = Publisher(name="Linda", json={"last_name": "Olson"}, mac="00-1B-77-49-54")
             await pub.save()
 
         self.assertEqual(exc.exception.args[0], "Not a correct MAC address")
@@ -367,9 +312,7 @@ class FieldTests(AioTestCase):
         with self.assertRaises(AsyncOrmFieldError) as exc:
             models.MACAdressField(dialect=dialect)
 
-        self.assertEqual(
-            exc.exception.args[0], '"{}" is not a correct mac dialect'.format(dialect)
-        )
+        self.assertEqual(exc.exception.args[0], '"{}" is not a correct mac dialect'.format(dialect))
 
     def test_macadressfield_field_ok(self):
         try:
@@ -398,19 +341,14 @@ class FieldTests(AioTestCase):
         with self.assertRaises(AsyncOrmFieldError) as exc:
             models.GenericIPAddressField(protocol=protocol)
 
-        self.assertEqual(
-            exc.exception.args[0], '"{}" is not a recognized protocol'.format(protocol)
-        )
+        self.assertEqual(exc.exception.args[0], '"{}" is not a recognized protocol'.format(protocol))
 
     def test_genericipaddressfield_validation_unpack_protocol_error_option(self):
         unpack_protocol = "ipv9"
         with self.assertRaises(AsyncOrmFieldError) as exc:
             models.GenericIPAddressField(unpack_protocol=unpack_protocol)
 
-        self.assertEqual(
-            exc.exception.args[0],
-            '"{}" is not a recognized unpack_protocol'.format(unpack_protocol),
-        )
+        self.assertEqual(exc.exception.args[0], '"{}" is not a recognized unpack_protocol'.format(unpack_protocol))
 
     def test_genericipaddressfield_validation_protocol_correct_options(self):
         protocol = ("both", "ipv4", "ipv6")
@@ -536,10 +474,7 @@ class FieldTests(AioTestCase):
         with self.assertRaises(AsyncOrmFieldError) as exc:
             models.GenericIPAddressField(protocol=protocol).validate(value)
 
-        self.assertEqual(
-            exc.exception.args[0],
-            "{} is not a correct {} IP address".format(value, protocol),
-        )
+        self.assertEqual(exc.exception.args[0], "{} is not a correct {} IP address".format(value, protocol))
 
     def test_genericipaddressfield_ipv6_error(self):
         value = "1.1.1.1"
@@ -547,10 +482,7 @@ class FieldTests(AioTestCase):
         with self.assertRaises(AsyncOrmFieldError) as exc:
             models.GenericIPAddressField(protocol=protocol).validate(value)
 
-        self.assertEqual(
-            exc.exception.args[0],
-            "{} is not a correct {} IP address".format(value, protocol),
-        )
+        self.assertEqual(exc.exception.args[0], "{} is not a correct {} IP address".format(value, protocol))
 
     def test_genericipaddressfield_error(self):
         with self.assertRaises(AsyncOrmFieldError) as exc:

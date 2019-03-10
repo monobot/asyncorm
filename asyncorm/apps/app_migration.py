@@ -35,22 +35,16 @@ class AppMigration:
             )
 
         try:
-            _latest_db_migrated = (
-                migrations_status[db_migrated[-1]] if db_migrated else {}
-            )
+            _latest_db_migrated = migrations_status[db_migrated[-1]] if db_migrated else {}
         except KeyError:
             raise AsyncOrmMigrationError(
-                'Something went wrong, migration "{}" does not exist in the filesystem.'.format(
-                    db_migrated[-1]
-                )
+                'Something went wrong, migration "{}" does not exist in the filesystem.'.format(db_migrated[-1])
             )
 
         migrations_status.update(
             {
                 "_latest_db_migrated": _latest_db_migrated,
-                "_latest_fs_declared": migrations_status[fs_declared[-1]]
-                if fs_declared
-                else {},
+                "_latest_fs_declared": migrations_status[fs_declared[-1]] if fs_declared else {},
             }
         )
 
@@ -84,9 +78,7 @@ class AppMigration:
             if _latest_db_migrated_number > _latest_fs_declared_number:
                 raise AsyncOrmMigrationError(
                     'There is an inconsistency, the database has a migration named "{}" '
-                    'more advanced than the filesystem "{}"'.format(
-                        _latest_db_migrated, _latest_fs_declared
-                    )
+                    'more advanced than the filesystem "{}"'.format(_latest_db_migrated, _latest_fs_declared)
                 )
 
             elif _latest_db_migrated_number < _latest_fs_declared_number:
@@ -97,40 +89,26 @@ class AppMigration:
             elif _latest_fs_declared != _latest_db_migrated:
                 raise AsyncOrmMigrationError(
                     'The migration in the filesystem "{}" is not the same migration '
-                    'applied in the database "{}" .'.format(
-                        _latest_fs_declared, _latest_db_migrated
-                    )
+                    'applied in the database "{}" .'.format(_latest_fs_declared, _latest_db_migrated)
                 )
 
     async def _check_current_migrations_status(self, target):
         self._check_migration_dir()
-        _latest_db_migration = self._migration_integer_number(
-            await self._latest_db_migration()
-        )
+        _latest_db_migration = self._migration_integer_number(await self._latest_db_migration())
 
         forward = False
         if target is None:
-            target_fs_migration = self._migration_integer_number(
-                self._latest_fs_migration()
-            )
+            target_fs_migration = self._migration_integer_number(self._latest_fs_migration())
         else:
-            target_fs_migration = [
-                fn
-                for fn in next(os.walk(self.migrations_dir))[2]
-                if fn.startswith(target)
-            ]
+            target_fs_migration = [fn for fn in next(os.walk(self.migrations_dir))[2] if fn.startswith(target)]
         if not target_fs_migration:
-            raise AsyncOrmMigrationError(
-                "the migration {} does not exist for app {}".format(target, self.name)
-            )
+            raise AsyncOrmMigrationError("the migration {} does not exist for app {}".format(target, self.name))
 
         if _latest_db_migration is not None and target_fs_migration is not None:
             if _latest_db_migration > target_fs_migration:
                 raise AsyncOrmMigrationError(
                     'There is an inconsistency, the database has a migration named "{}" '
-                    'more advanced than the filesystem "{}"'.format(
-                        _latest_db_migration, target_fs_migration
-                    )
+                    'more advanced than the filesystem "{}"'.format(_latest_db_migration, target_fs_migration)
                 )
             if _latest_db_migration < target_fs_migration:
                 forward = True
@@ -169,9 +147,7 @@ class AppMigration:
             "condition": "app_name = '{}'".format(self.name),
         }
 
-        result = await self.db_manager.request(
-            self.db_manager._db__select.format(**kwargs)
-        )
+        result = await self.db_manager.request(self.db_manager._db__select.format(**kwargs))
         return result and result["name"] or ""
 
     async def _check_migration_applied(self, migration_name):
@@ -180,25 +156,15 @@ class AppMigration:
             "table_name": "asyncorm_migrations",
             "join": "",
             "ordering": "",
-            "condition": "app_name = '{}' AND name = '{}'".format(
-                self.name, migration_name
-            ),
+            "condition": "app_name = '{}' AND name = '{}'".format(self.name, migration_name),
         }
-        result = await self.db_manager.request(
-            self.db_manager._db__select.format(**kwargs)
-        )
+        result = await self.db_manager.request(self.db_manager._db__select.format(**kwargs))
         return result
 
     def _fs_migration_list(self):
         py_ext = ".py"
         self._check_migration_dir()
-        return sorted(
-            [
-                fn.rstrip(py_ext)
-                for fn in next(os.walk(self.migrations_dir))[2]
-                if fn[-3:] == py_ext
-            ]
-        )
+        return sorted([fn.rstrip(py_ext) for fn in next(os.walk(self.migrations_dir))[2] if fn[-3:] == py_ext])
 
     def _latest_fs_migration(self):
         filenames = self._fs_migration_list()
@@ -207,17 +173,9 @@ class AppMigration:
     def _next_fs_migration_name(self, stage="auto"):
         if stage not in ("auto", "data", "initial"):
             raise AsyncOrmMigrationError("that migration stage is not supported")
-        target_fs_migration = self._migration_integer_number(
-            self._latest_fs_migration()
-        )
-        random_hash = hashlib.sha3_512(
-            "{}{}".format(target_fs_migration, str(datetime.now())).encode("utf-8")
-        )
-        return "{}__{}_{}".format(
-            "0000{}".format(target_fs_migration + 1)[-5:],
-            stage,
-            random_hash.hexdigest()[:20],
-        )
+        target_fs_migration = self._migration_integer_number(self._latest_fs_migration())
+        random_hash = hashlib.sha3_512("{}{}".format(target_fs_migration, str(datetime.now())).encode("utf-8"))
+        return "{}__{}_{}".format("0000{}".format(target_fs_migration + 1)[-5:], stage, random_hash.hexdigest()[:20])
 
     def _get_absolute_migration(self, migration_name):
         return os.path.join(self.abs_path, "migrations", migration_name)
