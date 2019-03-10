@@ -4,21 +4,21 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-netaddr = ">=0.7.19<0.8"
 black = "==18.9b0"
 bumpversion = "==0.5.3"
-watchdog = ">=0.9.0<1.0"
-coverage = "==4.5"
 codacy-coverage = ">=1.3.11"
-Sphinx = "*"
+coverage = "==4.5"
+netaddr = ">=0.7.19<0.8"
 pylint = "*"
+pytest = "*"
 rope = "*"
+Sphinx = "*"
 tox = ">=3.7.0<3.8"
+watchdog = ">=0.9.0<1.0"
 
 [packages]
 asyncpg = "==0.18.3"
 netaddr = "==0.7.19"
-pytest = "*"
 
 [requires]
 python_version = "3.6"

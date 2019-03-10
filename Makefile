@@ -47,11 +47,11 @@ clean: clean-build clean-pyc clean-test
 .PHONY: lint
 lint: ## check style with black code style
 lint: clean
-	black --check --diff .
+	pipenv run black --check --diff .
 
 setup:
 	pip install pipenv
-	pipenv install --dev --three
+	pipenv install --dev
 
 test: ## run tests quickly with the default Python
 	pipenv run python -m tests
