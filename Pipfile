@@ -11,10 +11,10 @@ coverage = "==4.5"
 netaddr = ">=0.7.19<0.8"
 pylint = "*"
 pytest = "*"
+pytest-asyncio = "*"
 rope = "*"
 Sphinx = "*"
 tox = ">=3.7.0<3.8"
-watchdog = ">=0.9.0<1.0"
 
 [packages]
 asyncpg = "==0.18.3"
