@@ -15,13 +15,7 @@ DEFAULT_CONFIG_FILE = "asyncorm.ini"
 
 
 class OrmApp(object):
-    _conf = {
-        "apps": None,
-        "db_config": None,
-        "loop": asyncio.get_event_loop(),
-        "backend": "PostgresBackend",
-        "test": False,
-    }
+    _conf = {"apps": None, "db_config": None, "loop": asyncio.get_event_loop(), "backend": "PostgresBackend"}
 
     def configure(self, config):
         """
@@ -42,7 +36,6 @@ class OrmApp(object):
         if not db_config:
             raise AsyncOrmAppError("Imposible to configure without database configuration!")
 
-        db_config["test"] = self._conf["test"]
         db_config["loop"] = self.loop = self._conf.get("loop")
 
         database_module = importlib.import_module("asyncorm.database")

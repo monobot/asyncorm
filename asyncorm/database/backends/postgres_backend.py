@@ -10,7 +10,6 @@ from asyncorm.database.backends.sql_base_backend import SQLBaseBackend
 
 class PostgresBackend(SQLBaseBackend):
     def __init__(self, conn_data):
-        self._test = conn_data.pop("test")
         self._conn_data = conn_data
         self._conn = None
         self._pool = None
@@ -42,6 +41,12 @@ class PostgresBackend(SQLBaseBackend):
         query = self._construct_query(query)
         return Cursor(self._conn, query[0], values=query[1], forward=forward, stop=stop)
 
+    async def transaction_init(self):
+        pass
+
+    async def transaction_rollback(self):
+        pass
+
     async def request(self, query):
         """Send a database request inside a transaction.
 
@@ -61,6 +66,5 @@ class PostgresBackend(SQLBaseBackend):
                 else:
                     return await conn.fetchrow(query[0])
             return await conn.fetchrow(query)
-            if self._test:
-                raise AsyncormTransactionRollback("transaction rollback because its a test.")
+
         self._conn = await self._pool.acquire()
