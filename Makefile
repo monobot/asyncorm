@@ -19,10 +19,10 @@ help:
 .PHONY: clean-build
 clean-build: ## remove build artifacts
 clean-build:
-	rm -fr build/
-	rm -fr dist/
-	rm -fr .eggs/
-	find . -name '*.egg-info' -exec rm -fr {} +
+	rm -rf build/
+	rm -rf dist/
+	rm -rf .eggs/
+	find . -name '*.egg-info' -exec rm -rf {} +
 	find . -name '*.egg' -exec rm -f {} +
 
 .PHONY: clean-pyc
@@ -31,23 +31,25 @@ clean-pyc:
 	find . -name '*.pyc' -exec rm -f {} +
 	find . -name '*.pyo' -exec rm -f {} +
 	find . -name '*~' -exec rm -f {} +
-	find . -name '__pycache__' -exec rm -fr {} +
+	find . -name '__pycache__' -exec rm -rf {} +
 
 .PHONY: clean-test
 clean-test: ## remove test and coverage artifacts
 clean-test:
-	rm -fr .tox/
+	rm -rf .tox/
 	rm -f .coverage
-	rm -fr htmlcov/
+	rm -rf htmlcov/
+
+clean-others: rm -rf .vscode/.ropeproject/
 
 .PHONY: clean
 clean: ## remove all build, test, coverage and Python artifacts
-clean: clean-build clean-pyc clean-test
+clean: clean-build clean-pyc clean-test clean-others
 
 .PHONY: lint
 lint: ## check style with black code style
-lint: clean
-	pipenv run black --diff -l 119 .
+lint: clean-others
+	pipenv run black --check --diff -l 119 .
 
 setup:
 	pip install pipenv

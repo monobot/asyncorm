@@ -9,7 +9,7 @@ from asyncorm.models.fields import CharField, ForeignKey, ManyToManyField, Numbe
 
 
 class Queryset(object):
-    db_manager = None
+    db_backend = None
     orm = None
 
     def __init__(self, model):
@@ -45,7 +45,7 @@ class Queryset(object):
     @classmethod
     def set_orm(cls, orm):
         cls.orm = orm
-        cls.db_manager = orm.db_manager
+        cls.db_backend = orm.db_backend
 
     def get_field_queries(self):
         """Builds the creationquery for each of the non fk or m2m fields"""
@@ -74,7 +74,7 @@ class Queryset(object):
         """Add to the database the table requirements if needed"""
         try:
             for query in self.model.field_requirements:
-                await self.db_manager.request(query)
+                await self.db_backend.request(query)
         except InsufficientPrivilegeError:
             raise AsyncOrmModelError("Not enough privileges to add the needed requirement in the database")
 
@@ -397,8 +397,8 @@ class Queryset(object):
                 "table_name": db_request[0].get("table_name", self.model.cls_tablename()),
             }
         )
-        query = self.db_manager._construct_query(db_request)
-        return await self.db_manager.request(query)
+        query = self.db_backend._construct_query(db_request)
+        return await self.db_backend.request(query)
 
     def _get_queryset_slice(self, queryset_slice):
         """Private method to get a slice given the original queryset.
@@ -425,7 +425,7 @@ class Queryset(object):
         :rtype: Model
         """
         if not self._cursor:
-            self._cursor = await self.db_manager.get_cursor(deepcopy(self.query), forward=key, stop=None)
+            self._cursor = await self.db_backend.get_cursor(deepcopy(self.query), forward=key, stop=None)
 
         async for res in self._cursor:
             return self.modelconstructor(res)
@@ -458,7 +458,7 @@ class Queryset(object):
 
     async def __anext__(self):
         if not self._cursor:
-            self._cursor = await self.db_manager.get_cursor(self.query, forward=self.forward, stop=self.stop)
+            self._cursor = await self.db_backend.get_cursor(self.query, forward=self.forward, stop=self.stop)
 
         async for rec in self._cursor:
             item = self.modelconstructor(rec)

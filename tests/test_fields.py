@@ -283,7 +283,7 @@ class FieldTests(AioTestCase):
                 if field.db_index:
                     field_index = "idx_{}_{}".format(field.table_name, field.orm_field_name).lower()[:30]
                     self.assertTrue(
-                        await Developer.objects.db_manager.request(
+                        await Developer.objects.db_backend.request(
                             "SELECT * FROM pg_indexes WHERE indexname = '{}'".format(field_index)
                         )
                     )

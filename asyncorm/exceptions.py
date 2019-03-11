@@ -10,10 +10,17 @@ __all__ = (
     "AsyncOrmMultipleObjectsReturned",
     "AsyncOrmQuerysetError",
     "AsyncOrmSerializerError",
+    "AsyncormTransactionRollback",
 )
 
 
 class AsyncormException(Exception):
+    pass
+
+
+class AsyncormTransactionRollback(Exception):
+    """Raised when we want to force a transaction rollback."""
+
     pass
 
 

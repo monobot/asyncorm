@@ -147,7 +147,7 @@ class AppMigration:
             "condition": "app_name = '{}'".format(self.name),
         }
 
-        result = await self.db_manager.request(self.db_manager._db__select.format(**kwargs))
+        result = await self.db_backend.request(self.db_backend._db__select.format(**kwargs))
         return result and result["name"] or ""
 
     async def _check_migration_applied(self, migration_name):
@@ -158,7 +158,7 @@ class AppMigration:
             "ordering": "",
             "condition": "app_name = '{}' AND name = '{}'".format(self.name, migration_name),
         }
-        result = await self.db_manager.request(self.db_manager._db__select.format(**kwargs))
+        result = await self.db_backend.request(self.db_backend._db__select.format(**kwargs))
         return result
 
     def _fs_migration_list(self):

@@ -9,7 +9,7 @@ from asyncorm import models
 from asyncorm.exceptions import AsyncormException, AsyncOrmFieldError
 from tests.app_1.models import Author, Book, Publisher, Reader
 from tests.app_2.models import Appointment, Client, Developer, Organization, Skill
-from tests.conftest import _assert, event_loop, orm_setup
+from tests.conftest import event_loop, orm_setup
 from tests.helper_tests import AioTestCase
 
 pytestmark = pytest.mark.integration
@@ -19,51 +19,51 @@ def test_class_definition(orm_setup, event_loop):
     with pytest.raises(NotImplementedError) as exc:
         models.Field()
 
-    _assert('Missing "internal_type" attribute from class definition' in str(exc))
+    assert 'Missing "internal_type" attribute from class definition' in str(exc)
 
 
 def test_required_kwargs_not_sent(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.CharField()
 
-    _assert('"CharField" field requires max_length' in str(exc))
+    assert '"CharField" field requires max_length' in str(exc)
 
 
 def test_required_kwargs_wrong_value(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.CharField(max_length="gt")
 
-    _assert("Wrong value for max_length" in str(exc))
+    assert "Wrong value for max_length" in str(exc)
 
 
 def test_now_correcly_valuates(orm_setup, event_loop):
-    _assert(models.CharField(max_length=45))
+    assert models.CharField(max_length=45)
 
 
 def test_db_column_validation_wrong_start(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.CharField(max_length=35, db_column="_oneone")
 
-    _assert('db_column can not start with "_"' in str(exc))
+    assert 'db_column can not start with "_"' in str(exc)
 
 
 def test_db_column_validation_wrong_ending(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.CharField(max_length=35, db_column="oneone_")
 
-    _assert('db_column can not end with "_"' in str(exc))
+    assert 'db_column can not end with "_"' in str(exc)
 
 
 def test_db_column_validation_wrong_characters(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.CharField(max_length=35, db_column="one__one")
 
-    _assert('db_column can not contain "__"' in str(exc))
+    assert 'db_column can not contain "__"' in str(exc)
 
 
 def test_db_column_correctly_validates(orm_setup, event_loop):
     # this is an allowed fieldname
-    _assert(models.CharField(max_length=35, db_column="one_one"))
+    assert models.CharField(max_length=35, db_column="one_one")
 
 
 @pytest.mark.asyncio
@@ -73,14 +73,14 @@ async def test_field_max_length(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         await reader.save()
 
-    pytest.raises('The string entered is bigger than the "max_length" defined (15)' in str(exc))
+    assert 'The string entered is bigger than the "max_length" defined (15)' in str(exc)
 
 
 @pytest.mark.asyncio
 async def test_choices_display(orm_setup, event_loop):
     book = Book(content="hard cover")
 
-    _assert(book.content_display() == "hard cover book")
+    assert book.content_display() == "hard cover book"
 
 
 @pytest.mark.asyncio
@@ -90,7 +90,7 @@ async def test_choices_content_not_in_choices(orm_setup, event_loop):
         book = Book(content="telomero")
         await book.save()
 
-    _assert('"telomero" not in field choices' in str(exc))
+    assert '"telomero" not in field choices' in str(exc)
 
 
 @pytest.mark.asyncio
@@ -100,7 +100,7 @@ async def test_dictionary_choices_content_not_in_choices(orm_setup, event_loop):
         read = Reader(power="flower")
         await read.save()
 
-    _assert('"flower" not in field choices' in str(exc))
+    assert '"flower" not in field choices' in str(exc)
 
 
 @pytest.mark.asyncio
@@ -111,8 +111,8 @@ async def test_default_callable(orm_setup, event_loop):
     await reader.save()
 
     # they get the default value
-    _assert(reader.name == "pepito")
-    _assert(reader.weight == 85)
+    assert reader.name == "pepito"
+    assert reader.weight == 85
 
 
 @pytest.mark.asyncio
@@ -121,7 +121,7 @@ async def test_jsonfield_saving_dictionary(orm_setup, event_loop):
 
     await publisher.save()
 
-    _assert(isinstance(publisher.json, dict))
+    assert isinstance(publisher.json, dict)
 
 
 @pytest.mark.asyncio
@@ -130,7 +130,7 @@ async def test_jsonfield_saving_list(orm_setup, event_loop):
 
     await publisher.save()
 
-    _assert(isinstance(publisher.json, dict))
+    assert isinstance(publisher.json, dict)
 
 
 @pytest.mark.asyncio
@@ -141,7 +141,7 @@ async def test_jsonfield_saving_wrong_string(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         await publisher.save()
 
-    _assert("The data entered can not be converted to json" in str(exc))
+    assert "The data entered can not be converted to json" in str(exc)
 
 
 @pytest.mark.asyncio
@@ -152,7 +152,7 @@ async def test_jsonfield_saving_over_max_length(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         await publisher.save()
 
-    _assert('The string entered is bigger than the "max_length" defined (50)' in str(exc))
+    assert 'The string entered is bigger than the "max_length" defined (50)' in str(exc)
 
 
 @pytest.mark.asyncio
@@ -162,8 +162,8 @@ async def test_jsonfield_correct_format(orm_setup, event_loop):
 
     await publisher.save()
 
-    _assert(publisher.json["last_name"] == "Gregory")
-    _assert(publisher.json["67"] == 6)
+    assert publisher.json["last_name"] == "Gregory"
+    assert publisher.json["67"] == 6
 
 
 @pytest.mark.asyncio
@@ -176,14 +176,14 @@ async def test_booleanfield_validate_wrong_value(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.BooleanField(default=False).validate("laadio@svgvgvcom")
 
-    _assert("laadio@svgvgvcom is a wrong datatype for field BooleanField" in str(exc))
+    assert "laadio@svgvgvcom is a wrong datatype for field BooleanField" in str(exc)
 
 
 @pytest.mark.asyncio
 async def test_booleanfield_correct(orm_setup, event_loop):
     org = await Organization.objects.create(**{"name": "chapulin", "active": True})
 
-    _assert(org.active is True)
+    assert org.active is True
 
 
 def test_emailfield_no_domain_period(orm_setup, event_loop):
@@ -192,78 +192,78 @@ def test_emailfield_no_domain_period(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.EmailField(max_length=35).validate("laadio@svgvgvcom")
 
-    _assert("not a valid email address" in str(exc))
+    assert "not a valid email address" in str(exc)
 
 
 def test_emailfield_wrong_starting_char(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.EmailField(max_length=35).validate("@laadio@svgvgv.com")
 
-    _assert("not a valid email address" in str(exc))
+    assert "not a valid email address" in str(exc)
 
 
 def test_emailfield_wrong_starting_char_2(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.EmailField(max_length=35).validate(".laadio@svgv@gv.com")
 
-    _assert("not a valid email address" in str(exc))
+    assert "not a valid email address" in str(exc)
 
 
 def test_emailfield_wrong_starting_char_3(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.EmailField(max_length=35).validate("_laadio@svgv@gv.com")
 
-    _assert("not a valid email address" in str(exc))
+    assert "not a valid email address" in str(exc)
 
 
 def test_emailfield_too_many_ats(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.EmailField(max_length=35).validate("laadio@svgv@gv.com")
 
-    _assert("not a valid email address" in str(exc))
+    assert "not a valid email address" in str(exc)
 
 
 def test_emailfield_correct(orm_setup, event_loop):
-    _assert(models.EmailField(max_length=35).validate("laadio@s.com") is None)
+    assert models.EmailField(max_length=35).validate("laadio@s.com") is None
 
 
 @pytest.mark.asyncio
 async def test_datetimefield_correct(orm_setup, event_loop):
     org = await Organization.objects.create(date=datetime.now(), name="nonameneeded")
 
-    _assert(isinstance(org.date, datetime))
+    assert isinstance(org.date, datetime)
 
 
 @pytest.mark.asyncio
 async def test_datefield_correct(orm_setup, event_loop):
     appmnt = await Appointment.objects.create(date=date.today(), name="nonameneeded")
 
-    _assert(isinstance(appmnt.date, date))
+    assert isinstance(appmnt.date, date)
 
 
 @pytest.mark.asyncio
 async def test_timefield_correct(orm_setup, event_loop):
     appmnt = await Appointment.objects.create(date=date.today(), time=datetime.now().timetz(), name="nonameneeded2")
 
-    _assert(isinstance(appmnt.time, time))
+    assert isinstance(appmnt.time, time)
 
 
 @pytest.mark.asyncio
 async def test_uuidv1field_correct(orm_setup, event_loop):
     org = await Organization.objects.create(name="nonamen22")
 
-    _assert(isinstance(org.uuid, UUID))
-    _assert(len(str(org.uuid).split("-")) == 5)
-    _assert(len(str(org.uuid)) == 36)
+    assert isinstance(org.uuid, UUID)
+    assert len(str(org.uuid).split("-")) == 5
+    assert len(str(org.uuid)) == 36
 
 
 @pytest.mark.asyncio
 async def test_uuidv4field_correct(orm_setup, event_loop):
     appmnt = await Appointment.objects.create(date=date.today(), time=datetime.now().timetz(), name="nonam34")
 
-    _assert(isinstance(appmnt.uuid, UUID))
-    _assert(len(str(appmnt.uuid).split("-")) == 5)
-    _assert(len(str(appmnt.uuid)) == 36)
+    assert isinstance(appmnt.uuid, UUID)
+    assert len(str(appmnt.uuid).split("-")) == 5
+    assert len(str(appmnt.uuid)) == 36
 
 
 @pytest.mark.asyncio
@@ -271,7 +271,7 @@ async def test_uuidv4field(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.Uuid4Field(uuid_type="mn")
 
-    _assert("{} is not a recognized type".format("mn") in str(exc))
+    assert "{} is not a recognized type".format("mn") in str(exc)
 
 
 @pytest.mark.asyncio
@@ -281,10 +281,10 @@ async def test_arrayfield_correct(orm_setup, event_loop):
 
     skill = await Skill.objects.create(dev=dev.id, name="Python", specialization=["backend", "frontend"])
 
-    _assert(isinstance(skill.specialization, list))
-    _assert("backend" in skill.specialization)
-    _assert("frontend" in skill.specialization)
-    _assert(2 == len(skill.specialization))
+    assert isinstance(skill.specialization, list)
+    assert "backend" in skill.specialization
+    assert "frontend" in skill.specialization
+    assert 2 == len(skill.specialization)
 
 
 @pytest.mark.asyncio
@@ -296,12 +296,12 @@ async def test_arrayfield_multidimensional(orm_setup, event_loop):
         dev=dev.id, name="Rust", specialization=[["backend", "web"], ["sql", "postgres"]]
     )
 
-    _assert(isinstance(skill.specialization, list))
-    _assert(isinstance(skill.specialization[0], list))
-    _assert("backend" in skill.specialization[0])
-    _assert("web" in skill.specialization[0])
-    _assert("sql" in skill.specialization[1])
-    _assert("postgres" in skill.specialization[1])
+    assert isinstance(skill.specialization, list)
+    assert isinstance(skill.specialization[0], list)
+    assert "backend" in skill.specialization[0]
+    assert "web" in skill.specialization[0]
+    assert "sql" in skill.specialization[1]
+    assert "postgres" in skill.specialization[1]
 
 
 @pytest.mark.asyncio
@@ -309,7 +309,7 @@ async def test_arrayfield_wrong_dimensions_size(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.ArrayField().validate([["backend", "nodejs"], ["frontend"]])
 
-    _assert("Multi-dimensional arrays must have items of the same size" in str(exc))
+    assert "Multi-dimensional arrays must have items of the same size" in str(exc)
 
 
 @pytest.mark.asyncio
@@ -317,7 +317,7 @@ async def test_arrayfield_wrong_dimensions_type(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.ArrayField().validate([["backend", "nodejs"], "frontend"])
 
-    _assert(str(exc) == "Array elements are not of the same type")
+    assert str(exc) == "Array elements are not of the same type"
 
 
 @pytest.mark.asyncio
@@ -327,8 +327,8 @@ async def test_arrayfield_empty_array(orm_setup, event_loop):
 
     skill = await Skill.objects.create(dev=dev.id, name="C/CPP", specialization=[])
 
-    _assert(isinstance(skill.specialization, list))
-    _assert(skill.specialization == [])
+    assert isinstance(skill.specialization, list)
+    assert skill.specialization == []
 
 
 @pytest.mark.asyncio
@@ -340,7 +340,7 @@ async def test_textfield_correct(orm_setup, event_loop):
         dev=dev.id, name="Ruby", specialization=["Rails"], notes="Wish I could help you developing something cool"
     )
 
-    _assert(isinstance(skill.notes, str))
+    assert isinstance(skill.notes, str)
 
 
 @pytest.mark.asyncio
@@ -349,10 +349,8 @@ async def test_check_all_indices_were_created(orm_setup, event_loop):
         for field in m.fields.values():
             if field.db_index:
                 field_index = "idx_{}_{}".format(field.table_name, field.orm_field_name).lower()[:30]
-                _assert(
-                    await Developer.objects.db_manager.request(
-                        "SELECT * FROM pg_indexes WHERE indexname = '{}'".format(field_index)
-                    )
+                assert await Developer.objects.db_backend.request(
+                    "SELECT * FROM pg_indexes WHERE indexname = '{}'".format(field_index)
                 )
 
 
@@ -365,9 +363,9 @@ async def test_model_with_macadressfield_field_ok(orm_setup, event_loop):
 
     pub = await Publisher(name="Linda", json={"last_name": "Olson"}, mac=mac).save()
 
-    _assert(pub.mac != mac)
-    _assert(str(EUI(pub.mac, dialect=mac_eui48)) == mac)
-    _assert(EUI(pub.mac) == EUI(mac))
+    assert pub.mac != mac
+    assert str(EUI(pub.mac, dialect=mac_eui48)) == mac
+    assert EUI(pub.mac) == EUI(mac)
 
 
 @pytest.mark.asyncio
@@ -376,7 +374,7 @@ async def test_model_with_macadressfield_field_error(orm_setup, event_loop):
         pub = Publisher(name="Linda", json={"last_name": "Olson"}, mac="00-1B-77-49-54")
         await pub.save()
 
-    _assert("Not a correct MAC address" in str(exc))
+    assert "Not a correct MAC address" in str(exc)
 
 
 def test_macadressfield_field_validation_error(orm_setup, event_loop):
@@ -384,7 +382,7 @@ def test_macadressfield_field_validation_error(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.MACAdressField(dialect=dialect)
 
-    _assert('"{}" is not a correct mac dialect'.format(dialect) in str(exc))
+    assert '"{}" is not a correct mac dialect'.format(dialect) in str(exc)
 
 
 def test_macadressfield_field_ok(orm_setup, event_loop):
@@ -398,14 +396,14 @@ def test_macadressfield_field_error(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.MACAdressField().validate("00-1B-77-49-54")
 
-    _assert("Not a correct MAC address" in str(exc))
+    assert "Not a correct MAC address" in str(exc)
 
 
 def test_genericipaddressfield_validation_ipv4_error(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.GenericIPAddressField(protocol="ipv4", unpack_protocol="ipv4")
 
-    _assert(
+    assert (
         "if the protocol is restricted the output will always be in the same protocol version, "
         'so unpack_protocol should be default value, "same"' in str(exc)
     )
@@ -416,7 +414,7 @@ def test_genericipaddressfield_validation_protocol_error_option(orm_setup, event
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.GenericIPAddressField(protocol=protocol)
 
-    _assert('"{}" is not a recognized protocol'.format(protocol) in str(exc))
+    assert '"{}" is not a recognized protocol'.format(protocol) in str(exc)
 
 
 def test_genericipaddressfield_validation_unpack_protocol_error_option(orm_setup, event_loop):
@@ -424,7 +422,7 @@ def test_genericipaddressfield_validation_unpack_protocol_error_option(orm_setup
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.GenericIPAddressField(unpack_protocol=unpack_protocol)
 
-    _assert('"{}" is not a recognized unpack_protocol'.format(unpack_protocol) in str(exc))
+    assert '"{}" is not a recognized unpack_protocol'.format(unpack_protocol) in str(exc)
 
 
 def test_genericipaddressfield_validation_protocol_correct_options(orm_setup, event_loop):
@@ -449,7 +447,7 @@ def test_genericipaddressfield_validation_ipv6_error(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.GenericIPAddressField(protocol="ipv6", unpack_protocol="ipv4")
 
-    _assert(
+    assert (
         "if the protocol is restricted the output will always be in the same protocol version, "
         'so unpack_protocol should be default value, "same"' in str(exc)
     )
@@ -477,7 +475,7 @@ async def test_model_with_genericipaddressfield_error(orm_setup, event_loop):
         pub = Publisher(name="Linda", json={"last_name": "Olson"}, inet="300.3.3.3")
         await pub.save()
 
-    _assert("Not a correct IP address" in str(exc))
+    assert "Not a correct IP address" in str(exc)
 
 
 @pytest.mark.asyncio
@@ -487,9 +485,9 @@ async def test_model_with_genericipaddressfield_unpack(orm_setup, event_loop):
 
     await pub.save()
 
-    _assert(pub.inet != ip)
-    _assert(pub.inet == "1.2.3.0/24")
-    _assert(pub.inet == str(IPNetwork(ip).ipv4()))
+    assert pub.inet != ip
+    assert pub.inet == "1.2.3.0/24"
+    assert pub.inet == str(IPNetwork(ip).ipv4())
 
 
 def test_genericipaddressfield_ok(orm_setup, event_loop):
@@ -563,7 +561,7 @@ def test_genericipaddressfield_ipv4_error(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.GenericIPAddressField(protocol=protocol).validate(value)
 
-    _assert("{} is not a correct {} IP address".format(value, protocol) in str(exc))
+    assert "{} is not a correct {} IP address".format(value, protocol) in str(exc)
 
 
 def test_genericipaddressfield_ipv6_error(orm_setup, event_loop):
@@ -572,11 +570,11 @@ def test_genericipaddressfield_ipv6_error(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.GenericIPAddressField(protocol=protocol).validate(value)
 
-    _assert("{} is not a correct {} IP address".format(value, protocol) in str(exc))
+    assert "{} is not a correct {} IP address".format(value, protocol) in str(exc)
 
 
 def test_genericipaddressfield_error(orm_setup, event_loop):
     with pytest.raises(AsyncOrmFieldError) as exc:
         models.GenericIPAddressField().validate("1.1.1.1000")
 
-    _assert("Not a correct IP address" in str(exc))
+    assert "Not a correct IP address" in str(exc)

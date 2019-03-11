@@ -11,12 +11,17 @@ from asyncorm.exceptions import AsyncOrmAppError, AsyncOrmConfigError, AsyncOrmM
 
 logger = logging.getLogger("asyncorm")
 
-
 DEFAULT_CONFIG_FILE = "asyncorm.ini"
 
 
 class OrmApp(object):
-    _conf = {"db_config": None, "loop": asyncio.get_event_loop(), "manager": "PostgresManager", "apps": None}
+    _conf = {
+        "apps": None,
+        "db_config": None,
+        "loop": asyncio.get_event_loop(),
+        "backend": "PostgresBackend",
+        "test": False,
+    }
 
     def configure(self, config):
         """
@@ -24,7 +29,7 @@ class OrmApp(object):
         get all the models declared
         set the database configured and add the loop
 
-        Then the database manager is configured, and set to all the
+        Then the database backend is configured, and set to all the
         models previously declared
         and then we finish the models configurations using
         models_configure(): will take care of the inverse relations for foreignkeys and many2many
@@ -33,16 +38,18 @@ class OrmApp(object):
         self._conf.update(config)
 
         db_config = config.get("db_config", None)
+
         if not db_config:
             raise AsyncOrmAppError("Imposible to configure without database configuration!")
 
+        db_config["test"] = self._conf["test"]
         db_config["loop"] = self.loop = self._conf.get("loop")
 
         database_module = importlib.import_module("asyncorm.database")
 
-        # we get the manager defined in the config file
-        manager = getattr(database_module, self._conf["manager"])
-        self.db_manager = manager(db_config)
+        # we get the backend defined in the config file
+        backend = getattr(getattr(database_module, "backends"), self._conf["backend"])
+        self.db_backend = backend(db_config)
 
         app_names = self._conf.pop("apps", []) or []
         self.apps = self._get_declared_apps(app_names)
@@ -182,7 +189,7 @@ def parse_config(config_file):
     }
 
 
-def configure_orm(config=None, loop=None):
+def configure_orm(config=None, loop=None, test=False):
     """Configure the orm
 
     :param config: Configuration information that can be provided.
@@ -207,7 +214,7 @@ def configure_orm(config=None, loop=None):
     if loop is None:
         loop = asyncio.get_event_loop()
 
-    config.update({"loop": loop})
+    config.update({"loop": loop, "test": test})
     orm_app.configure(config)
     return orm_app
 
