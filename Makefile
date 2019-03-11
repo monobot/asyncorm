@@ -40,7 +40,8 @@ clean-test:
 	rm -f .coverage
 	rm -rf htmlcov/
 
-clean-others: rm -rf .vscode/.ropeproject/
+clean-others:
+	rm -rf .vscode/.ropeproject/
 
 .PHONY: clean
 clean: ## remove all build, test, coverage and Python artifacts
