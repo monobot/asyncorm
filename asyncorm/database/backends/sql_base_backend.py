@@ -1,7 +1,3 @@
-import asyncpg
-
-from asyncorm.database.cursor import Cursor
-from asyncorm.database.query_list import QueryStack
 from asyncorm.log import logger
 
 
