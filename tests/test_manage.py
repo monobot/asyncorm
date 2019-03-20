@@ -10,10 +10,10 @@ from asyncorm.exceptions import (
 
 from tests.app_1.models import Author, Book
 from tests.app_2.models import Appointment, Developer, Client
-from tests.helper_tests import AioTestCase
+from asyncorm.test_case import AsyncormTestCase
 
 
-class ManageTestMethods(AioTestCase):
+class ManageTestMethods(AsyncormTestCase):
     async def test_save_no_id_before_save(self):
         book = Book(**{"name": "lord of the rings", "content": "hard cover", "date_created": datetime.now()})
         id_before_save = book.id
@@ -39,11 +39,11 @@ class ManageTestMethods(AioTestCase):
         with self.assertRaises(AsyncOrmModelError) as exc:
             await book.save()
 
-        self.assertEqual("The model violates a unique constraint", exc.exception.args[0])
+            self.assertEqual("The model violates a unique constraint", exc.exception.args[0])
 
-        # but when any of them are different there is no problem
-        book.name = "this is a new name"
-        await book.save()
+            # but when any of them are different there is no problem
+            book.name = "this is a new name"
+            await book.save()
 
     async def test_unique(self):
         author = Author(**{"name": "Mnemonic", "age": 73})
@@ -196,11 +196,11 @@ class ManageTestMethods(AioTestCase):
         lt_today = await Appointment.objects.filter(date__lt=today).count()
         yday = await Appointment.objects.filter(date__lte=yesterday).count()
 
-        self.assertEqual(all_appointments, 6)
+        self.assertEqual(all_appointments, 3)
         self.assertEqual(gt_today, 1)
-        self.assertEqual(gte_today, 5)
+        self.assertEqual(gte_today, 2)
         self.assertEqual(lt_today, 1)
-        self.assertEqual(yday, 6)
+        self.assertEqual(yday, 3)
 
     async def test_in_lookup_integerfield(self):
         queryset = Book.objects.filter(id__in=(1, 2, 56, 456))

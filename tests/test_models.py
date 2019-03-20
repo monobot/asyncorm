@@ -3,7 +3,7 @@ from asyncorm.exceptions import AsyncOrmFieldError, AsyncOrmModelError
 
 from tests.app_1.models import Book, Author
 from tests.app_2.models import Developer, Client, Organization
-from tests.helper_tests import AioTestCase
+from asyncorm.test_case import AsyncormTestCase
 
 # You can get the book by model_name
 Book2 = get_model("Book")
@@ -11,7 +11,7 @@ Book2 = get_model("Book")
 Author2 = get_model("app_1.Author")
 
 
-class ModelTests(AioTestCase):
+class ModelTests(AsyncormTestCase):
     def test_class__init__(self):
         # classmethods tests
         # no matter how you import them they are the same object

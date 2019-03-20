@@ -17,4 +17,8 @@ def event_loop(request):
 @pytest.fixture(scope="session", autouse=True)
 def orm_setup(request, event_loop):
     config_file = os.path.join(os.getcwd(), "tests", "asyncorm.ini")
-    yield configure_orm(config_file, loop=event_loop)
+    orm = configure_orm(config_file, loop=event_loop)
+
+    event_loop.run_until_complete(orm.db_backend.transaction_start())
+    yield orm
+    event_loop.run_until_complete(orm.db_backend.transaction_start())

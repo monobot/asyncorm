@@ -161,28 +161,28 @@ orm_app = OrmApp()
 
 
 def parse_config(config_file):
-    parsed_file = configparser.ConfigParser()
+    config_parser = configparser.ConfigParser()
 
-    parsed_file.read(config_file)
+    config_parser.read(config_file)
 
     # check all sections exist
     for section in ["db_config", "orm"]:
-        if section not in parsed_file.sections():
+        if section not in config_parser.sections():
             raise AsyncOrmConfigError("the file {} does not contain {} section!".format(config_file, section))
 
     return {
         "db_config": {
-            "database": parsed_file.get("db_config", "database") or None,
-            "host": parsed_file.get("db_config", "host") or None,
-            "port": parsed_file.get("db_config", "port") or None,
-            "user": parsed_file.get("db_config", "user") or None,
-            "password": parsed_file.get("db_config", "password") or None,
+            "database": config_parser.get("db_config", "database", fallback=None),
+            "host": config_parser.get("db_config", "host", fallback=None),
+            "port": config_parser.get("db_config", "port", fallback=None),
+            "user": config_parser.get("db_config", "user", fallback=None),
+            "password": config_parser.get("db_config", "password", fallback=None),
         },
-        "apps": parsed_file.get("orm", "apps").split() or [],
+        "apps": config_parser.get("orm", "apps").split() or [],
     }
 
 
-def configure_orm(config=None, loop=None, test=False):
+def configure_orm(config=None, loop=None):
     """Configure the orm
 
     :param config: Configuration information that can be provided.
@@ -207,7 +207,7 @@ def configure_orm(config=None, loop=None, test=False):
     if loop is None:
         loop = asyncio.get_event_loop()
 
-    config.update({"loop": loop, "test": test})
+    config.update(loop=loop)
     orm_app.configure(config)
     return orm_app
 

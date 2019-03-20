@@ -39,13 +39,13 @@ orm_app.sync_db()
 
 
 async def create_book(x):
-    book = Book(**{"name": "book name {}".format(str(x)), "content": "hard cover"})
+    book = Book(name="book name {}".format(str(x)), content="hard cover")
 
     await book.save()
 
 
 async def create_author(x):
-    author = Author(**{"name": "foo_boy {}".format(str(x)), "age": 23})
+    author = Author(name="foo_boy {}".format(str(x)), age=23)
 
     await author.save()
 
@@ -54,6 +54,7 @@ async def create_author(x):
 for x in range(3):
     task = loop.create_task(create_author(x))
     loop.run_until_complete(asyncio.gather(task))
+
 for x in range(300):
     task = loop.create_task(create_book(x))
     loop.run_until_complete(asyncio.gather(task))

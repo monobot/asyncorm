@@ -7,10 +7,10 @@ from asyncorm.exceptions import AsyncormException, AsyncOrmFieldError
 from asyncorm import models
 from tests.app_1.models import Book, Publisher, Reader, Author
 from tests.app_2.models import Organization, Client, Appointment, Skill, Developer
-from tests.helper_tests import AioTestCase
+from asyncorm.test_case import AsyncormTestCase
 
 
-class FieldTests(AioTestCase):
+class FieldTests(AsyncormTestCase):
     def test_class_definition(self):
         with self.assertRaises(NotImplementedError) as exc:
             models.Field()

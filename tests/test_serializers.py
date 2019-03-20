@@ -4,7 +4,7 @@ from asyncorm.serializers import ModelSerializer, SerializerMethod
 
 from tests.app_1.serializer import BookSerializer
 from tests.app_1.models import Book, Author
-from tests.helper_tests import AioTestCase
+from asyncorm.test_case import AsyncormTestCase
 
 # You can get the book by model_name
 Book2 = get_model("Book")
@@ -12,7 +12,7 @@ Book2 = get_model("Book")
 Author2 = get_model("app_1.Author")
 
 
-class SerializerTests(AioTestCase):
+class SerializerTests(AsyncormTestCase):
     async def test_serialize_wrong_model(self):
         # complains if we try to serialize an incorrect model
         with self.assertRaises(AsyncOrmSerializerError) as exc:

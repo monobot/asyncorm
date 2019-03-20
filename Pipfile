@@ -19,6 +19,7 @@ tox = ">=3.7.0<3.8"
 [packages]
 asyncpg = "==0.18.3"
 netaddr = "==0.7.19"
+pylint = "*"
 
 [requires]
 python_version = "3.6"
