@@ -1,23 +1,12 @@
 .DEFAULT_GOAL := help
 
-define PRINT_HELP_PYSCRIPT
-import re, sys
-
-for line in sys.stdin:
-	match = re.match(r'^([a-zA-Z_-]+):.*?## (.*)$$', line)
-	if match:
-		target, help = match.groups()
-		print("%-20s %s" % (target, help))
-endef
-export PRINT_HELP_PYSCRIPT
-
 .PHONY: help
 help: ## Show the help menu
 help:
-	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: clean-build
-clean-build: ## Remove build artifacts
+clean-build: ## Clean Remove build artifacts
 clean-build:
 	rm -rf build/
 	rm -rf dist/
@@ -26,7 +15,7 @@ clean-build:
 	find . -name '*.egg' -exec rm -f {} +
 
 .PHONY: clean-pyc
-clean-pyc: ## Remove Python file artifacts
+clean-pyc: ## Clean Remove Python file artifacts
 clean-pyc:
 	find . -name '*.pyc' -exec rm -f {} +
 	find . -name '*.pyo' -exec rm -f {} +
@@ -34,7 +23,7 @@ clean-pyc:
 	find . -name '__pycache__' -exec rm -rf {} +
 
 .PHONY: clean-test
-clean-test: ## Remove test and coverage artifacts
+clean-test: ## Clean Remove test and coverage artifacts
 clean-test:
 	rm -rf .tox/
 	rm -f .coverage
@@ -67,11 +56,18 @@ test: ## Run tests quickly with the default Python
 test-all: ## Run tests on every Python version with tox
 	pipenv run tox
 
+PHONY: coverage
 coverage: ## Check code coverage quickly with the default Python
-coverage: coverage run --source asyncorm setup.py test
-	coverage report -m
-	coverage html
-	$(BROWSER) htmlcov/index.html
+coverage:
+	pipenv run coverage run -m tests
+	pipenv run coverage report -m
+	pipenv run coverage html
+	xdg-open htmlcov/index.html
+
+PHONY: report-coverage
+report-coverage: ## Report coverage results to codacy
+report-coverage:
+	pipenv run python-codacy-coverage -r coverage.xml
 
 .PHONY: docs
 docs: ## Generate Sphinx HTML documentation, including API docs

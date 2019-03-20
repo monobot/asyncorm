@@ -17,11 +17,11 @@ pytest-asyncio = "*"
 rope = "*"
 Sphinx = "*"
 tox = ">=3.7.0<3.8"
+watchdog = "*"
 
 [packages]
 asyncpg = "==0.18.3"
 netaddr = "==0.7.19"
-pylint = "*"
 
 [requires]
 python_version = "3.6"
