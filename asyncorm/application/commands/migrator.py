@@ -3,10 +3,10 @@ import logging
 import os
 import textwrap
 
-from asyncorm.application.configure import configure_orm, DEFAULT_CONFIG_FILE
+from asyncorm.application.configure import DEFAULT_CONFIG_FILE, configure_orm
 from asyncorm.exceptions import AsyncOrmCommandError, AsyncOrmMigrationError
-from asyncorm.orm_migrations.migration_constructor import MigrationConstructor
 from asyncorm.migrations.models import AsyncormMigrations
+from asyncorm.orm_migrations.migration_constructor import MigrationConstructor
 
 cwd = os.getcwd()
 

@@ -12,12 +12,12 @@ endef
 export PRINT_HELP_PYSCRIPT
 
 .PHONY: help
-help: ## shows the help menu
+help: ## Show the help menu
 help:
 	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
 
 .PHONY: clean-build
-clean-build: ## remove build artifacts
+clean-build: ## Remove build artifacts
 clean-build:
 	rm -rf build/
 	rm -rf dist/
@@ -26,7 +26,7 @@ clean-build:
 	find . -name '*.egg' -exec rm -f {} +
 
 .PHONY: clean-pyc
-clean-pyc: ## remove Python file artifacts
+clean-pyc: ## Remove Python file artifacts
 clean-pyc:
 	find . -name '*.pyc' -exec rm -f {} +
 	find . -name '*.pyo' -exec rm -f {} +
@@ -34,7 +34,7 @@ clean-pyc:
 	find . -name '__pycache__' -exec rm -rf {} +
 
 .PHONY: clean-test
-clean-test: ## remove test and coverage artifacts
+clean-test: ## Remove test and coverage artifacts
 clean-test:
 	rm -rf .tox/
 	rm -f .coverage
@@ -44,11 +44,16 @@ clean-others:
 	rm -rf .vscode/.ropeproject/
 
 .PHONY: clean
-clean: ## remove all build, test, coverage and Python artifacts
+clean: ## Remove all build, test, coverage and Python artifacts
 clean: clean-build clean-pyc clean-test clean-others
 
+.PHONY: isort
+isort: ## Check imports sorting
+isort: clean-others
+	pipenv run isort --diff
+
 .PHONY: lint
-lint: ## check style with black code style
+lint: ## Check style with black code style
 lint: clean-others
 	pipenv run black --check --diff -l 119 .
 
@@ -56,20 +61,20 @@ setup:
 	pip install pipenv
 	pipenv install --dev
 
-test: ## run tests quickly with the default Python
+test: ## Run tests quickly with the default Python
 	pipenv run python -m tests
 
-test-all: ## run tests on every Python version with tox
+test-all: ## Run tests on every Python version with tox
 	pipenv run tox
 
-coverage: ## check code coverage quickly with the default Python
+coverage: ## Check code coverage quickly with the default Python
 coverage: coverage run --source asyncorm setup.py test
 	coverage report -m
 	coverage html
 	$(BROWSER) htmlcov/index.html
 
 .PHONY: docs
-docs: ## generate Sphinx HTML documentation, including API docs
+docs: ## Generate Sphinx HTML documentation, including API docs
 docs: clean
 	rm -f docs/asyncorm.rst
 	rm -f docs/modules.rst
@@ -77,21 +82,21 @@ docs: clean
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 
-servedocs: ## compile the docs watching for changes
+servedocs: ## Compile the docs watching for changes
 servedocs: docs
 	watchmedo shell-command -p '*.rst' -c '$(MAKE) -C docs html' -R -D .
 
-release: ## package and upload a release
+release: ## Package and upload a release
 release: clean
 	python setup.py sdist upload
 	python setup.py bdist_wheel upload
 
-dist: ## builds source and wheel package
+dist: ## Builds source and wheel package
 dist: clean
 	python setup.py sdist
 	python setup.py bdist_wheel
 	ls -l dist
 
-install: ## install the package to the active Python's site-packages
+install: ## Install the package to the active Python's site-packages
 install: clean
 	python setup.py install

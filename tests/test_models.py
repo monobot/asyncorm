@@ -1,9 +1,8 @@
 from asyncorm.application.configure import get_model
 from asyncorm.exceptions import AsyncOrmFieldError, AsyncOrmModelError
-
-from tests.app_1.models import Book, Author
-from tests.app_2.models import Developer, Client, Organization
 from asyncorm.test_case import AsyncormTestCase
+from tests.app_1.models import Author, Book
+from tests.app_2.models import Client, Developer, Organization
 
 # You can get the book by model_name
 Book2 = get_model("Book")

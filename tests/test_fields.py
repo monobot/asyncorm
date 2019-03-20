@@ -1,13 +1,13 @@
 from datetime import date, datetime, time
-
 from uuid import UUID
+
 from netaddr import EUI, IPNetwork, mac_eui48
 
-from asyncorm.exceptions import AsyncormException, AsyncOrmFieldError
 from asyncorm import models
-from tests.app_1.models import Book, Publisher, Reader, Author
-from tests.app_2.models import Organization, Client, Appointment, Skill, Developer
+from asyncorm.exceptions import AsyncormException, AsyncOrmFieldError
 from asyncorm.test_case import AsyncormTestCase
+from tests.app_1.models import Author, Book, Publisher, Reader
+from tests.app_2.models import Appointment, Client, Developer, Organization, Skill
 
 
 class FieldTests(AsyncormTestCase):

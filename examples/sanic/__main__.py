@@ -1,12 +1,11 @@
 from asyncorm.application.configure import configure_orm
 from asyncorm.exceptions import QuerysetError
+from library.models import Book
+from library.serializer import BookSerializer
 from sanic import Sanic
 from sanic.exceptions import NotFound, URLBuildError
 from sanic.response import json
 from sanic.views import HTTPMethodView
-
-from library.models import Book
-from library.serializer import BookSerializer
 
 app = Sanic(name=__name__)
 

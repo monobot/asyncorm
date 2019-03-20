@@ -1,6 +1,6 @@
 import argparse
-import textwrap
 import os
+import textwrap
 
 from asyncorm.application.configure import DEFAULT_CONFIG_FILE
 

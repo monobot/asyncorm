@@ -1,7 +1,8 @@
 import asyncio
-import asyncpg
 import os
 import unittest
+
+import asyncpg
 
 from asyncorm.application import configure_orm
 

@@ -1,5 +1,5 @@
-from tests.app_1.models import Book
 from asyncorm.test_case import AsyncormTestCase
+from tests.app_1.models import Book
 
 
 class MigrationTests(AsyncormTestCase):

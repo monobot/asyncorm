@@ -1,10 +1,9 @@
 import asyncio
-import unittest
 import os
-
-from tests.app_1.models import Author, Book
+import unittest
 
 from asyncorm.application import configure_orm
+from tests.app_1.models import Author, Book
 
 config_file = os.path.join(os.getcwd(), "tests", "asyncorm.ini")
 orm_app = configure_orm(config_file)

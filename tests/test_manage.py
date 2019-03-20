@@ -1,16 +1,14 @@
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from asyncorm.exceptions import (
-    AsyncOrmModelError,
     AsyncOrmModelDoesNotExist,
-    AsyncOrmQuerysetError,
+    AsyncOrmModelError,
     AsyncOrmMultipleObjectsReturned,
+    AsyncOrmQuerysetError,
 )
-
-from tests.app_1.models import Author, Book
-from tests.app_2.models import Appointment, Developer, Client
 from asyncorm.test_case import AsyncormTestCase
+from tests.app_1.models import Author, Book
+from tests.app_2.models import Appointment, Client, Developer
 
 
 class ManageTestMethods(AsyncormTestCase):
