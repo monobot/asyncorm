@@ -3,8 +3,6 @@ import asyncpg
 from asyncorm.database.backends.sql_base_backend import SQLBaseBackend
 from asyncorm.database.cursor import Cursor
 from asyncorm.database.query_list import QueryStack
-from asyncorm.exceptions import AsyncormTransactionRollback
-from asyncorm.log import logger
 
 
 class PostgresBackend(SQLBaseBackend):
