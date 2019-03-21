@@ -69,14 +69,14 @@ report-coverage: ## Report coverage results to codacy
 report-coverage:
 	pipenv run python-codacy-coverage -r coverage.xml
 
-.PHONY: docs
+PHONY: docs
 docs: ## Generate Sphinx HTML documentation, including API docs
 docs: clean
 	rm -f docs/asyncorm.rst
 	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ asyncorm
-	$(MAKE) -C docs clean
-	$(MAKE) -C docs html
+	pipenv run sphinx-apidoc -o docs/ asyncorm
+	pipenv run $(MAKE) -C docs clean
+	pipenv run $(MAKE) -C docs html
 
 servedocs: ## Compile the docs watching for changes
 servedocs: docs

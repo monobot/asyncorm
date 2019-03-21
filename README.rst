@@ -56,7 +56,8 @@ WARNING: Work In Progress !!
 .. _ORM: https://en.wikipedia.org/wiki/Object-relational_mapping
 .. _django orm: https://docs.djangoproject.com/en/1.11/topics/db/
 
-**AsyncORM** currently only supports postgres, but its developed to be "easy" to plug a number of different database interfaces.
+**AsyncORM** currently only supports postgres, but its developed to be "easy"
+to plug a number of different database interfaces.
 
 It is designed to be used with any async library, but with sanic_ in mind.
 
@@ -65,7 +66,8 @@ It is designed to be used with any async library, but with sanic_ in mind.
 To do
 -----
 
-A number of things are needed to be able to release asyncOrm as a production ready ORM:
+A number of things are needed to be able to release asyncOrm as a production
+ready ORM:
 
 - better the documentation!
 - migration support (forward migration at least)
@@ -82,7 +84,8 @@ Dependencies
 
 AsyncOrm currently only depends on AsyncPg and netaddr.
 
-asyncpg_, is a database interface library designed specifically for PostgreSQL and Python/asyncio.
+asyncpg_, is a database interface library designed specifically for PostgreSQL
+and Python/asyncio.
 
 netaddr_, A network address manipulation library for Python
 
@@ -92,7 +95,8 @@ netaddr_, A network address manipulation library for Python
 Credits
 ---------
 
-This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
+This package was created with Cookiecutter_ and the
+`audreyr/cookiecutter-pypackage`_ project template.
 
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
