@@ -50,10 +50,6 @@ class Migration(MigrationBase):
                     "unique": True,
                 },
             },
-            meta={
-                "ordering": None,
-                "unique_together": [],
-                "table_name": "asyncorm_migrations",
-            },
+            meta={"ordering": None, "unique_together": [], "table_name": "asyncorm_migrations"},
         )
     ]

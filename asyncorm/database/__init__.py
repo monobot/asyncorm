@@ -1,4 +1,5 @@
-from asyncorm.database.db_manager import PostgresManager
-from asyncorm.database.db_cursor import Cursor
+from asyncorm.database.backends.postgres_backend import PostgresBackend
+from asyncorm.database.cursor import Cursor
+from asyncorm.database.query_list import QueryStack
 
-__all__ = ["PostgresManager", "Cursor"]
+__all__ = ["PostgresBackend", "Cursor", "QueryStack"]

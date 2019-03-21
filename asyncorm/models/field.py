@@ -16,7 +16,7 @@ KWARGS_TYPES = {
     "null": bool,
     "protocol": str,
     "reverse_field": str,
-    "format": str,
+    "strftime": str,
     "unpack_protocol": str,
     "unique": bool,
     "uuid_type": str,
@@ -37,9 +37,7 @@ class Field(object):
 
     def __new__(cls, **kwargs):
         if cls.internal_type is None:
-            raise NotImplementedError(
-                'Missing "internal_type" attribute from class definition'
-            )
+            raise NotImplementedError('Missing "internal_type" attribute from class definition')
         return super().__new__(cls)
 
     def __init__(self, **kwargs):
@@ -98,11 +96,7 @@ class Field(object):
         """
         for kw in self.required_kwargs:
             if not kwargs.get(kw, None):
-                raise AsyncOrmFieldError(
-                    '"{cls}" field requires {kw}'.format(
-                        cls=self.__class__.__name__, kw=kw
-                    )
-                )
+                raise AsyncOrmFieldError('"{cls}" field requires {kw}'.format(cls=self.__class__.__name__, kw=kw))
 
         for k, v in kwargs.items():
             null_choices = v is None and k == "choices"
@@ -131,9 +125,7 @@ class Field(object):
 
         if value is not None and not isinstance(value, self.internal_type):
             raise AsyncOrmFieldError(
-                "{value} is a wrong datatype for field {cls}".format(
-                    value=value, cls=self.__class__.__name__
-                )
+                "{value} is a wrong datatype for field {cls}".format(value=value, cls=self.__class__.__name__)
             )
 
     @classmethod
@@ -150,11 +142,7 @@ class Field(object):
         return value
 
     def current_state(self):
-        state = {
-            "field_type": "{}.{}".format(
-                self.__class__.__dict__["__module__"], self.__class__.__name__
-            )
-        }
+        state = {"field_type": "{}.{}".format(self.__class__.__dict__["__module__"], self.__class__.__name__)}
         state.update({arg: getattr(self, arg) for arg in self.args})
         return state
 

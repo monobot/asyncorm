@@ -17,16 +17,12 @@ class ModelSerializerMeta(type):
             if hasattr(defined_meta, "model"):
                 base_class.model = getattr(defined_meta, "model")
             else:
-                raise AsyncOrmSerializerError(
-                    "The serializer has to define the model it's serializing"
-                )
+                raise AsyncOrmSerializerError("The serializer has to define the model it's serializing")
             # has fields
             if hasattr(defined_meta, "fields"):
                 base_class._fields = getattr(defined_meta, "fields")
             else:
-                raise AsyncOrmSerializerError(
-                    "The serializer has to define the fields's to serialize"
-                )
+                raise AsyncOrmSerializerError("The serializer has to define the fields's to serialize")
 
         return base_class
 
@@ -43,18 +39,14 @@ class ModelSerializer(Serializers, metaclass=ModelSerializerMeta):
     def validate_fields(self):
         for f in self._fields:
             if not hasattr(self.__class__, f) and not hasattr(self.model, f):
-                raise AsyncOrmSerializerError(
-                    "{} is not a correct argument for model {}".format(f, self.model)
-                )
+                raise AsyncOrmSerializerError("{} is not a correct argument for model {}".format(f, self.model))
 
     @classmethod
     def serialize(cls, instanced_model):
         return_dict = {}
 
         if not isinstance(instanced_model, cls.model):
-            raise AsyncOrmSerializerError(
-                "That object is not an instance of {}".format(cls.model)
-            )
+            raise AsyncOrmSerializerError("That object is not an instance of {}".format(cls.model))
 
         for f in cls._fields:
             # if the serializer class has an specific serializer for that field

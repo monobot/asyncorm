@@ -32,9 +32,7 @@ class MigrationConstructor(object):
         with open(self.file_name, "a") as myfile:
             myfile.write(self.tabulation(tab_level) + txt)
 
-    def _write_dictformater(
-        self, tab_level, name, content, notrail=False, asignation=False
-    ):
+    def _write_dictformater(self, tab_level, name, content, notrail=False, asignation=False):
         end_singleline = notrail and "'{}': {{}}\n" or "'{}': {{}},\n"
         end_multistr = notrail and "'{}': '{}'\n" or "'{}': '{}',\n"
         end_multinostr = notrail and "'{}': {}\n" or "'{}': {},\n"

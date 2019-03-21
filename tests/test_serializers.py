@@ -1,18 +1,17 @@
 from asyncorm.application.configure import get_model
 from asyncorm.exceptions import AsyncOrmSerializerError
 from asyncorm.serializers import ModelSerializer, SerializerMethod
-
-from tests.testapp.serializer import BookSerializer
-from tests.testapp.models import Book, Author
-from tests.test_helper import AioTestCase
+from asyncorm.test_case import AsyncormTestCase
+from tests.app_1.models import Author, Book
+from tests.app_1.serializer import BookSerializer
 
 # You can get the book by model_name
 Book2 = get_model("Book")
 # And get the author by module.model_name
-Author2 = get_model("testapp.Author")
+Author2 = get_model("app_1.Author")
 
 
-class SerializerTests(AioTestCase):
+class SerializerTests(AsyncormTestCase):
     async def test_serialize_wrong_model(self):
         # complains if we try to serialize an incorrect model
         with self.assertRaises(AsyncOrmSerializerError) as exc:
@@ -33,27 +32,21 @@ class SerializerTests(AioTestCase):
         # complains if we have a model serializer without model
         with self.assertRaises(AsyncOrmSerializerError) as exc:
 
-            class NooneSerializer(ModelSerializer):
+            class _(ModelSerializer):
                 class Meta:
                     fields = ["name", "content"]
 
-        self.assertEqual(
-            "The serializer has to define the model it's serializing",
-            exc.exception.args[0],
-        )
+        self.assertEqual("The serializer has to define the model it's serializing", exc.exception.args[0])
 
     async def test_wrong_serializer_no_fields(self):
         # complains if we have a model serializer without fields to serialize defined
         with self.assertRaises(AsyncOrmSerializerError) as exc:
 
-            class Noone2Serializer(ModelSerializer):
+            class _2(ModelSerializer):
                 class Meta:
                     model = Book
 
-        self.assertEqual(
-            "The serializer has to define the fields's to serialize",
-            exc.exception.args[0],
-        )
+        self.assertEqual("The serializer has to define the fields's to serialize", exc.exception.args[0])
 
     async def test_wrong_serializer_not_defined_methodfield(self):
         # complains if we have a model serializer with incorrect field names
@@ -71,9 +64,7 @@ class SerializerTests(AioTestCase):
         with self.assertRaises(AsyncOrmSerializerError) as exc:
             BookSerializerNew().serialize(await Book.objects.get(id=3))
 
-        self.assertIn(
-            "its_a_3 is not a correct argument for model", exc.exception.args[0]
-        )
+        self.assertIn("its_a_3 is not a correct argument for model", exc.exception.args[0])
 
     async def test_serializer_correctly_defined_methodfield(self):
         class BookSerializerNew(ModelSerializer):

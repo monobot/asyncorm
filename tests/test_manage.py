@@ -1,27 +1,19 @@
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from asyncorm.exceptions import (
-    AsyncOrmModelError,
     AsyncOrmModelDoesNotExist,
-    AsyncOrmQuerysetError,
+    AsyncOrmModelError,
     AsyncOrmMultipleObjectsReturned,
+    AsyncOrmQuerysetError,
 )
+from asyncorm.test_case import AsyncormTestCase
+from tests.app_1.models import Author, Book
+from tests.app_2.models import Appointment, Client, Developer
 
-from tests.testapp.models import Author, Book
-from tests.testapp2.models import Appointment, Developer, Client
-from tests.test_helper import AioTestCase
 
-
-class ManageTestMethods(AioTestCase):
+class ManageTestMethods(AsyncormTestCase):
     async def test_save_no_id_before_save(self):
-        book = Book(
-            **{
-                "name": "lord of the rings",
-                "content": "hard cover",
-                "date_created": datetime.now(),
-            }
-        )
+        book = Book(**{"name": "lord of the rings", "content": "hard cover", "date_created": datetime.now()})
         id_before_save = book.id
 
         await book.save()
@@ -30,13 +22,7 @@ class ManageTestMethods(AioTestCase):
         self.assertTrue(book.id)
 
     async def test_id_persitent(self):
-        book = Book(
-            **{
-                "name": "silmarilion",
-                "content": "hard cover",
-                "date_created": datetime.now(),
-            }
-        )
+        book = Book(**{"name": "silmarilion", "content": "hard cover", "date_created": datetime.now()})
         await book.save()
         orig_id = book.id
 
@@ -51,13 +37,11 @@ class ManageTestMethods(AioTestCase):
         with self.assertRaises(AsyncOrmModelError) as exc:
             await book.save()
 
-        self.assertEqual(
-            "The model violates a unique constraint", exc.exception.args[0]
-        )
+            self.assertEqual("The model violates a unique constraint", exc.exception.args[0])
 
-        # but when any of them are different there is no problem
-        book.name = "this is a new name"
-        await book.save()
+            # but when any of them are different there is no problem
+            book.name = "this is a new name"
+            await book.save()
 
     async def test_unique(self):
         author = Author(**{"name": "Mnemonic", "age": 73})
@@ -68,9 +52,7 @@ class ManageTestMethods(AioTestCase):
         with self.assertRaises(AsyncOrmModelError) as exc:
             await author2.save()
 
-        self.assertEqual(
-            "The model violates a unique constraint", exc.exception.args[0]
-        )
+        self.assertEqual("The model violates a unique constraint", exc.exception.args[0])
 
     async def test_delete_can_not_be_saved(self):
         book = await Book.objects.all()[5]
@@ -212,11 +194,11 @@ class ManageTestMethods(AioTestCase):
         lt_today = await Appointment.objects.filter(date__lt=today).count()
         yday = await Appointment.objects.filter(date__lte=yesterday).count()
 
-        self.assertEqual(all_appointments, 6)
+        self.assertEqual(all_appointments, 3)
         self.assertEqual(gt_today, 1)
-        self.assertEqual(gte_today, 5)
+        self.assertEqual(gte_today, 2)
         self.assertEqual(lt_today, 1)
-        self.assertEqual(yday, 6)
+        self.assertEqual(yday, 3)
 
     async def test_in_lookup_integerfield(self):
         queryset = Book.objects.filter(id__in=(1, 2, 56, 456))
@@ -231,9 +213,7 @@ class ManageTestMethods(AioTestCase):
     async def test_string_lookups_wrong_fieldtype(self):
         with self.assertRaises(AsyncOrmQuerysetError) as exc:
             Book.objects.filter(id__exact=3)
-        self.assertEqual(
-            "exact not allowed in non CharField fields", exc.exception.args[0]
-        )
+        self.assertEqual("exact not allowed in non CharField fields", exc.exception.args[0])
 
     async def test_string_lookups_exact(self):
         queryset = Book.objects.filter(name__exact="book name 10")
@@ -350,9 +330,7 @@ class ManageTestMethods(AioTestCase):
         # now try to get using wrong arguments (more than one)
         with self.assertRaises(AsyncOrmMultipleObjectsReturned) as exc:
             await Book.objects.get(id__range=[10, 25])
-        self.assertIn(
-            'More than one "Book" were returned, there are 16', exc.exception.args[0]
-        )
+        self.assertIn('More than one "Book" were returned, there are 16', exc.exception.args[0])
 
     async def test_get_no_exists_exception(self):
         # now try to get using wrong arguments (no object)
@@ -409,18 +387,14 @@ class ManageTestMethods(AioTestCase):
         self.assertEqual(total_price, quant * 25)
 
     async def test_max(self):
-        await Book.objects.create(
-            **{"name": "chancleta 2", "price": 35, "content": "hard cover"}
-        )
+        await Book.objects.create(**{"name": "chancleta 2", "price": 35, "content": "hard cover"})
         q_books = Book.objects.all()
 
         max_price = await q_books.Max("price")
         self.assertEqual(max_price, 35)
 
     async def test_min(self):
-        await Book.objects.create(
-            **{"name": "chancleta", "price": 15, "content": "hard cover"}
-        )
+        await Book.objects.create(**{"name": "chancleta", "price": 15, "content": "hard cover"})
         q_books = Book.objects.all()
 
         min_price = await q_books.Min("price")
@@ -449,20 +423,14 @@ class ManageTestMethods(AioTestCase):
         with self.assertRaises(AsyncOrmQuerysetError) as exc:
             Book.objects.select_related(field_name)
 
-        self.assertEqual(
-            "{} is not a {} attribute.".format(field_name.split("__")[0], "Book"),
-            exc.exception.args[0],
-        )
+        self.assertEqual("{} is not a {} attribute.".format(field_name.split("__")[0], "Book"), exc.exception.args[0])
 
     def test_select_related_wrong_fieldtype(self):
         field_name = "name"
         with self.assertRaises(AsyncOrmQuerysetError) as exc:
             Book.objects.select_related(field_name)
 
-        self.assertEqual(
-            "{} is not a ForeignKey Field for {}.".format(field_name, "Book"),
-            exc.exception.args[0],
-        )
+        self.assertEqual("{} is not a ForeignKey Field for {}.".format(field_name, "Book"), exc.exception.args[0])
 
     async def test_select_related_fieldtype_null(self):
         field_name = "author"
@@ -476,9 +444,7 @@ class ManageTestMethods(AioTestCase):
 
     async def test_select_related_fieldtype_exists(self):
         author = await Author.objects.create(**{"name": "new author", "age": 23})
-        book = await Book.objects.create(
-            **{"name": "book with author", "content": "hard cover", "author": author.na}
-        )
+        book = await Book.objects.create(**{"name": "book with author", "content": "hard cover", "author": author.na})
 
         book = await Book.objects.select_related("author").get(id=book.id)
 
@@ -487,11 +453,7 @@ class ManageTestMethods(AioTestCase):
     async def test_select_related_fieldtype_exists_get(self):
         author = await Author.objects.create(**{"name": "new new author", "age": 23})
         book = await Book.objects.create(
-            **{
-                "name": "book with author 2",
-                "content": "hard cover",
-                "author": author.na,
-            }
+            **{"name": "book with author 2", "content": "hard cover", "author": author.na}
         )
 
         book = await Book.objects.select_related("author").get(id=book.id)
@@ -504,11 +466,7 @@ class ManageTestMethods(AioTestCase):
         author = await Author.objects.create(**{"name": "supernew author", "age": 23})
         # we create a number of books
         for x in range(10):
-            new_data = {
-                "name": "book-author {}".format(str(x)),
-                "content": "hard cover",
-                "author": author.na,
-            }
+            new_data = {"name": "book-author {}".format(str(x)), "content": "hard cover", "author": author.na}
             book = await Book.objects.create(**new_data)
         q_books = Book.objects.select_related("author").filter(id__gt=last_book.id)
 
@@ -518,17 +476,11 @@ class ManageTestMethods(AioTestCase):
 
     async def test_select_related_multiple(self):
         # get the last book id
-        appointment = await Appointment.objects.create(
-            name="totorota", date=datetime.now()
-        )
+        appointment = await Appointment.objects.create(name="totorota", date=datetime.now())
         dev = await Developer.objects.create(name="this is a developer", age=23)
-        n_c = await Client.objects.create(
-            **{"name": "awesome cl", "dev": dev.id, "appointment": appointment.id}
-        )
+        n_c = await Client.objects.create(**{"name": "awesome cl", "dev": dev.id, "appointment": appointment.id})
 
-        client = await Client.objects.select_related("dev", "appointment").get(
-            id=n_c.id
-        )
+        client = await Client.objects.select_related("dev", "appointment").get(id=n_c.id)
 
         self.assertIsInstance(client.dev, Developer)
         self.assertIsInstance(client.appointment, Appointment)

@@ -7,34 +7,23 @@ import os
 
 from asyncorm.apps.app import App
 from asyncorm.apps.app_config import AppConfig
-from asyncorm.exceptions import (
-    AsyncOrmAppError,
-    AsyncOrmConfigError,
-    AsyncOrmModelError,
-    AsyncOrmModelNotDefined,
-)
+from asyncorm.exceptions import AsyncOrmAppError, AsyncOrmConfigError, AsyncOrmModelError, AsyncOrmModelNotDefined
 
 logger = logging.getLogger("asyncorm")
-
 
 DEFAULT_CONFIG_FILE = "asyncorm.ini"
 
 
 class OrmApp(object):
-    _conf = {
-        "db_config": None,
-        "loop": asyncio.get_event_loop(),
-        "manager": "PostgresManager",
-        "apps": None,
-    }
+    _conf = {"apps": None, "db_config": None, "loop": asyncio.get_event_loop(), "backend": "PostgresBackend"}
 
     def configure(self, config):
         """
         Configures the system:
         get all the models declared
-        sets the database configured and adds the loop
+        set the database configured and add the loop
 
-        Then the database manager is configured, and set to all the
+        Then the database backend is configured, and set to all the
         models previously declared
         and then we finish the models configurations using
         models_configure(): will take care of the inverse relations for foreignkeys and many2many
@@ -43,18 +32,17 @@ class OrmApp(object):
         self._conf.update(config)
 
         db_config = config.get("db_config", None)
+
         if not db_config:
-            raise AsyncOrmAppError(
-                "Imposible to configure without database configuration!"
-            )
+            raise AsyncOrmAppError("Imposible to configure without database configuration!")
 
         db_config["loop"] = self.loop = self._conf.get("loop")
 
         database_module = importlib.import_module("asyncorm.database")
 
-        # we get the manager defined in the config file
-        manager = getattr(database_module, self._conf["manager"])
-        self.db_manager = manager(db_config)
+        # we get the backend defined in the config file
+        backend = getattr(getattr(database_module, "backends"), self._conf["backend"])
+        self.db_backend = backend(db_config)
 
         app_names = self._conf.pop("apps", []) or []
         self.apps = self._get_declared_apps(app_names)
@@ -79,12 +67,9 @@ class OrmApp(object):
                     module = importlib.import_module(import_str)
                 except ImportError:
                     logger.exception("unable to import %s", import_str)
-            for k, app_config in inspect.getmembers(module):
+            for _, app_config in inspect.getmembers(module):
                 try:
-                    if (
-                        issubclass(app_config, AppConfig)
-                        and app_config is not AppConfig
-                    ):
+                    if issubclass(app_config, AppConfig) and app_config is not AppConfig:
                         # the instance directory is the import_str without the app.py file_name
                         dir_name = ".".join(import_str.split(".")[:-1])
                         abs_path = os.sep.join(module.__file__.split(os.sep)[:-1])
@@ -117,9 +102,7 @@ class OrmApp(object):
             elif len(model_split) == 1:
                 return self.models[model_name]
             else:
-                raise AsyncOrmModelError(
-                    'The string declared should be in format "module.Model" or "Model"'
-                )
+                raise AsyncOrmModelError('The string declared should be in format "module.Model" or "Model"')
         except KeyError:
             raise AsyncOrmModelNotDefined("The model does not exists")
 
@@ -171,35 +154,31 @@ class OrmApp(object):
             await model().objects.unique_together()
 
     def sync_db(self):
-        self.loop.run_until_complete(
-            asyncio.gather(self.loop.create_task(self.create_db()))
-        )
+        self.loop.run_until_complete(asyncio.gather(self.loop.create_task(self.create_db())))
 
 
 orm_app = OrmApp()
 
 
 def parse_config(config_file):
-    parsed_file = configparser.ConfigParser()
+    config_parser = configparser.ConfigParser()
 
-    parsed_file.read(config_file)
+    config_parser.read(config_file)
 
     # check all sections exist
     for section in ["db_config", "orm"]:
-        if section not in parsed_file.sections():
-            raise AsyncOrmConfigError(
-                "the file {} does not contain {} section!".format(config_file, section)
-            )
+        if section not in config_parser.sections():
+            raise AsyncOrmConfigError("the file {} does not contain {} section!".format(config_file, section))
 
     return {
         "db_config": {
-            "database": parsed_file.get("db_config", "database") or None,
-            "host": parsed_file.get("db_config", "host") or None,
-            "port": parsed_file.get("db_config", "port") or None,
-            "user": parsed_file.get("db_config", "user") or None,
-            "password": parsed_file.get("db_config", "password") or None,
+            "database": config_parser.get("db_config", "database", fallback=None),
+            "host": config_parser.get("db_config", "host", fallback=None),
+            "port": config_parser.get("db_config", "port", fallback=None),
+            "user": config_parser.get("db_config", "user", fallback=None),
+            "password": config_parser.get("db_config", "password", fallback=None),
         },
-        "apps": parsed_file.get("orm", "apps").split() or [],
+        "apps": config_parser.get("orm", "apps").split() or [],
     }
 
 
@@ -228,7 +207,7 @@ def configure_orm(config=None, loop=None):
     if loop is None:
         loop = asyncio.get_event_loop()
 
-    config.update({"loop": loop})
+    config.update(loop=loop)
     orm_app.configure(config)
     return orm_app
 

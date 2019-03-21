@@ -33,7 +33,7 @@ class App(AppMigration):
         self.abs_path = abs_path
         self.name = name
         self.orm = orm
-        self.db_manager = orm.db_manager
+        self.db_backend = orm.db_backend
         self.models = self.get_declared_models()
 
     def get_declared_models(self):

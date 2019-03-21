@@ -1,0 +1,18 @@
+LOOKUP_OPERATOR = {
+    "gt": "{t_n}.{k} > {v}",
+    "lt": "{t_n}.{k} < {v}",
+    "gte": "{t_n}.{k} >= {v}",
+    "lte": "{t_n}.{k} <= {v}",
+    "range": "({t_n}.{k}>={min} AND {t_n}.{k}<={max})",
+    "in": "{t_n}.{k} = ANY (array[{v}])",
+    "exact": "{t_n}.{k} LIKE '{v}'",
+    "iexact": "{t_n}.{k} ILIKE '{v}'",
+    "contains": "{t_n}.{k} LIKE '%{v}%'",
+    "icontains": "{t_n}.{k} ILIKE '%{v}%'",
+    "startswith": "{t_n}.{k} LIKE '{v}%'",
+    "istartswith": "{t_n}.{k} ILIKE '{v}%'",
+    "endswith": "{t_n}.{k} LIKE '%{v}'",
+    "iendswith": "{t_n}.{k} ILIKE '%{v}'",
+    "regex": "{t_n}.{k} ~ {v}",
+    "iregex": "{t_n}.{k} ~* {v}",
+}

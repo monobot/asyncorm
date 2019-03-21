@@ -2,11 +2,7 @@ import inspect
 import os
 
 from asyncorm.application.configure import get_model
-from asyncorm.exceptions import (
-    AsyncOrmFieldError,
-    AsyncOrmModelDoesNotExist,
-    AsyncOrmModelError,
-)
+from asyncorm.exceptions import AsyncOrmFieldError, AsyncOrmModelDoesNotExist, AsyncOrmModelError
 from asyncorm.manager import ModelManager
 from asyncorm.models.fields import AutoField, Field, ForeignKey, ManyToManyField
 from asyncorm.serializers import ModelSerializer, SerializerMethod
@@ -18,11 +14,9 @@ class ModelMeta(type):
     def __new__(cls, clsname, bases, clsdict):
         base_class = super().__new__(cls, clsname, bases, clsdict)
 
-        base_class.objects = type(
-            "{}Manager".format(base_class.__name__),
-            (ModelManager,),
-            {"model": base_class},
-        )(base_class)
+        base_class.objects = type("{}Manager".format(base_class.__name__), (ModelManager,), {"model": base_class})(
+            base_class
+        )
 
         # Meta manage
         defined_meta = clsdict.pop("Meta", None)
@@ -43,9 +37,7 @@ class ModelMeta(type):
 
         base_class.fields = base_class.get_fields()
 
-        primary_keys = [
-            f for f in base_class.fields.values() if isinstance(f, AutoField)
-        ]
+        primary_keys = [f for f in base_class.fields.values() if isinstance(f, AutoField)]
         if not primary_keys:
             base_class.id = AutoField()
             base_class.fields["id"] = base_class.id
@@ -59,11 +51,7 @@ class ModelMeta(type):
         for f in base_class.fields.values():
             if hasattr(f, "choices"):
                 if f.choices:
-                    setattr(
-                        base_class,
-                        "{}_display".format(f.orm_field_name),
-                        "choices_placeholder",
-                    )
+                    setattr(base_class, "{}_display".format(f.orm_field_name), "choices_placeholder")
         return base_class
 
 
@@ -103,11 +91,7 @@ class BaseModel(object, metaclass=ModelMeta):
 
         for field_name in self.fields.keys():
             if hasattr(getattr(self.__class__, field_name), "default"):
-                setattr(
-                    self,
-                    field_name,
-                    kwargs.get(field_name, getattr(self.__class__, field_name).default),
-                )
+                setattr(self, field_name, kwargs.get(field_name, getattr(self.__class__, field_name).default))
             else:
                 setattr(self, field_name, None)
 
@@ -143,9 +127,7 @@ class BaseModel(object, metaclass=ModelMeta):
             ]
             return queryset
 
-        method_name = (
-            direct and field.field_name or "{}_set".format(other_column.lower())
-        )
+        method_name = direct and field.field_name or "{}_set".format(other_column.lower())
         setattr(cls, method_name, m2m_set)
 
     @classmethod
@@ -219,9 +201,7 @@ class BaseModel(object, metaclass=ModelMeta):
                 fields[f_n] = field
 
         if len(cls.attr_names) != len(set(cls.attr_names)):
-            raise AsyncOrmModelError(
-                "Models should have unique attribute names and field_name if explicitly edited!"
-            )
+            raise AsyncOrmModelError("Models should have unique attribute names and field_name if explicitly edited!")
 
         return fields
 
@@ -244,9 +224,7 @@ class BaseModel(object, metaclass=ModelMeta):
 
         if attr_errors:
             err_string = '"{}" is not an attribute for {}'
-            error_list = [
-                err_string.format(k, self.__class__.__name__) for k in attr_errors
-            ]
+            error_list = [err_string.format(k, self.__class__.__name__) for k in attr_errors]
             raise AsyncOrmModelError(error_list)
 
         for k, v in kwargs.items():
@@ -328,9 +306,7 @@ class Model(BaseModel):
                 setattr(self, k, v)
             else:
                 # itself or empty dict
-                internal_objects[k_splitted[0]] = internal_objects.get(
-                    k_splitted[0], {}
-                )
+                internal_objects[k_splitted[0]] = internal_objects.get(k_splitted[0], {})
 
                 # update the new value
                 internal_objects[k_splitted[0]].update({k_splitted[1]: v})
@@ -349,9 +325,7 @@ class Model(BaseModel):
                             field = getattr(self.__class__, join["orm_fieldname"])
                             model = get_model(field.foreign_key)
 
-                            setattr(
-                                self, join["orm_fieldname"], model().construct(data)
-                            )
+                            setattr(self, join["orm_fieldname"], model().construct(data))
                             break
 
         self.deleted = deleted
@@ -361,9 +335,7 @@ class Model(BaseModel):
         # external save method
         if self.deleted:
             raise AsyncOrmModelError(
-                "That {model_name} has already been deleted!".format(
-                    model_name=self.__class__.__name__
-                )
+                "That {model_name} has already been deleted!".format(model_name=self.__class__.__name__)
             )
         await self.objects.save(self)
 

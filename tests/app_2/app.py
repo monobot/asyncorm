@@ -1,5 +1,5 @@
 from asyncorm.apps.app_config import AppConfig
 
 
-class TestApp2(AppConfig):
-    name = "testapp2"
+class App2(AppConfig):
+    name = "app_2"

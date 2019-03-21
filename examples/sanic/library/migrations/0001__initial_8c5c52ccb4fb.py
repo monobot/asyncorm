@@ -58,11 +58,7 @@ class Migration(MigrationBase):
                     "unique": True,
                 },
             },
-            meta={
-                "ordering": None,
-                "unique_together": ("name", "last_name"),
-                "table_name": "",
-            },
+            meta={"ordering": None, "unique_together": ("name", "last_name"), "table_name": ""},
         ),
         CreateModel(
             "Book",
@@ -89,10 +85,7 @@ class Migration(MigrationBase):
                 },
                 "book_type": {
                     "field_type": "asyncorm.models.fields.CharField",
-                    "choices": {
-                        "hard cover": "hard cover book",
-                        "paperback": "paperback book",
-                    },
+                    "choices": {"hard cover": "hard cover book", "paperback": "paperback book"},
                     "db_column": "book_type",
                     "db_index": False,
                     "default": None,
@@ -138,10 +131,6 @@ class Migration(MigrationBase):
                     "unique": True,
                 },
             },
-            meta={
-                "ordering": ["-name"],
-                "unique_together": ["name", "synopsis"],
-                "table_name": "",
-            },
+            meta={"ordering": ["-name"], "unique_together": ["name", "synopsis"], "table_name": ""},
         ),
     ]

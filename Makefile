@@ -1,75 +1,98 @@
-.PHONY: clean clean-test clean-pyc clean-build docs help
 .DEFAULT_GOAL := help
 
-define PRINT_HELP_PYSCRIPT
-import re, sys
-
-for line in sys.stdin:
-	match = re.match(r'^([a-zA-Z_-]+):.*?## (.*)$$', line)
-	if match:
-		target, help = match.groups()
-		print("%-20s %s" % (target, help))
-endef
-export PRINT_HELP_PYSCRIPT
-
+.PHONY: help
+help: ## Show the help menu
 help:
-	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-clean: ## remove all build, test, coverage and Python artifacts
-	clean-build clean-pyc clean-test
-
-clean-build: ## remove build artifacts
-	rm -fr build/
-	rm -fr dist/
-	rm -fr .eggs/
-	find . -name '*.egg-info' -exec rm -fr {} +
+.PHONY: clean-build
+clean-build: ## Clean Remove build artifacts
+clean-build:
+	rm -rf build/
+	rm -rf dist/
+	rm -rf .eggs/
+	find . -name '*.egg-info' -exec rm -rf {} +
 	find . -name '*.egg' -exec rm -f {} +
 
-clean-pyc: ## remove Python file artifacts
+.PHONY: clean-pyc
+clean-pyc: ## Clean Remove Python file artifacts
+clean-pyc:
 	find . -name '*.pyc' -exec rm -f {} +
 	find . -name '*.pyo' -exec rm -f {} +
 	find . -name '*~' -exec rm -f {} +
-	find . -name '__pycache__' -exec rm -fr {} +
+	find . -name '__pycache__' -exec rm -rf {} +
 
-clean-test: ## remove test and coverage artifacts
-	rm -fr .tox/
+.PHONY: clean-test
+clean-test: ## Clean Remove test and coverage artifacts
+clean-test:
+	rm -rf .tox/
 	rm -f .coverage
-	rm -fr htmlcov/
+	rm -rf htmlcov/
 
-lint: ## check style with black code style
-	black --check asyncorm
+clean-others:
+	rm -rf .vscode/.ropeproject/
 
-test: ## run tests quickly with the default Python
-	python -m tests
+.PHONY: clean
+clean: ## Remove all build, test, coverage and Python artifacts
+clean: clean-build clean-pyc clean-test clean-others
 
-test-all: ## run tests on every Python version with tox
-	tox
+.PHONY: isort
+isort: ## Check imports sorting
+isort: clean-others
+	pipenv run isort --diff
 
-coverage: ## check code coverage quickly with the default Python
-	coverage run --source asyncorm setup.py test
+.PHONY: lint
+lint: ## Check style with black code style
+lint: clean-others
+	pipenv run black --check --diff -l 119 .
 
-	coverage report -m
-	coverage html
-	$(BROWSER) htmlcov/index.html
+setup:
+	pip install pipenv
+	pipenv install --dev
 
-docs: ## generate Sphinx HTML documentation, including API docs
+test: ## Run tests quickly with the default Python
+	pipenv run python -m tests
+
+test-all: ## Run tests on every Python version with tox
+	pipenv run tox
+
+PHONY: coverage
+coverage: ## Check code coverage quickly with the default Python
+coverage:
+	pipenv run coverage run -m tests
+	pipenv run coverage report -m
+	pipenv run coverage html
+	xdg-open htmlcov/index.html
+
+PHONY: report-coverage
+report-coverage: ## Report coverage results to codacy
+report-coverage:
+	pipenv run python-codacy-coverage -r coverage.xml
+
+.PHONY: docs
+docs: ## Generate Sphinx HTML documentation, including API docs
+docs: clean
 	rm -f docs/asyncorm.rst
 	rm -f docs/modules.rst
 	sphinx-apidoc -o docs/ asyncorm
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 
-servedocs: docs ## compile the docs watching for changes
+servedocs: ## Compile the docs watching for changes
+servedocs: docs
 	watchmedo shell-command -p '*.rst' -c '$(MAKE) -C docs html' -R -D .
 
-release: clean ## package and upload a release
+release: ## Package and upload a release
+release: clean
 	python setup.py sdist upload
 	python setup.py bdist_wheel upload
 
-dist: clean ## builds source and wheel package
+dist: ## Builds source and wheel package
+dist: clean
 	python setup.py sdist
 	python setup.py bdist_wheel
 	ls -l dist
 
-install: clean ## install the package to the active Python's site-packages
+install: ## Install the package to the active Python's site-packages
+install: clean
 	python setup.py install

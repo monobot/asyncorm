@@ -4,6 +4,11 @@ python:
   - "3.5"
   - "3.6"
 
+env:
+  global:
+    - PIPENV_VENV_IN_PROJECT=1
+    - PIPENV_IGNORE_VIRTUALENVS=1
+
 before_script:
   - psql -c "create user ormdbuser with password 'ormDbPass';" -U postgres
   - psql -c "create database asyncorm;" -U postgres
@@ -14,10 +19,11 @@ services:
   - postgresql
 
 # command to install dependencies
-install:
-  - pip install -r requirements_ci.txt
+install: make setup
+
+activate: pipenv shell -c
 
 # command to run tests
 script:
-  - python -m tests
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then black --check . ; fi
+  - make test
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then make lint isort ; fi

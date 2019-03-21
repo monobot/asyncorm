@@ -1,4 +1,5 @@
 from setuptools import setup
+
 from asyncorm import __version__
 
 with open("README.rst") as readme_file:
@@ -9,14 +10,17 @@ with open("HISTORY.rst") as history_file:
 
 
 def requirement_parser(file_name):
-    with open(file_name, "r") as req_file:
-        file_requirement = []
-        for line in req_file.readlines():
-            line = line.rstrip("\n")
-            if line.startswith("-r"):
-                file_requirement += requirement_parser(line.split(" ")[1])
-            elif line:
-                file_requirement += [line]
+    try:
+        with open(file_name, "r") as req_file:
+            file_requirement = []
+            for line in req_file.readlines():
+                line = line.rstrip("\n")
+                if line.startswith("-r"):
+                    file_requirement += requirement_parser(line.split(" ")[1])
+                elif line:
+                    file_requirement += [line]
+    except FileNotFoundError:
+        file_requirement = ""
     return file_requirement
 
 
@@ -49,7 +53,5 @@ setup(
     ],
     test_suite="tests",
     tests_require=test_requirements,
-    entry_points={
-        "console_scripts": ["orm_setup=asyncorm.application.commands.orm_setup:setup"]
-    },
+    entry_points={"console_scripts": ["orm_setup=asyncorm.application.commands.orm_setup:setup"]},
 )

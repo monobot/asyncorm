@@ -1,5 +1,7 @@
 [run]
-    omit =
-        */site-packages/asyncpg/*
-        */site-packages/netaddr/*
-        tests/*
+omit =
+    */site-packages/asyncpg/*
+    */site-packages/netaddr/*
+    tests/*
+source =
+    asyncorm/
