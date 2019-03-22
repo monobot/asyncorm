@@ -72,7 +72,7 @@ report-coverage:
 PHONY: docs
 docs: ## Generate Sphinx HTML documentation, including API docs
 docs: clean
-	rm -f docs/asyncorm.rst
+	rm -f docs/asyncorm*.rst
 	rm -f docs/modules.rst
 	pipenv run sphinx-apidoc -o docs/ asyncorm
 	pipenv run $(MAKE) -C docs clean
