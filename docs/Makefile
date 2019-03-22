@@ -20,10 +20,10 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  clean       to clean the previously generated directories"
+	@echo "  doc-clean       to clean the previously generated directories"
 	@echo "  html       to make standalone HTML files"
 
-clean:
+doc-clean:
 	rm -rf $(BUILDDIR)/*
 
 html:

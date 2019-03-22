@@ -1,59 +1,63 @@
+from typing import Sequence
+
 from asyncorm.log import logger
 
 
 class SQLBaseBackend(object):
+    """SQLBaseBackend is in charge on constructing the queries using SQL syntaxself."""
+
     @property
-    def _db__create_table(self):
+    def _db__create_table(self) -> str:
         return "CREATE TABLE IF NOT EXISTS {table_name} ({field_queries}) "
 
     @property
-    def _db__drop_table(self):
+    def _db__drop_table(self) -> str:
         return "DROP TABLE IF EXISTS {table_name} CASCADE"
 
     @property
-    def _db__alter_table(self):
+    def _db__alter_table(self) -> str:
         return "ALTER TABLE {table_name} ({field_queries}) "
 
     @property
-    def _db__constrain_table(self):
+    def _db__constrain_table(self) -> str:
         return "ALTER TABLE {table_name} ADD {constrain} "
 
     @property
-    def db__table_add_column(self):
+    def db__table_add_column(self) -> str:
         return "ALTER TABLE {table_name} ADD COLUMN {field_creation_string} "
 
     @property
-    def _db__table_alter_column(self):
+    def _db__table_alter_column(self) -> str:
         return self.db__table_add_column.replace("ADD COLUMN ", "ALTER COLUMN ")
 
     @property
-    def _db__insert(self):
+    def _db__insert(self) -> str:
         return "INSERT INTO {table_name} ({field_names}) VALUES ({field_schema}) RETURNING * "
 
     @property
-    def _db__select_all(self):
+    def _db__select_all(self) -> str:
         return "SELECT {select} FROM {table_name} {join} {ordering}"
 
     @property
-    def _db__select_related(self):
+    def _db__select_related(self) -> str:
         # LEFT JOIN inventory ON inventory.film_id = film.film_id;
         return "LEFT JOIN {right_table} ON {foreign_field} = {right_table}.{model_db_pk} "
 
     @property
-    def _db__select(self):
+    def _db__select(self) -> str:
         return self._db__select_all.replace("{ordering}", "WHERE ( {condition} ) {ordering}")
 
     @property
-    def _db__exists(self):
+    def _db__exists(self) -> str:
         return "SELECT EXISTS({})".format(self._db__select)
 
     @property
-    def _db__where(self):
+    def _db__where(self) -> str:
         """chainable"""
         return "WHERE {condition} "
 
     @property
-    def _db__select_m2m(self):
+    def _db__select_m2m(self) -> str:
         return """
             SELECT {select} FROM {other_tablename}
             WHERE {otherdb_pk} = ANY (
@@ -62,7 +66,7 @@ class SQLBaseBackend(object):
         """
 
     @property
-    def _db__update(self):
+    def _db__update(self) -> str:
         return """
             UPDATE ONLY {table_name}
             SET ({field_names}) = ({field_schema})
@@ -71,33 +75,40 @@ class SQLBaseBackend(object):
         """
 
     @property
-    def _db__delete(self):
+    def _db__delete(self) -> str:
         return "DELETE FROM {table_name} WHERE {id_data} "
 
     @property
-    def _db__create_field_index(self):
+    def _db__create_field_index(self) -> str:
         return "CREATE INDEX {index_name} ON {table_name} ({colum_name}) "
 
     @staticmethod
-    def _query_clean(query):
+    def _query_clean(query) -> str:
         """Here we clean the queryset"""
         query += ";"
         return query
 
     @staticmethod
-    def _ordering_syntax(ordering):
-        result = []
+    def _ordering_syntax(ordering: Sequence) -> str:
+        db_ordering = []
         if not ordering:
             return ""
         for f in ordering:
             if f.startswith("-"):
-                result.append(" {} DESC ".format(f[1:]))
+                db_ordering.append(" {} DESC ".format(f[1:]))
             else:
-                result.append(f)
-        result = "ORDER BY {}".format(",".join(result))
-        return result
+                db_ordering.append(f)
+        db_ordering = "ORDER BY {}".format(",".join(db_ordering))
+        return db_ordering
 
-    def _construct_query(self, query_chain):
+    def _construct_query(self, query_chain) -> str:
+        """Construct the query to be sent to de database.
+
+        :param query_chain: iterable with the different subqueries to be constructed.
+        :type query_chain: list(dict)
+        :return: SQL query constructed
+        :rtype: str
+        """
         # here we take the query_chain and convert to a real sql sentence
         res_dict = query_chain.pop(0)
 
