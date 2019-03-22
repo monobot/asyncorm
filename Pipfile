@@ -16,6 +16,7 @@ pytest = "*"
 pytest-asyncio = "*"
 rope = "*"
 Sphinx = "*"
+sphinx-rtd-theme = "*"
 tox = ">=3.7.0<3.8"
 watchdog = "*"
 
