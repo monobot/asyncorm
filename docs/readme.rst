@@ -26,10 +26,6 @@ asyncOrm
     :target: https://pyup.io/account/repos/github/monobot/asyncorm/
     :alt: Packages status
 
-.. image:: https://travis-ci.org/monobot/asyncorm.svg?branch=development
-    :target: https://travis-ci.org/monobot/asyncorm
-    :alt: Build status
-
 .. image:: https://readthedocs.org/projects/asyncorm/badge/?version=development
     :target: http://asyncorm.readthedocs.io/en/development/
     :alt: Documentation Status
