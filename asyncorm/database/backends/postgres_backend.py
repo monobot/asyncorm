@@ -1,5 +1,3 @@
-from typing import Dict, Optional
-
 import asyncpg
 
 from asyncorm.database.backends.sql_base_backend import SQLBaseBackend
@@ -10,13 +8,13 @@ from asyncorm.database.query_stack import QueryStack
 class PostgresBackend(SQLBaseBackend):
     """PostgresBackend serves as interface with the postgres database."""
 
-    def __init__(self, conn_data: Dict) -> None:
+    def __init__(self, conn_data):
         self.test = conn_data.get("test", False)
         self._connection_data = conn_data
         self._connection = None
         self._pool = None
 
-    async def _get_pool(self) -> asyncpg.pool.Pool:
+    async def _get_pool(self):
         """Get a connections pool from the database.
 
         :return: connection pool
@@ -26,7 +24,7 @@ class PostgresBackend(SQLBaseBackend):
             self._pool = await asyncpg.create_pool(**self._connection_data)
         return self._pool
 
-    def get_sync_connection(self, loop: "asyncio.loop") -> asyncpg.connection.Connection:
+    def get_sync_connection(self, loop):
         """Get the connection synchronously.
 
         :param loop: loop that will manage the coroutine.
@@ -37,7 +35,7 @@ class PostgresBackend(SQLBaseBackend):
         loop.run_until_complete(self._get_connection())
         return self._connection
 
-    async def _get_connection(self) -> asyncpg.connection.Connection:
+    async def _get_connection(self):
         """Set a connection to the database.
 
         :return: Connection set
@@ -49,7 +47,7 @@ class PostgresBackend(SQLBaseBackend):
 
         return self._connection
 
-    async def get_cursor(self, query: dict, forward: int, stop: int) -> Cursor:
+    async def get_cursor(self, query, forward, stop):
         """Get a new cursor.
 
         :param query: Query to be constructed.

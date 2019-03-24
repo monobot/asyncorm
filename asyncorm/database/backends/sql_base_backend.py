@@ -1,5 +1,3 @@
-from typing import Sequence
-
 from asyncorm.log import logger
 
 
@@ -7,57 +5,57 @@ class SQLBaseBackend(object):
     """SQLBaseBackend is in charge on constructing the queries using SQL syntaxself."""
 
     @property
-    def _db__create_table(self) -> str:
+    def _db__create_table(self):
         return "CREATE TABLE IF NOT EXISTS {table_name} ({field_queries}) "
 
     @property
-    def _db__drop_table(self) -> str:
+    def _db__drop_table(self):
         return "DROP TABLE IF EXISTS {table_name} CASCADE"
 
     @property
-    def _db__alter_table(self) -> str:
+    def _db__alter_table(self):
         return "ALTER TABLE {table_name} ({field_queries}) "
 
     @property
-    def _db__constrain_table(self) -> str:
+    def _db__constrain_table(self):
         return "ALTER TABLE {table_name} ADD {constrain} "
 
     @property
-    def db__table_add_column(self) -> str:
+    def db__table_add_column(self):
         return "ALTER TABLE {table_name} ADD COLUMN {field_creation_string} "
 
     @property
-    def _db__table_alter_column(self) -> str:
+    def _db__table_alter_column(self):
         return self.db__table_add_column.replace("ADD COLUMN ", "ALTER COLUMN ")
 
     @property
-    def _db__insert(self) -> str:
+    def _db__insert(self):
         return "INSERT INTO {table_name} ({field_names}) VALUES ({field_schema}) RETURNING * "
 
     @property
-    def _db__select_all(self) -> str:
+    def _db__select_all(self):
         return "SELECT {select} FROM {table_name} {join} {ordering}"
 
     @property
-    def _db__select_related(self) -> str:
+    def _db__select_related(self):
         # LEFT JOIN inventory ON inventory.film_id = film.film_id;
         return "LEFT JOIN {right_table} ON {foreign_field} = {right_table}.{model_db_pk} "
 
     @property
-    def _db__select(self) -> str:
+    def _db__select(self):
         return self._db__select_all.replace("{ordering}", "WHERE ( {condition} ) {ordering}")
 
     @property
-    def _db__exists(self) -> str:
+    def _db__exists(self):
         return "SELECT EXISTS({})".format(self._db__select)
 
     @property
-    def _db__where(self) -> str:
+    def _db__where(self):
         """chainable"""
         return "WHERE {condition} "
 
     @property
-    def _db__select_m2m(self) -> str:
+    def _db__select_m2m(self):
         return """
             SELECT {select} FROM {other_tablename}
             WHERE {otherdb_pk} = ANY (
@@ -66,7 +64,7 @@ class SQLBaseBackend(object):
         """
 
     @property
-    def _db__update(self) -> str:
+    def _db__update(self):
         return """
             UPDATE ONLY {table_name}
             SET ({field_names}) = ({field_schema})
@@ -75,21 +73,21 @@ class SQLBaseBackend(object):
         """
 
     @property
-    def _db__delete(self) -> str:
+    def _db__delete(self):
         return "DELETE FROM {table_name} WHERE {id_data} "
 
     @property
-    def _db__create_field_index(self) -> str:
+    def _db__create_field_index(self):
         return "CREATE INDEX {index_name} ON {table_name} ({colum_name}) "
 
     @staticmethod
-    def _query_clean(query) -> str:
+    def _query_clean(query):
         """Here we clean the queryset"""
         query += ";"
         return query
 
     @staticmethod
-    def _ordering_syntax(ordering: Sequence) -> str:
+    def _ordering_syntax(ordering):
         db_ordering = []
         if not ordering:
             return ""
@@ -101,7 +99,7 @@ class SQLBaseBackend(object):
         db_ordering = "ORDER BY {}".format(",".join(db_ordering))
         return db_ordering
 
-    def _construct_query(self, query_chain) -> str:
+    def _construct_query(self, query_chain):
         """Construct the query to be sent to de database.
 
         :param query_chain: iterable with the different subqueries to be constructed.
