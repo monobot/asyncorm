@@ -2,6 +2,9 @@
 History
 =======
 
+0.5.03 (2019-3-23)
+* Support for python3.8 confirmed.
+
 0.5.0 (2019-3-23)
 * Refactor on testing, fixes on makefile and deployment tools.
 
