@@ -1,3 +1,5 @@
+from typing import Dict, Optional
+
 import asyncpg
 
 from asyncorm.database.backends.sql_base_backend import SQLBaseBackend
@@ -8,7 +10,7 @@ from asyncorm.database.query_stack import QueryStack
 class PostgresBackend(SQLBaseBackend):
     """PostgresBackend serves as interface with the postgres database."""
 
-    def __init__(self, conn_data: dict) -> None:
+    def __init__(self, conn_data: Dict) -> None:
         self.test = conn_data.get("test", False)
         self._connection_data = conn_data
         self._connection = None

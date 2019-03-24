@@ -51,7 +51,7 @@ class CharField(Field):
     @classmethod
     def recompose(cls, value):
         if value is not None:
-            return value.replace("\;", ";").replace("\--", "--")
+            return value.replace(r"\;", ";").replace(r"\--", "--")
         return value
 
     def sanitize_data(self, value):
