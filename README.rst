@@ -42,7 +42,7 @@ A fully asynchronous python ORM
 Features
 --------
 
-WARNING: version prebeta !!
+WARNING: alpha version !!
 
 WARNING: Work In Progress !!
 
