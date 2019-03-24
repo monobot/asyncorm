@@ -83,9 +83,8 @@ servedocs: docs
 	watchmedo shell-command -p '*.rst' -c '$(MAKE) -C docs html' -R -D .
 
 release: ## Package and upload a release
-release: clean
-	pipenv run python setup.py sdist upload
-	pipenv run python setup.py bdist_wheel upload
+release: dist
+	pipenv run twine upload dist/*
 
 dist: ## Builds source and wheel package
 dist: clean
