@@ -84,15 +84,15 @@ servedocs: docs
 
 release: ## Package and upload a release
 release: clean
-	python setup.py sdist upload
-	python setup.py bdist_wheel upload
+	pipenv run python setup.py sdist upload
+	pipenv run python setup.py bdist_wheel upload
 
 dist: ## Builds source and wheel package
 dist: clean
-	python setup.py sdist
-	python setup.py bdist_wheel
+	pipenv run python setup.py sdist
+	pipenv run python setup.py bdist_wheel
 	ls -l dist
 
 install: ## Install the package to the active Python's site-packages
 install: clean
-	python setup.py install
+	pipenv run python setup.py install

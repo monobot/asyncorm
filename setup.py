@@ -43,7 +43,7 @@ setup(
     zip_safe=False,
     keywords="asyncorm",
     classifiers=[
-        "Development Status :: 2 - Alpha",
+        "Development Status :: 3 - Alpha",
         "Framework :: AsyncIO",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: Apache Software License",
@@ -51,7 +51,7 @@ setup(
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
-        "Topic :: Database :: ORM",
+        "Topic :: Database",
     ],
     test_suite="tests",
     tests_require=test_requirements,

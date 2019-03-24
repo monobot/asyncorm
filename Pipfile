@@ -21,8 +21,8 @@ tox = ">=3.7.0<3.8"
 watchdog = "*"
 
 [packages]
-asyncpg = "==0.18.3"
-netaddr = "==0.7.19"
+asyncpg = ">=0.18"
+netaddr = ">=0.7"
 
 [requires]
 python_version = "3.6"
