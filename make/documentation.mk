@@ -7,6 +7,7 @@ docs: clean
 	pipenv run $(MAKE) -C docs clean
 	pipenv run $(MAKE) -C docs html
 
+PHONY: servedocs
 servedocs: ##@documentation Compile the docs watching for changes
 servedocs: docs
-	watchmedo shell-command -p '*.rst' -c '$(MAKE) -C docs html' -R -D .
+	pipenv run watchmedo shell-command -p '*.rst' -c '$(MAKE) -C docs html' -R -D .
