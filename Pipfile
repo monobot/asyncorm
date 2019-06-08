@@ -24,6 +24,3 @@ watchdog = "*"
 [packages]
 asyncpg = "<0.19"
 netaddr = "<0.8"
-
-[requires]
-python_version = "3.7"
