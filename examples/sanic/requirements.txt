@@ -1,2 +1,0 @@
-asyncorm>=0.4
-sanic>=18.12
