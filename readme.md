@@ -48,3 +48,5 @@ Python/asyncio.
 
 [netaddr](https://github.com/drkjam/netaddr), A network address
 manipulation library for Python
+
+[ ~ Dependencies scanned by PyUp.io ~ ]
