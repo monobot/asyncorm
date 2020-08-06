@@ -298,7 +298,12 @@ class Model(BaseModel):
                             k = orm
                             break
                 # get the recomposed value
-                field_class = getattr(self.__class__, k)
+                field_class = getattr(self.__class__, k, None)
+
+                # skip, if we were got field not declared in model
+                if field_class is None:
+                    continue
+
                 v = field_class.recompose(v)
 
                 if field_class in [ForeignKey, ManyToManyField]:
