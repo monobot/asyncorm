@@ -73,6 +73,15 @@ class SQLBaseBackend(object):
         """
 
     @property
+    def _db__update_single_field(self):
+        return """
+            UPDATE ONLY {table_name}
+            SET {field_names} = {field_schema}
+            WHERE {id_data}
+            RETURNING *
+        """
+
+    @property
     def _db__delete(self):
         return "DELETE FROM {table_name} WHERE {id_data} "
 
@@ -144,11 +153,15 @@ class SQLBaseBackend(object):
 
         # if we are not counting, then we can assign ordering
         operations = ["COUNT", "MAX", "MIN", "SUM", "AVG", "STDDEV"]
+
+        # we must get error, if we set only one field and update instance
+        if res_dict["action"] == "_db__update" and len(res_dict["field_values"]) == 1:
+            res_dict.update({"action": "_db__update_single_field"})
+
         if res_dict.get("select", "").split("(")[0] not in operations:
             res_dict["ordering"] = self._ordering_syntax(res_dict.get("ordering", []))
         else:
             res_dict["ordering"] = ""
-
         query = getattr(self, res_dict["action"]).format(**res_dict)
         query = self._query_clean(query)
 
