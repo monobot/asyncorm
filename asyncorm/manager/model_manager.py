@@ -28,14 +28,14 @@ class ModelManager(Queryset):
         # performs the database save
         fields, field_data = [], []
 
-        for k, data in instanced_model.data.items():
-            f_class = getattr(instanced_model.__class__, k)
-
-            field_name = f_class.db_column or k
+        field_names_mapping = instanced_model.__class__.orm_attr_names()
+        for column_name, data in instanced_model.data.items():
+            field_name = field_names_mapping[column_name]
+            f_class = getattr(instanced_model.__class__, field_name)
 
             data = f_class.sanitize_data(data)
 
-            fields.append(field_name)
+            fields.append(column_name)
             field_data.append(data)
 
         for field in instanced_model.fields.keys():
