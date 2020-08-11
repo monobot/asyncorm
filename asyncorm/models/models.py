@@ -150,7 +150,9 @@ class BaseModel(object, metaclass=ModelMeta):
                 d[db] = self__orm
 
                 default = self__orm == class__orm.default
-                if created and default:
+                # if value equal to default we set him with insert,
+                # else we should always represent him
+                if not created and default:
                     d.pop(db)
 
         return d
