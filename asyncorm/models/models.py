@@ -171,6 +171,10 @@ class BaseModel(object, metaclass=ModelMeta):
         return d
 
     @classmethod
+    def orm_attr_names(cls):
+        return {v: k for k, v in cls.attr_names.items()}
+
+    @classmethod
     def get_fields(cls):
         fields = {}
 
@@ -298,7 +302,9 @@ class Model(BaseModel):
                             k = orm
                             break
                 # get the recomposed value
-                field_class = getattr(self.__class__, k)
+                field_class = getattr(self.__class__, k, None)
+                if field_class is None:
+                    continue
                 v = field_class.recompose(v)
 
                 if field_class in [ForeignKey, ManyToManyField]:
