@@ -217,7 +217,7 @@ class FieldTests(AsyncormTestCase):
 
     async def test_uuidv4field(self):
         with self.assertRaises(AsyncOrmFieldError) as exc:
-            models.Uuid4Field(uuid_type="mn")
+            models.UUIDField(uuid_type="mn")
 
         self.assertEqual(exc.exception.args[0], "{} is not a recognized type".format("mn"))
 
@@ -310,19 +310,19 @@ class FieldTests(AsyncormTestCase):
     def test_macadressfield_field_validation_error(self):
         dialect = "wrong"
         with self.assertRaises(AsyncOrmFieldError) as exc:
-            models.MACAdressField(dialect=dialect)
+            models.MACAddressField(dialect=dialect)
 
         self.assertEqual(exc.exception.args[0], '"{}" is not a correct mac dialect'.format(dialect))
 
     def test_macadressfield_field_ok(self):
         try:
-            models.MACAdressField().validate("00-1B-77-49-54-FD")
+            models.MACAddressField().validate("00-1B-77-49-54-FD")
         except AsyncOrmFieldError:
             self.fail("unexpectedly exception raised!")
 
     def test_macadressfield_field_error(self):
         with self.assertRaises(AsyncOrmFieldError) as exc:
-            models.MACAdressField().validate("00-1B-77-49-54")
+            models.MACAddressField().validate("00-1B-77-49-54")
 
         self.assertEqual(exc.exception.args[0], "Not a correct MAC address")
 

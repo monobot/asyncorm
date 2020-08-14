@@ -14,12 +14,12 @@ from asyncorm.models.fields import (
     GenericIPAddressField,
     IntegerField,
     JsonField,
-    MACAdressField,
+    MACAddressField,
     ManyToManyField,
     NumberField,
     TextField,
     TimeField,
-    Uuid4Field,
+    UUIDField,
 )
 from asyncorm.models.models import Model
 
@@ -38,12 +38,12 @@ __all__ = (
     "GenericIPAddressField",
     "IntegerField",
     "JsonField",
-    "MACAdressField",
+    "MACAddressField",
     "ManyToManyField",
     "Model",
     "NumberField",
     "TextField",
     "TimeField",
-    "Uuid4Field",
+    "UUIDField",
     "FloatField",
 )

@@ -278,7 +278,7 @@ class JsonField(Field):
         return value
 
 
-class Uuid4Field(Field):
+class UUIDField(Field):
     internal_type = UUID
     args = ("db_column", "db_index", "null", "unique", "uuid_type")
 
@@ -384,7 +384,7 @@ class GenericIPAddressField(Field):
         return value
 
 
-class MACAdressField(Field):
+class MACAddressField(Field):
     internal_type = EUI
     creation_string = "MACADDR"
     args = ("db_column", "db_index", "default", "dialect", "null", "unique")
