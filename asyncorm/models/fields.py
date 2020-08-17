@@ -56,11 +56,11 @@ class CharField(Field):
 
     def sanitize_data(self, value):
         value = super().sanitize_data(value)
-        if len(value) > self.max_length:
+        if value is not None and len(value) > self.max_length:
             raise AsyncOrmFieldError(
                 'The string entered is bigger than the "max_length" defined ({})'.format(self.max_length)
             )
-        return str(value)
+        return str(value) if value is not None else None
 
 
 class EmailField(CharField):
@@ -68,7 +68,7 @@ class EmailField(CharField):
         super(EmailField, self).validate(value)
         # now validate the emailfield here
         email_regex = r"^[\w][\w0-9_.+-]+@[\w0-9-]+\.[\w0-9-.]+$"
-        if not re.match(email_regex, value):
+        if not (value is None and self.null) and not re.match(email_regex, value):
             raise AsyncOrmFieldError('"{}" not a valid email address'.format(value))
 
 
@@ -299,7 +299,7 @@ class UUIDField(Field):
 
     def sanitize_data(self, value):
         exp = r"^[a-zA-Z0-9\-\b]{36}$"
-        if re.match(exp, value):
+        if value is None and self.null or re.match(exp, value):
             return value
         raise AsyncOrmFieldError("The expression doesn't validate as a correct {}".format(self.__class__.__name__))
 

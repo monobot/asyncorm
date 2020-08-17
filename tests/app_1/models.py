@@ -48,5 +48,5 @@ class Book(models.Model):
 class Reader(models.Model):
     name = models.CharField(max_length=15, default="pepito")
     size = models.CharField(choices=SIZE_CHOICES, max_length=2)
-    power = models.CharField(choices=POWER_CHOICES, max_length=2, null=True)
+    power = models.CharField(choices=POWER_CHOICES, max_length=3, null=True)
     weight = models.IntegerField(default=weight)

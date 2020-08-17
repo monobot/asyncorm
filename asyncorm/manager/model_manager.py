@@ -45,7 +45,7 @@ class ModelManager(Queryset):
                 field_name = f_class.db_column or field
                 data = getattr(instanced_model, field)
                 field_has_default = hasattr(instanced_model.fields[field], "default")
-                default_not_none = instanced_model.fields[field].default is not None
+                default_not_none = instanced_model.fields[field].default is not None if field_has_default else False
                 not_auto_field = not isinstance(f_class, AutoField)
                 if data is None and field_has_default and default_not_none and not_auto_field:
                     data = instanced_model.fields[field].default

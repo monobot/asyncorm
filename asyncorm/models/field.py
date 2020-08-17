@@ -1,6 +1,7 @@
 from asyncorm.exceptions import AsyncOrmFieldError
 
 DATE_FIELDS = ["DateField"]
+UUID_FIELDS = ["UUIDField"]
 
 KWARGS_TYPES = {
     "auto_now": bool,
@@ -54,6 +55,8 @@ class Field(object):
                     pass
                 else:
                     self.choices = {k: v for k, v in kwargs.get(kw)}
+            elif kw == "default" and self.field_type in [*DATE_FIELDS, *UUID_FIELDS]:
+                delattr(self, "default")
 
     def creation_query(self):
         """Create the field's database creation query.
@@ -116,10 +119,11 @@ class Field(object):
             * When the value provided is not in the field choices.
             * When the value provided is not in the self.internal_type
         """
-        if value is None and not self.null:
+        auto_date = self.field_type in DATE_FIELDS and self.auto_now
+        if value is None and not self.null and not auto_date:
             raise AsyncOrmFieldError("null value in NOT NULLABLE field")
 
-        if hasattr(self, "choices") and self.choices is not None:
+        if hasattr(self, "choices") and self.choices is not None and value is not None:
             if value not in self.choices.keys():
                 raise AsyncOrmFieldError('"{}" not in field choices'.format(value))
 

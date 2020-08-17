@@ -1,5 +1,6 @@
 import inspect
 import os
+from collections import Callable
 
 from asyncorm.application.configure import get_model
 from asyncorm.exceptions import AsyncOrmFieldError, AsyncOrmModelDoesNotExist, AsyncOrmModelError
@@ -8,6 +9,10 @@ from asyncorm.models.fields import AutoField, Field, ForeignKey, ManyToManyField
 from asyncorm.serializers import ModelSerializer, SerializerMethod
 
 __all__ = ["Model", "ModelSerializer", "SerializerMethod"]
+
+
+class empty:
+    pass
 
 
 class ModelMeta(type):
@@ -90,10 +95,12 @@ class BaseModel(object, metaclass=ModelMeta):
         self.validate_kwargs(kwargs)
 
         for field_name in self.fields.keys():
-            if hasattr(getattr(self.__class__, field_name), "default"):
-                setattr(self, field_name, kwargs.get(field_name, getattr(self.__class__, field_name).default))
-            else:
-                setattr(self, field_name, None)
+            f_cls = getattr(self.__class__, field_name)
+            if field_name in kwargs:
+                setattr(self, field_name, kwargs[field_name])
+            elif hasattr(f_cls, "default"):
+                d_value = f_cls.default
+                setattr(self, field_name, d_value() if isinstance(d_value, Callable) else d_value)
 
     @classmethod
     def cls_tablename(cls):
@@ -142,6 +149,8 @@ class BaseModel(object, metaclass=ModelMeta):
         for orm, db in self.__class__.attr_names.items():
             class__orm = getattr(self.__class__, orm)
             self__orm = getattr(self, orm)
+            if self__orm is class__orm:
+                continue
 
             has_pk = self.orm_pk == orm
             many2many = isinstance(class__orm, ManyToManyField)
@@ -149,10 +158,10 @@ class BaseModel(object, metaclass=ModelMeta):
             if not has_pk and not many2many:
                 d[db] = self__orm
 
-                default = self__orm == class__orm.default
+                is_default = self__orm == getattr(class__orm, "default", empty)
                 # if value equal to default we set him with insert,
                 # else we should always represent him
-                if not created and default:
+                if not created and is_default:
                     d.pop(db)
 
         return d
