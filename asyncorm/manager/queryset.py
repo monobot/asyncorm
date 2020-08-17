@@ -3,7 +3,8 @@ from copy import deepcopy
 
 from asyncpg.exceptions import InsufficientPrivilegeError
 
-from asyncorm.exceptions import AsyncOrmModelError, AsyncOrmMultipleObjectsReturned, AsyncOrmQuerysetError
+from asyncorm.exceptions import AsyncOrmModelError, AsyncOrmMultipleObjectsReturned, AsyncOrmQuerysetError, \
+    AsyncOrmEmptyResult
 from asyncorm.manager.constants import LOOKUP_OPERATOR
 from asyncorm.models.fields import CharField, ForeignKey, ManyToManyField, NumberField
 
@@ -324,6 +325,9 @@ class Queryset(object):
                 if not is_charfield:
                     raise AsyncOrmQuerysetError("{} not allowed in non CharField fields".format(lookup))
                 operator_formater["v"] = field.sanitize_data(v)
+            elif lookup == "in" and isinstance(v, (list, tuple)) and not v:
+                # we can skip this case to avoid error with empty array
+                raise AsyncOrmEmptyResult
             else:
                 if isinstance(v, (list, tuple)):
                     # check they are correct items and serialize
@@ -344,7 +348,10 @@ class Queryset(object):
         return filters
 
     def filter(self, exclude=False, **kwargs):
-        filters = self.calc_filters(kwargs, exclude)
+        try:
+            filters = self.calc_filters(kwargs, exclude)
+        except AsyncOrmEmptyResult:
+            return self.none()
         condition = " AND ".join(filters)
 
         queryset = self.queryset()

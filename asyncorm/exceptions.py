@@ -88,3 +88,8 @@ class AsyncOrmAppError(AsyncormException):
     """Raised when there are class App or configuration errors detected."""
 
     pass
+
+
+class AsyncOrmEmptyResult(AsyncormException):
+    """Raised when query can't match anything"""
+    pass
