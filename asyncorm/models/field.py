@@ -119,8 +119,7 @@ class Field(object):
             * When the value provided is not in the field choices.
             * When the value provided is not in the self.internal_type
         """
-        auto_date = self.field_type in DATE_FIELDS and self.auto_now
-        if value is None and not self.null and not auto_date:
+        if value is None and not self.null:
             raise AsyncOrmFieldError("null value in NOT NULLABLE field")
 
         if hasattr(self, "choices") and self.choices is not None and value is not None:
@@ -138,6 +137,8 @@ class Field(object):
 
     def sanitize_data(self, value):
         """Sanitize the query before send to database."""
+        if value is None and self.null:
+            return
         self.validate(value)
         return value
 

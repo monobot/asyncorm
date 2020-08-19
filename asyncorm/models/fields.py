@@ -60,6 +60,7 @@ class CharField(Field):
             raise AsyncOrmFieldError(
                 'The string entered is bigger than the "max_length" defined ({})'.format(self.max_length)
             )
+
         return str(value) if value is not None else None
 
 
@@ -68,7 +69,7 @@ class EmailField(CharField):
         super(EmailField, self).validate(value)
         # now validate the emailfield here
         email_regex = r"^[\w][\w0-9_.+-]+@[\w0-9-]+\.[\w0-9-.]+$"
-        if not (value is None and self.null) and not re.match(email_regex, value):
+        if not re.match(email_regex, value):
             raise AsyncOrmFieldError('"{}" not a valid email address'.format(value))
 
 
@@ -157,7 +158,10 @@ class DateTimeField(Field):
     strftime = "%Y-%m-%d  %H:%s"
     args = ("auto_now", "choices", "db_column", "db_index", "default", "null", "strftime", "unique")
 
-    def serialize_data(self, value):
+    def sanitize_data(self, value):
+        if value is None and self.null and self.auto_now:
+            return
+        self.validate(value)
         return value
 
     def __init__(
@@ -235,7 +239,7 @@ class ManyToManyField(Field):
 
 
 # other data types
-class JsonField(Field):
+class JsonField(CharField):
     internal_type = dict, list, str
     required_kwargs = ["max_length"]
     creation_string = "JSON"
@@ -260,8 +264,6 @@ class JsonField(Field):
         return json.loads(value)
 
     def sanitize_data(self, value):
-        self.validate(value)
-
         if value is not None:
             if isinstance(value, str):
                 try:
@@ -270,10 +272,7 @@ class JsonField(Field):
                     raise AsyncOrmFieldError("The data entered can not be converted to json")
             value = json.dumps(value)
 
-        if len(value) > self.max_length:
-            raise AsyncOrmFieldError(
-                'The string entered is bigger than the "max_length" defined ({})'.format(self.max_length)
-            )
+        value = super().sanitize_data(value)
 
         return value
 
@@ -298,8 +297,9 @@ class UUIDField(Field):
         return "UUID DEFAULT {}()".format(uuid_types[self.uuid_type])
 
     def sanitize_data(self, value):
+        value = super().sanitize_data(value)
         exp = r"^[a-zA-Z0-9\-\b]{36}$"
-        if value is None and self.null or re.match(exp, value):
+        if re.match(exp, value):
             return value
         raise AsyncOrmFieldError("The expression doesn't validate as a correct {}".format(self.__class__.__name__))
 
