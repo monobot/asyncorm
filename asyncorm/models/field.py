@@ -55,7 +55,7 @@ class Field(object):
                     pass
                 else:
                     self.choices = {k: v for k, v in kwargs.get(kw)}
-            elif kw == "default" and self.field_type in [*DATE_FIELDS, *UUID_FIELDS]:
+            elif kw == "default" and kwargs[kw] is None and self.field_type in [*DATE_FIELDS, *UUID_FIELDS]:
                 delattr(self, "default")
 
     def creation_query(self):
