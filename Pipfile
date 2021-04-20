@@ -22,5 +22,5 @@ twine = "*"
 watchdog = "*"
 
 [packages]
-asyncpg = "<0.19"
+asyncpg = "<0.22"
 netaddr = "<0.8"
